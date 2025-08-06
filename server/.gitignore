@@ -1,0 +1,29 @@
+# Node modules and environment files
+node_modules/
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: OS-specific files
+.DS_Store
+Thumbs.db
+
+# Optional: Application build output
+dist/
+build/
+
+# Optional: Coverage reports
+coverage/
+
+# Optional: Miscellaneous IDE/editor folders
+.vscode/
+.idea/
+*.swp
+
+# Optional: Local data, debug and test folders
+*.local
+*.sublime-workspace
+*.code-workspace
