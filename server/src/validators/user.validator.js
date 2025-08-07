@@ -12,7 +12,7 @@ export const userRegistrationSchema = z.object({
     .min(8, { message: 'Password must be at least 8 characters long' })
     .regex(/[0-9]/, { message: 'Password must have at least one number' }),
 
-  role: z.enum(['Job_seeker', 'Employer'], {}).optional(),
+  userType: z.enum(['worker', 'employer'], {}).optional(),
 
   phone: z
     .string()

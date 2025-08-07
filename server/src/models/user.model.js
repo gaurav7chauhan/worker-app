@@ -16,9 +16,14 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    role: {
+    userType: {
       type: String,
-      enum: ['job_seeker', 'employer'],
+      enum: ['worker', 'employer'],
+      required: true,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
     },
     phone: {
       type: String,

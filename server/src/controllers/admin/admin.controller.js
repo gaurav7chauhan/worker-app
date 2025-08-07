@@ -1,5 +1,6 @@
 import { rateLimiter } from '../../config';
 import { Admin } from '../../models/admin.model';
+import { User } from '../../models/user.model';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -48,6 +49,73 @@ export const adminLogin = asyncHandler(async (req, res) => {
     new ApiResponse(200, 'Login successful', {
       admin: adminObj,
       accessToken: accessToken,
+    })
+  );
+});
+
+export const blockUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  user.isBlocked = true;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User blocked successfully'));
+});
+
+export const unblockUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  user.isBlocked = false;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User unblocked successfully'));
+});
+
+export const deleteUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findByIdAndDelete(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User deleted successfully'));
+});
+
+export const getUsers = asyncHandler(async (req, res) => {
+  const { userType, isBlocked } = req.query;
+
+  let filter = {};
+
+  if (userType) {
+    filter.userType = userType;
+  }
+
+  if (typeof isBlocked !== 'undefined') {
+    filter.isBlocked = isBlocked === 'true';
+  }
+
+  const users = await User.find(filter).select('-password');
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Users fetched successfully', {
+      users,
     })
   );
 });

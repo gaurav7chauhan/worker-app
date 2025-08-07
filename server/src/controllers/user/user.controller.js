@@ -26,7 +26,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     fullName,
     email,
     password,
-    role,
+    userType,
     agreeTerms,
     phone,
     location,
@@ -60,7 +60,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     fullName,
     email,
     password,
-    role,
+    userType,
     phone,
     location,
     agreeTerms,
@@ -98,6 +98,11 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { email, password, otp, type } = result.data;
 
   const existingUser = await User.findOne({ email });
+
+  if (existingUser?.isBlocked) {
+    throw new ApiError(403, 'Your account has been blocked by admin');
+  }
+
   if (!existingUser) {
     throw new ApiError(404, 'User not found with this email');
   }
@@ -259,7 +264,3 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, 'Password updated successfully'));
 });
-
-
-//A3nEown6iWUIoVGC
-//gc14112002
