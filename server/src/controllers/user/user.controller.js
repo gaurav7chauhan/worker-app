@@ -1,10 +1,15 @@
+import { RefreshSession } from '../../models/refreshSession.model';
 import { User } from '../../models/user.model';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig';
 import { cookieOptions } from '../../utils/cookieOptions';
-import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../../utils/jwt';
 import { verifyOTP } from '../../utils/verifyOtp';
 import {
   userForgotPasswordSchema,
@@ -75,7 +80,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   delete userObj.password; // Remove password from response
 
   const accessToken = generateAccessToken(newUser._id);
-  const refreshToken = generateRefreshToken(newUser._id);
+  const refreshToken = generateRefreshToken(newUser._id, 'user');
 
   res.cookie('refreshToken', refreshToken, cookieOptions);
 
@@ -119,7 +124,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   delete userObj.password;
 
   const accessToken = generateAccessToken(existingUser._id);
-  const refreshToken = generateRefreshToken(existingUser._id);
+  const refreshToken = generateRefreshToken(existingUser._id, 'user');
 
   res.cookie('refreshToken', refreshToken, cookieOptions);
 
@@ -132,10 +137,40 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 // logout user
-export const logoutUser = (req, res) => {
-  res.clearCookie('refreshToken', cookieOptions);
+export const logoutUser = async (req, res) => {
+  try {
+    const refreshToken = res.cookies?.refreshToken;
 
-  res.status(200).json(new ApiResponse(200, 'User logged out successfully'));
+    if (!refreshToken) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, 'Refresh token not found'));
+    }
+
+    const decoded = await verifyRefreshToken(refreshToken);
+
+    if (!decoded) {
+      // Invalid or expired refresh token, clear cookie and return success anyway
+      res.clearCookie('refreshToken', cookieOptions);
+      return res
+        .status(200)
+        .json(new ApiResponse(200, 'User logged out successfully'));
+    }
+
+    const { jti, _id: principalId, principalType } = decoded;
+
+    await RefreshSession.findOneAndUpdate(
+      { jti, principalId, revoked: false, principalType },
+      { revoked: true },
+      { new: true }
+    );
+
+    res.clearCookie('refreshToken', cookieOptions);
+   
+    return res
+      .status(200)
+      .json(new ApiResponse(200, 'User logged out successfully'));
+  } catch (error) {}
 };
 
 // get user profile
