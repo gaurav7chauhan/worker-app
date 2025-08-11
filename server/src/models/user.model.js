@@ -25,11 +25,6 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    phone: {
-      type: String,
-      match: /^\+?\d{10,15}$/,
-      required: false,
-    },
     location: {
       type: String,
       required: false,

@@ -1,4 +1,5 @@
 import { User } from '../../models/user.model';
+import { verifyOtp } from '../../services/otp.service';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -6,34 +7,24 @@ import { uploadOnCloudinary } from '../../utils/cloudinaryConfig';
 import { cookieOptions } from '../../utils/cookieOptions';
 import { globalLogout } from '../../utils/globalLogout ';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
-import { verifyOTP } from '../../utils/verifyOtp';
 import {
   userForgotPasswordSchema,
   userLoginSchema,
   userPasswordUpdateSchema,
   userRegistrationSchema,
-  userUpdateSchema,
+  userEmailUpdateSchema,
 } from '../../validators/user.validator';
 
 // user registration
 export const registerUser = asyncHandler(async (req, res) => {
-  const result = userRegistrationSchema.parse(req.body);
+  const result = userRegistrationSchema.safeParse(req.body);
 
   if (!result.success) {
     return res.status(400).json({ message: result.error.errors[0].message });
   }
 
-  const {
-    fullName,
-    email,
-    password,
-    userType,
-    agreeTerms,
-    phone,
-    location,
-    otp,
-    type,
-  } = result.data;
+  const { fullName, email, password, userType, agreeTerms, location, otp } =
+    result.data;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -43,6 +34,7 @@ export const registerUser = asyncHandler(async (req, res) => {
       .json({ message: 'User already exists with this email' });
   }
 
+  // Validate profile image
   if (!req.file && !req.file.path) {
     return res.status(400).json({ message: 'Profile image is required' });
   }
@@ -53,16 +45,20 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 
   // we remove this "if method" when used in production
-  if (otp && type) {
-    await verifyOTP(email, otp, type);
+  if (otp) {
+    await verifyOtp(email, otp, 'register');
   }
+  // instead we do this and deleted upper code
+  // if (!otp || !type) {
+  //   throw new ApiError(400, 'OTP and type are required');
+  // }
+  // await verifyOtp(email, otp, type);
 
   const newUser = await User.create({
     fullName,
     email,
     password,
     userType,
-    phone,
     location,
     agreeTerms,
     profileImage: uploadImage.secure_url,
@@ -112,9 +108,15 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'Incorrect password');
   }
 
-  if (otp && type) {
-    await verifyOTP(email, otp, type);
+  if (otp) {
+    await verifyOtp(email, otp, 'login');
   }
+
+  // instead we do this and deleted upper code
+  // if (!otp || !type) {
+  //   throw new ApiError(400, 'OTP and type are required');
+  // }
+  // await verifyOtp(email, otp, type);
 
   const userObj = existingUser.toObject();
   delete userObj.password;
@@ -151,43 +153,51 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 
 // update user profile
 export const updateUserProfile = asyncHandler(async (req, res) => {
-  const result = userUpdateSchema.safeParse(req.body);
+  const result = userEmailUpdateSchema.safeParse(req.body);
 
   if (!result.success) {
     return res.status(400).json({ message: result.error.errors[0].message });
   }
 
-  const { fullName, email, phone, location } = result.data;
+  const { otp, email, password } = result.data;
   const userId = req.user._id;
 
-  let uploadImage;
-
-  if (req.file && req.file.path) {
-    uploadImage = await uploadOnCloudinary(req.file.path);
-
-    if (!uploadImage) {
-      return res.status(500).json({ message: 'Image upload failed' });
-    }
+  // 1. Check if the new email is already in use
+  const emailExists = await User.findOne({ email });
+  if (emailExists) {
+    throw new ApiError(400, 'Email already exists');
   }
 
-  const updatedFields = {};
-  if (uploadImage) updatedFields.profileImage = uploadImage.secure_url;
-  if (fullName) updatedFields.fullName = fullName;
-  if (email) updatedFields.email = email;
-  if (phone) updatedFields.phone = phone;
-  if (location) updatedFields.location = location;
-
-  const updateUser = await User.findByIdAndUpdate(userId, updatedFields, {
-    new: true,
-  }).select('-password');
-
-  if (!updateUser) {
+  // 2. Get current user
+  const existingUser = await User.findById(userId);
+  if (!existingUser) {
     throw new ApiError(404, 'User not found');
   }
 
+  // 3. Check current password
+  const isPasswordValid = await existingUser.isPasswordMatch(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, 'Password is incorrect'); // 401 for auth failure
+  }
+
+  if (otp) {
+    await verifyOtp(email, otp, 'update');
+    // instead we do this and deleted upper code
+    // if (!otp || !type) {
+    //   throw new ApiError(400, 'OTP and type are required');
+    // }
+    // await verifyOtp(email, otp, 'update');
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { email },
+    { new: true } // set `true` if you want only updated fields validated
+  ).select('-password');
+
   res.status(200).json(
-    new ApiResponse(200, 'User profile updated successfully', {
-      user: updateUser,
+    new ApiResponse(200, 'Email updated successfully', {
+      user: updatedUser,
     })
   );
 });
@@ -261,3 +271,5 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, 'Password updated successfully'));
 });
+
+export const userBio = asyncHandler(async (req, res) => {});
