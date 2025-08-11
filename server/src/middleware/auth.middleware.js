@@ -16,6 +16,7 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // in this it is insensitive of letter
   if (scheme.toLowerCase() !== 'bearer') {
     throw new ApiError(401, 'Authorization scheme must be Bearer');
   }

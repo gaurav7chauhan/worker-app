@@ -1,15 +1,11 @@
-import { RefreshSession } from '../../models/refreshSession.model';
 import { User } from '../../models/user.model';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig';
 import { cookieOptions } from '../../utils/cookieOptions';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from '../../utils/jwt';
+import { globalLogout } from '../../utils/globalLogout ';
+import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
 import { verifyOTP } from '../../utils/verifyOtp';
 import {
   userForgotPasswordSchema,
@@ -137,41 +133,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 // logout user
-export const logoutUser = async (req, res) => {
-  try {
-    const refreshToken = res.cookies?.refreshToken;
-
-    if (!refreshToken) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, 'Refresh token not found'));
-    }
-
-    const decoded = await verifyRefreshToken(refreshToken);
-
-    if (!decoded) {
-      // Invalid or expired refresh token, clear cookie and return success anyway
-      res.clearCookie('refreshToken', cookieOptions);
-      return res
-        .status(200)
-        .json(new ApiResponse(200, 'User logged out successfully'));
-    }
-
-    const { jti, _id: principalId, principalType } = decoded;
-
-    await RefreshSession.findOneAndUpdate(
-      { jti, principalId, revoked: false, principalType },
-      { revoked: true },
-      { new: true }
-    );
-
-    res.clearCookie('refreshToken', cookieOptions);
-   
-    return res
-      .status(200)
-      .json(new ApiResponse(200, 'User logged out successfully'));
-  } catch (error) {}
-};
+export const logoutUser = globalLogout;
 
 // get user profile
 export const getUserProfile = asyncHandler(async (req, res) => {

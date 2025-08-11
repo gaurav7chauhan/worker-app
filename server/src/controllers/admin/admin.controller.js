@@ -1,12 +1,12 @@
 import { rateLimiter } from '../../config';
 import { Admin } from '../../models/admin.model';
-import { RefreshSession } from '../../models/refreshSession.model';
 import { User } from '../../models/user.model';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { cookieOptions } from '../../utils/cookieOptions';
-import { generateAccessToken, verifyRefreshToken } from '../../utils/jwt';
+import { globalLogout } from '../../utils/globalLogout ';
+import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
 
 export const adminLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -121,34 +121,5 @@ export const getUsers = asyncHandler(async (req, res) => {
   );
 });
 
-export const adminLogout = asyncHandler(async (req, res) => {
-  try {
-    const refreshToken = res.cookies?.refreshToken;
-    if (!refreshToken) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, 'Refresh token not found'));
-    }
-
-    const decoded = await verifyRefreshToken(refreshToken);
-    if (!decoded) {
-      res.clearCookie('refreshToken', cookieOptions);
-      return res
-        .status(200)
-        .json(new ApiResponse(200, 'Admin logged out successfully'));
-    }
-
-    const { jti, _id: principalId, principalType } = decoded;
-
-    await RefreshSession.findOneAndUpdate(
-      { jti, principalId, revoked: false, principalType},
-      { revoked: true }
-    );
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, 'Admin logged out successfully'));
-  } catch (error) {
-    return next(error);
-  }
-});
+export const adminLogout = globalLogout;
+// no await bcs we pass reff not calling fnx
