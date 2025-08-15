@@ -1,4 +1,5 @@
 import { User } from '../../models/user.model';
+import { UserBio } from '../../models/userBio.model';
 import { verifyOtp } from '../../services/otp.service';
 import { ApiError } from '../../utils/apiError';
 import { ApiResponse } from '../../utils/apiResponse';
@@ -13,6 +14,7 @@ import {
   userPasswordUpdateSchema,
   userRegistrationSchema,
   userEmailUpdateSchema,
+  userBioSchema,
 } from '../../validators/user.validator';
 
 // user registration
@@ -152,7 +154,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 // update user profile
-export const updateUserProfile = asyncHandler(async (req, res) => {
+export const updateUserEmail = asyncHandler(async (req, res) => {
   const result = userEmailUpdateSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -272,4 +274,43 @@ export const resetPassword = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, 'Password updated successfully'));
 });
 
-export const userBio = asyncHandler(async (req, res) => {});
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const result = userBioSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({ message: result.error.errors[0].message });
+  }
+
+  const userId = req.user._id;
+
+  const updatedFields = Object.fromEntries(
+    Object.entries(result.data).filter(
+      ([_, value]) => value !== undefined && value !== null && value !== ''
+    )
+  );
+
+  const userData = await UserBio.findOneAndUpdate(
+    { owner: userId },
+    { $set: updatedFields },
+    { new: true }
+  );
+
+  let createUserBio;
+
+  if (!userData) {
+    createUserBio = await UserBio.create({
+      owner: userId,
+      ...updatedFields,
+    });
+
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(201, 'User Bio created successfully', createUserBio)
+      );
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User Bio updated successfully', userData));
+});

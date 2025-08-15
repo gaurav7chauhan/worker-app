@@ -1,42 +1,35 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
-    fullName: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    userType: {
-      type: String,
-      enum: ['worker', 'employer'],
-      required: true,
-    },
-    isBlocked: {
-      type: Boolean,
-      default: false,
-    },
-    location: {
-      type: String,
-      required: false,
-      minlength: 2,
-    },
-    agreeTerms: {
-      type: Boolean,
-      required: true,
-    },
-    profileImage: {
-      type: String,
-    },
+    fullName: { type: String, required: true },
+
+    email: { type: String, required: true, unique: true },
+
+    password: { type: String, required: true },
+
+    userType: { type: String, enum: ['worker', 'employer'], required: true },
+
+    isBlocked: { type: Boolean, default: false },
+
+    location: { type: String, minlength: 2 },
+
+    agreeTerms: { type: Boolean, required: true },
+
+    profileImage: String,
+
+    averageRating: { type: Number, default: 0 }, // ← add this for rating
+
+    ratings: [
+      {
+        // ← add this for rating history
+        fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        job: { type: mongoose.Schema.Types.ObjectId, ref: 'JobPost' },
+        rating: { type: Number, min: 1, max: 5 },
+        tags: [{ type: String }],
+      },
+    ],
   },
   { timestamps: true }
 );

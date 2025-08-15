@@ -1,4 +1,4 @@
-import { rateLimiter } from '../../config';
+import { rateLimiter } from '../../../config/rateLimiterConfig.js';
 import { Admin } from '../../models/admin.model';
 import { User } from '../../models/user.model';
 import { ApiError } from '../../utils/apiError';

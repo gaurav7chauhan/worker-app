@@ -2,16 +2,18 @@ import mongoose from 'mongoose';
 
 const userBio = new mongoose.Schema(
   {
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    
     fullName: { type: String, minlength: 2 },
-    
+
     userType: { type: String, enum: ['worker', 'employer'] },
-   
+
     location: { type: String, minlength: 2 },
-    
+
     experience: { type: Number, min: 0, max: 50 },
-    
+
     skills: [{ type: String }],
-   
+
     preferredCategory: {
       type: String,
       enum: [
@@ -22,7 +24,7 @@ const userBio = new mongoose.Schema(
         'General Manual Labor',
       ],
     },
-   
+
     education: {
       type: String,
       enum: ['10th Pass', '12th Pass', 'Intermediate', 'College'],
@@ -33,11 +35,11 @@ const userBio = new mongoose.Schema(
       type: String,
       enum: ['English', 'Hindi'],
     },
-   
+
     availability: { type: String, enum: ['Full-time', 'Part-time', 'Shifts'] },
-   
+
     phone: { type: String, match: /^\+?\d{10,15}$/ },
-   
+
     summary: { type: String, maxlength: 300 },
   },
   { timestamps: true }
