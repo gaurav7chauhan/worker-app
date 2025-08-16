@@ -10,31 +10,23 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 export const setUserRating = asyncHandler(async (req, res) => {
   const { targetUserId, jobId, rating, tags } = req.body;
 
-  // 1️⃣ Required fields check
   if (!targetUserId || !jobId || !rating) {
     throw new ApiError(400, 'Missing required fields');
   }
 
-  // 2️⃣ Rating must be from 1 to 5
   if (rating < 1 || rating > 5) {
     throw new ApiError(400, 'Rating must be from 1 to 5');
   }
 
-  // 3️⃣ If you want to enforce min 3 tags, uncomment this:
-  // if (!Array.isArray(tags) || tags.length < 3) {
-  //   throw new ApiError(400, 'Select at least 3 tags');
-  // }
-
-  // 4️⃣ Check job exists and is completed
   const job = await JobPost.findById(jobId);
   if (!job || job.status !== 'Completed') {
     throw new ApiError(400, 'Job not completed or not found');
   }
 
-  // 5️⃣ Make sure both people are part of the job
+  // Make sure both people are part of the job
   const raterId = req.user._id.toString();
-  const participants = [job.owner.toString(), job.selectedWorker.toString()];
 
+  const participants = [job.owner.toString(), job.selectedWorker.toString()];
   if (
     !(participants.includes(targetUserId) && participants.includes(raterId))
   ) {
@@ -44,21 +36,22 @@ export const setUserRating = asyncHandler(async (req, res) => {
     );
   }
 
-  // 6️⃣ Validate tags based on job category and rating
+  // Validate tags based on job category and rating
   const allowedTags = ratingTagsConfig[job.category]?.[rating] || [];
+
   const invalidTags = tags.filter((tag) => !allowedTags.includes(tag));
   if (invalidTags.length > 0) {
     // ✅ Fixed bug: was "invalidTags > 0"
     throw new ApiError(400, `Invalid tags: ${invalidTags.join(', ')}`);
   }
 
-  // 7️⃣ Find the user who is being rated
+  // Find the user who is being rated
   const userToRate = await User.findById(targetUserId);
   if (!userToRate) {
     throw new ApiError(404, 'User to rate not found');
   }
 
-  // 8️⃣ Prevent duplicate rating for the same job by same user
+  // Prevent duplicate rating for the same job by same user
   const alreadyRated = userToRate.ratings.find(
     (r) => r.job.toString() === jobId && r.fromUser.toString() === raterId
   );
@@ -66,22 +59,18 @@ export const setUserRating = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'You already rated this user for this job');
   }
 
-  // 9️⃣ Add the new rating to the user's ratings array
-  userToRate.ratings.push({
-    fromUser: raterId,
-    job: jobId,
-    rating,
-    tags,
-  });
-
-  // 🔟 Recalculate average rating
+  // Recalculate average rating
   const total = userToRate.ratings.reduce((sum, r) => sum + r.rating, 0);
-  userToRate.averageRating = total / userToRate.ratings.length;
+  const newAverage = total / userToRate.ratings.length;
 
-  // 1️⃣1️⃣ Save user changes
-  await userToRate.save();
+  await User.updateOne(
+    { _id: targetUserId },
+    {
+      $push: { ratings: { fromUser: raterId, job: jobId, rating, tags } },
+      $set: { averageRating: newAverage },
+    }
+  );
 
-  // 1️⃣2️⃣ Send success response
   res
     .status(200)
     .json(new ApiResponse(200, 'Rating submitted successfully', userToRate));
@@ -90,7 +79,7 @@ export const setUserRating = asyncHandler(async (req, res) => {
 // get user rating
 
 export const getUserRating = asyncHandler(async (req, res) => {
-  const targetUserId = req.params.userId || req.user._id;
+  const targetUserId = req.params?.userId || req.user._id;
 
   const user = await User.findById(targetUserId).select(
     'averageRating ratings'
@@ -152,8 +141,7 @@ export const getMyGivenRatings = asyncHandler(async (req, res) => {
   // Step 1: Find all users who have received a rating from me
   const users = await User.find({ 'ratings.fromUser': loggedInUserId })
     .select('fullName profileImage ratings')
-    .populate('ratings.job', 'title') // optional: job title
-    .populate('ratings.fromUser', 'fullName'); // optional: rater info;
+    .populate('ratings.job', 'title'); // optional: job title
 
   const myRatings = [];
 

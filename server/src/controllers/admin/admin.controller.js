@@ -109,6 +109,8 @@ export const getUsers = asyncHandler(async (req, res) => {
   }
 
   if (typeof isBlocked !== 'undefined') {
+    // if isBlocked is true so set if no then set false
+
     filter.isBlocked = isBlocked === 'true';
   }
 
@@ -123,3 +125,41 @@ export const getUsers = asyncHandler(async (req, res) => {
 
 export const adminLogout = globalLogout;
 // no await bcs we pass reff not calling fnx
+
+export const deleteUserAvgRating = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      averageRating: null,
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    throw new ApiError(404, 'User average ratings not deleted or not find');
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User average ratings deleted successfully'));
+});
+
+export const deleteUserHistoryRatings = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      ratings: [],
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    throw new ApiError(404, 'User ratings not deleted or not find');
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'User ratings deleted successfully'));
+});
