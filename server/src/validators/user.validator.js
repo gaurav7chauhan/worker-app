@@ -16,10 +16,10 @@ export const userRegistrationSchema = z.object({
 
   location: z
     .string()
-    .optional()
-    .min(2, { message: 'Location must be at least 2 characters' }),
+    .min(2, { message: 'Location must be at least 2 characters' })
+    .optional(),
 
-  agreeTerms: z.boolean({ required_error: 'You must agree to the terms' }),
+  agreeTerms: z.boolean({ required_error: 'You must agree to the terms' }).optional(),
 
   otp: z.string().length(4).optional(),
 });

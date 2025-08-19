@@ -1,12 +1,12 @@
-import { User } from '../../models/user.model';
+import { User } from '../models/user.model';
 import { ApiResponse } from '../../utils/apiResponse';
 import { asyncHandler } from '../../utils/asyncHandler';
-import { cookieOptions } from '../../utils/cookieOptions';
+import { cookieOptions } from '../utils/cookieOptions';
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
-} from '../../utils/jwt';
+} from '../utils/jwt';
 
 export const refreshAccessTokens = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken;

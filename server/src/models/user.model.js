@@ -13,9 +13,9 @@ const userSchema = new mongoose.Schema(
 
     isBlocked: { type: Boolean, default: false },
 
-    location: { type: String, minlength: 2 },
+    location: { type: String, minlength: 2, required: false },
 
-    agreeTerms: { type: Boolean, required: true },
+    agreeTerms: { type: Boolean, required: false },
 
     profileImage: String,
 

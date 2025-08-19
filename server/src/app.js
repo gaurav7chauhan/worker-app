@@ -1,6 +1,9 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { ZodError } from 'zod';
+import { adminLogin } from './controllers/admin/admin.js';
+import { registerUser } from './controllers/user/user.js';
 
 const app = express();
 
@@ -19,11 +22,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
+app.post('/admin/login', adminLogin);
+app.post('/user/register', registerUser);
 // for global error handling
-import { ZodError } from 'zod';
 
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Error:', err); 
 
   if (err instanceof ZodError) {
     return res.status(400).json({

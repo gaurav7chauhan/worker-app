@@ -1,16 +1,14 @@
-import Redis from 'ioredis';
-const redisClient = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
+import { createClient } from 'redis';
+
+export const client = createClient({
+  username: 'default',
+  password: '7VFSq9URwMGTxxfS5wheGlpRItWrh821',
+  socket: {
+    host: 'redis-10971.c1.ap-southeast-1-1.ec2.redns.redis-cloud.com',
+    port: 10971,
+  },
 });
 
-import { RateLimiterRedis } from 'rate-limiter-flexible';
-const maxWrongAttemptsByIPperHour = 5;
+client.on('error', (err) => console.log('Redis Client Error', err));
 
-export const rateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'adminlogin_fail_ip',
-  points: maxWrongAttemptsByIPperHour, // 5 points
-  duration: 60 * 15, // Per 15 minutes
-  blockDuration: 60 * 15, // Block for 15 minutes if exceeded
-});
+await client.connect();

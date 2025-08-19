@@ -1,17 +1,12 @@
-import { cookieOptions } from './cookieOptions';
-import { ApiResponse } from './apiResponse';
-import { ApiError } from './apiError';
-import { verifyRefreshToken } from './jwt';
-import { RefreshSession } from '../models/refreshSession.model';
-import { asyncHandler } from './asyncHandler';
+import { cookieOptions } from './cookieOptions.js';
+import { verifyRefreshToken } from './jwt.js';
+import { RefreshSession } from '../models/refreshSession.model.js';
 
-export const globalLogout = asyncHandler(async (req, res, next) => {
+export const globalLogout = async (req, res, next) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, 'Refresh token not found'));
+      return res.status(400).json({ message: 'Refresh token not found' });
     }
 
     const decoded = await verifyRefreshToken(refreshToken);
@@ -33,8 +28,12 @@ export const globalLogout = asyncHandler(async (req, res, next) => {
     res.clearCookie('refreshToken', cookieOptions);
     return res
       .status(200)
-      .json(new ApiResponse(200, `${principalType} logged out globally`, {revokedCount: result.modifiedCount}));
+      .json(
+        new ApiResponse(200, `${principalType} logged out globally`, {
+          revokedCount: result.modifiedCount,
+        })
+      );
   } catch (error) {
     return next(error);
   }
-});
+};

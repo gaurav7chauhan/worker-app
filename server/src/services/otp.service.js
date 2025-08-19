@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import { Otp } from '../models/otp.model.js';
-import { ApiError } from '../utils/apiError.js';
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
@@ -63,7 +62,7 @@ export const verifyOtp = async (email, otp, type) => {
   );
 
   if (!existingOtp) {
-    throw new ApiError(400, 'Invalid, expired, or already used OTP');
+    return res.status(400).json({message:'Invalid, expired, or already used OTP'});
   }
 
   return true;
