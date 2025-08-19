@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { ZodError } from 'zod';
 import { adminLogin } from './controllers/admin/admin.js';
-import { registerUser } from './controllers/user/user.js';
+import { loginUser, registerUser } from './controllers/user/user.js';
 
 const app = express();
 
@@ -24,6 +24,7 @@ app.use(express.static('public'));
 
 app.post('/admin/login', adminLogin);
 app.post('/user/register', registerUser);
+app.post('/user/login', loginUser);
 // for global error handling
 
 app.use((err, req, res, next) => {

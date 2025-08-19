@@ -10,24 +10,26 @@ import {
 } from '../../validators/user.validator.js';
 import mongoose from 'mongoose';
 
+// registration
+
 export const registerUser = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
 
     const result = userRegistrationSchema.safeParse(req.body);
+
     if (!result.success) {
       await session.abortTransaction();
+
       let errorMessage = 'Invalid input';
-      if (
-        result.error &&
-        Array.isArray(result.error.issues) &&
-        result.error.issues.length > 0
-      ) {
-        if (result.error.issues[0].code === 'invalid_type') {
-          errorMessage = `${result.error.issues[0].path[0]} is required`;
+      const issues = result.error.issues;
+
+      if (result.error && Array.isArray(issues) && issues.length > 0) {
+        if (issues[0].code === 'invalid_type') {
+          errorMessage = `${issues[0].path[0]} is required`;
         } else {
-          errorMessage = result.error.issues[0].message;
+          errorMessage = issues[0].message;
         }
       }
 
@@ -94,6 +96,7 @@ export const registerUser = async (req, res) => {
     delete userObj.password;
     delete userObj.ratings;
     delete userObj.averageRating;
+    delete userObj.isBlocked;
 
     const accessToken = generateAccessToken(newUser._id);
     const refreshToken = generateRefreshToken(newUser._id, 'user');
@@ -119,14 +122,33 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// login
+
 export const loginUser = async (req, res) => {
+  const session = await mongoose.startSession();
+  console.log('hello');
   try {
+    session.startTransaction();
+
     const result = userLoginSchema.safeParse(req.body);
+
     if (!result.success) {
-      return res.status(400).json({ message: result.error.errors[0].message });
+      let errorMessage = 'Invalid input';
+      const issues = result.error.issues;
+
+      await session.abortTransaction();
+
+      if (result.error && Array.isArray(issues) && issues.length > 0) {
+        if (issues[0].code === 'invalid_type') {
+          errorMessage = `${issues[0].path[0]} is required`;
+        } else {
+          errorMessage = issues[0].message;
+        }
+      }
+      return res.status(400).json({ message: errorMessage });
     }
 
-    const { email, password, otp, type } = result.data;
+    const { email, password, otp } = result.data;
 
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
@@ -151,6 +173,7 @@ export const loginUser = async (req, res) => {
 
     const userObj = existingUser.toObject();
     delete userObj.password;
+    delete userObj.isBlocked;
 
     const accessToken = generateAccessToken(existingUser._id);
     const refreshToken = generateRefreshToken(existingUser._id, 'user');
@@ -170,5 +193,7 @@ export const loginUser = async (req, res) => {
       .json({ message: err?.message || 'Internal server error' });
   }
 };
+
+// logout
 
 export const logoutUser = globalLogout;
