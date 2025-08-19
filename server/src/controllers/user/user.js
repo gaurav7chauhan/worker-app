@@ -18,13 +18,25 @@ export const registerUser = async (req, res) => {
     const result = userRegistrationSchema.safeParse(req.body);
     if (!result.success) {
       await session.abortTransaction();
+      let errorMessage = 'Invalid input';
+      if (
+        result.error &&
+        Array.isArray(result.error.issues) &&
+        result.error.issues.length > 0
+      ) {
+        if (result.error.issues[0].code === 'invalid_type') {
+          errorMessage = `${result.error.issues[0].path[0]} is required`;
+        } else {
+          errorMessage = result.error.issues[0].message;
+        }
+      }
+
       return res.status(400).json({
-        message: result.error.errors?.[0]?.message || 'Invalid input',
+        message: errorMessage,
       });
     }
 
-    const { fullName, email, password, userType, agreeTerms, location, otp } =
-      result.data;
+    const { fullName, email, password, userType, location, otp } = result.data;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email }).session(session);
@@ -36,6 +48,7 @@ export const registerUser = async (req, res) => {
     }
 
     // Validate profile image
+
     if (!req.file || !req.file.path) {
       await session.abortTransaction();
       return res.status(400).json({ message: 'Profile image is required' });
@@ -43,6 +56,7 @@ export const registerUser = async (req, res) => {
 
     // External services (Cloudinary/OTP) are not part of Mongo transaction,
     // but we still run DB writes only after they succeed.
+
     const uploadImage = await uploadOnCloudinary(req.file.path);
     if (!uploadImage) {
       await session.abortTransaction();
@@ -61,9 +75,8 @@ export const registerUser = async (req, res) => {
           email,
           password,
           userType,
-          // location,
-          // agreeTerms,
-          // profileImage: uploadImage.secure_url,
+          location,
+          profileImage: uploadImage.secure_url,
         },
       ],
       { session }
@@ -79,6 +92,8 @@ export const registerUser = async (req, res) => {
 
     const userObj = newUser.toObject();
     delete userObj.password;
+    delete userObj.ratings;
+    delete userObj.averageRating;
 
     const accessToken = generateAccessToken(newUser._id);
     const refreshToken = generateRefreshToken(newUser._id, 'user');

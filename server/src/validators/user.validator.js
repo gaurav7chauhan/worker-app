@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 export const userRegistrationSchema = z.object({
-  fullName: z
-    .string({ required_error: 'Name is required for your account' })
-    .min(2, { message: 'Name must be at least 2 characters long' }),
+  fullName: z.string().min(2, {
+    message: 'Name must be at least 2 characters long',
+  }),
 
-  email: z.email({ message: 'Enter a valid email address' }),
+  email: z.email({
+    message: 'Enter a valid email address',
+  }),
 
   password: z
     .string({ required_error: 'Password is required' })
@@ -18,8 +20,6 @@ export const userRegistrationSchema = z.object({
     .string()
     .min(2, { message: 'Location must be at least 2 characters' })
     .optional(),
-
-  agreeTerms: z.boolean({ required_error: 'You must agree to the terms' }).optional(),
 
   otp: z.string().length(4).optional(),
 });
