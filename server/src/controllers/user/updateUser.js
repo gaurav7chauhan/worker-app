@@ -1,5 +1,5 @@
 import { User } from '../../models/userModel.js';
-import { verifyOtp } from '../../services/otp.service.js';
+import { verifyOtp } from '../../services/otp.js';
 import { userEmailUpdateSchema } from '../../validators/userValidate.js';
 
 export const updateUserEmail = async (req, res) => {

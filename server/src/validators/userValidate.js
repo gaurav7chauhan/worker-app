@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
 export const userRegistrationSchema = z.object({
-  fullName: z.string({ required_error: 'fullName is required' }).min(2, {
+  fullName: z.string({ message: 'fullName is required' }).min(2, {
     message: 'Name must be at least 2 characters long',
   }),
 
   email: z
-    .string({ required_error: 'Email is required' })
+    .string({ message: 'Email is required' })
     .email({ message: 'Enter a valid email address' }),
 
   password: z
-    .string({ required_error: 'Password is required' })
+    .string({ message: 'Password is required' })
     .min(8, { message: 'Password must be at least 8 characters long' })
     .regex(/[0-9]/, { message: 'Password must have at least one number' }),
 
@@ -26,11 +26,11 @@ export const userRegistrationSchema = z.object({
 
 export const userLoginSchema = z.object({
   email: z
-    .string({ required_error: 'Email is required' })
+    .string({ message: 'Email is required' })
     .email({ message: 'Enter a valid email address' }),
 
   password: z
-    .string({ required_error: 'Password is required' })
+    .string({ message: 'Password is required' })
     .min(8, { message: 'Password must be at least 8 characters long' }),
 
   otp: z.string().length(4).optional(),
@@ -47,16 +47,16 @@ export const userEmailUpdateSchema = z.object({
 export const userPasswordUpdateSchema = z
   .object({
     currentPassword: z.string({
-      required_error: 'Current password is required',
+      message: 'Current password is required',
     }),
     newPassword: z
-      .string({ required_error: 'New password is required' })
+      .string({ message: 'New password is required' })
       .min(8, { message: 'New password must be at least 8 characters long' })
       .regex(/[0-9]/, {
         message: 'New password must have at least one number',
       }),
     confirmPassword: z.string({
-      required_error: 'Confirm password is required',
+      message: 'Confirm password is required',
     }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -66,12 +66,13 @@ export const userPasswordUpdateSchema = z
 
 export const userForgotPasswordSchema = z.object({
   email: z.email({ message: 'Enter a valid email address' }),
+
   newPassword: z
-    .string({ required_error: 'New password is required' })
-    .min(8, { message: 'New password must be at least 8 characters long' })
-    .regex(/[0-9]/, { message: 'New password must have at least one number' }),
+    .string({ message: 'Password is required' })
+    .min(8, { message: 'Password must be at least 8 characters long' })
+    .regex(/[0-9]/, { message: 'Password must have at least one number' }),
+
   otp: z.string().length(4).optional(),
-  type: z.literal('forgot_password').optional(),
 });
 
 export const userBioSchema = z.object({
@@ -118,7 +119,6 @@ export const userBioSchema = z.object({
           'General Manual Labor',
         ].includes(val),
       {
-        
         message: 'Select a valid category from the options or leave blank',
       }
     ),

@@ -1,5 +1,5 @@
 import { User } from '../../models/userModel.js';
-import { verifyOtp } from '../../services/otp.service.js';
+import { verifyOtp } from '../../services/otp.js';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
 import { cookieOptions } from '../../utils/cookieOptions.js';
 import { globalLogout } from '../../utils/globalLogout.js';

@@ -1,21 +1,26 @@
-import { User } from '../../models/user.model.js';
-import { verifyOtp } from '../../services/otp.service.js';
+import { object } from 'zod';
+import { User } from '../../models/userModel.js';
+import { verifyOtp } from '../../services/otp.js';
 import {
   userForgotPasswordSchema,
   userPasswordUpdateSchema,
-} from '../../validators/user.validator.js';
+} from '../../validators/userValidate.js';
 
 export const forgotPassword = async (req, res) => {
   try {
-    const result = userForgotPasswordSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ message: result.error.errors[0].message });
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: 'Please provide data' });
     }
 
-    const { email, newPassword, otp, type } = result.data;
+    const result = userForgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: result.error.issues[0].message });
+    }
 
-    if (otp && type) {
-      await verifyOtp(email, otp, type);
+    const { email, newPassword, otp } = result.data;
+
+    if (otp) {
+      await verifyOtp(email, otp, 'user');
     }
 
     const user = await User.findOne({ email });
@@ -38,14 +43,21 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const result = userPasswordUpdateSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ message: result.error.errors[0].message });
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized User' });
+    }
+    const userId = req.user._id;
+
+    if (Object.keys(req.body).length < 1) {
+      return res.status(400).json({ message: 'Please provide data' });
     }
 
-    const { currentPassword, newPassword, confirmPassword } = result.data;
+    const result = userPasswordUpdateSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: result.error.issues[0].message });
+    }
 
-    const userId = req.user._id;
+    const { currentPassword, newPassword } = result.data;
 
     const user = await User.findById(userId);
     if (!user) {

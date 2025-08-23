@@ -11,6 +11,8 @@ import { deleteUserAccount } from './controllers/user/removeUser.js';
 import { authToken } from './middleware/authMiddleware.js';
 import { updateUserEmail } from './controllers/user/updateUser.js';
 import { updateUserBio } from './controllers/user/userBio.js';
+import { getUserProfile } from './controllers/user/getUser.js';
+import { forgotPassword, resetPassword } from './controllers/user/password.js';
 
 const app = express();
 
@@ -36,5 +38,8 @@ app.get('/user/logout', logoutUser);
 app.delete('/user/delete', authToken, deleteUserAccount);
 app.put('/user/email/update', authToken, updateUserEmail);
 app.put('/user/bio/update', authToken, updateUserBio);
+app.get('/user/profile', authToken, getUserProfile);
+app.put('/user/password/forgot', forgotPassword);
+app.put('/user/password/reset', authToken, resetPassword);
 
 export default app;
