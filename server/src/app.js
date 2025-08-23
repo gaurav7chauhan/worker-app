@@ -1,9 +1,16 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { ZodError } from 'zod';
 import { adminLogin } from './controllers/admin/admin.js';
-import { loginUser, registerUser } from './controllers/user/user.js';
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+} from './controllers/user/user.js';
+import { deleteUserAccount } from './controllers/user/removeUser.js';
+import { authToken } from './middleware/authMiddleware.js';
+import { updateUserEmail } from './controllers/user/updateUser.js';
+import { updateUserBio } from './controllers/user/userBio.js';
 
 const app = express();
 
@@ -25,25 +32,9 @@ app.use(express.static('public'));
 app.post('/admin/login', adminLogin);
 app.post('/user/register', registerUser);
 app.post('/user/login', loginUser);
-// for global error handling
-
-app.use((err, req, res, next) => {
-  console.error('Error:', err); 
-
-  if (err instanceof ZodError) {
-    return res.status(400).json({
-      success: false,
-      message: err.errors[0].message, // you can show full array too
-    });
-  }
-
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-
-  res.status(statusCode).json({
-    success: false,
-    message,
-  });
-});
+app.get('/user/logout', logoutUser);
+app.delete('/user/delete', authToken, deleteUserAccount);
+app.put('/user/email/update', authToken, updateUserEmail);
+app.put('/user/bio/update', authToken, updateUserBio);
 
 export default app;

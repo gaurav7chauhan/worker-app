@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model.js';
+import { User } from '../../models/userModel.js';
 import { verifyOtp } from '../../services/otp.service.js';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
 import { cookieOptions } from '../../utils/cookieOptions.js';
@@ -7,7 +7,7 @@ import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
 import {
   userLoginSchema,
   userRegistrationSchema,
-} from '../../validators/user.validator.js';
+} from '../../validators/userValidate.js';
 import mongoose from 'mongoose';
 
 // registration
@@ -51,19 +51,19 @@ export const registerUser = async (req, res) => {
 
     // Validate profile image
 
-    if (!req.file || !req.file.path) {
-      await session.abortTransaction();
-      return res.status(400).json({ message: 'Profile image is required' });
-    }
+    // if (!req.file || !req.file.path) {
+    //   await session.abortTransaction();
+    //   return res.status(400).json({ message: 'Profile image is required' });
+    // }
 
-    // External services (Cloudinary/OTP) are not part of Mongo transaction,
-    // but we still run DB writes only after they succeed.
+    // // External services (Cloudinary/OTP) are not part of Mongo transaction,
+    // // but we still run DB writes only after they succeed.
 
-    const uploadImage = await uploadOnCloudinary(req.file.path);
-    if (!uploadImage) {
-      await session.abortTransaction();
-      return res.status(500).json({ message: 'Image upload failed' });
-    }
+    // const uploadImage = await uploadOnCloudinary(req.file.path);
+    // if (!uploadImage) {
+    //   await session.abortTransaction();
+    //   return res.status(500).json({ message: 'Image upload failed' });
+    // }
 
     if (otp) {
       await verifyOtp(email, otp, 'register');
@@ -78,7 +78,7 @@ export const registerUser = async (req, res) => {
           password,
           userType,
           location,
-          profileImage: uploadImage.secure_url,
+          // profileImage: uploadImage.secure_url,
         },
       ],
       { session }
@@ -99,7 +99,7 @@ export const registerUser = async (req, res) => {
     delete userObj.isBlocked;
 
     const accessToken = generateAccessToken(newUser._id);
-    const refreshToken = generateRefreshToken(newUser._id, 'user');
+    const refreshToken = await generateRefreshToken(newUser._id, 'user');
 
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res.status(201).json({
@@ -126,10 +126,7 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   const session = await mongoose.startSession();
-  console.log('hello');
   try {
-    session.startTransaction();
-
     const result = userLoginSchema.safeParse(req.body);
 
     if (!result.success) {
@@ -176,8 +173,7 @@ export const loginUser = async (req, res) => {
     delete userObj.isBlocked;
 
     const accessToken = generateAccessToken(existingUser._id);
-    const refreshToken = generateRefreshToken(existingUser._id, 'user');
-
+    const refreshToken = await generateRefreshToken(existingUser._id, 'user');
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
     return res.status(200).json({

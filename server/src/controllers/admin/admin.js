@@ -1,5 +1,5 @@
 import { client } from '../../../config/rateLimiterConfig.js';
-import { Admin } from '../../models/admin.model.js';
+import { Admin } from '../../models/adminModel.js';
 import { cookieOptions } from '../../utils/cookieOptions.js';
 import { globalLogout } from '../../utils/globalLogout.js';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';

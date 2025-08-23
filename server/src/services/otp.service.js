@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { Otp } from '../models/otp.model.js';
+import { Otp } from '../models/otpModel.js';
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({

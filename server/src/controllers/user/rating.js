@@ -1,6 +1,6 @@
 import { ratingTagsConfig } from '../../../config/ratingTagsConfig.js';
-import { JobPost } from '../../models/job.model.js';
-import { User } from '../../models/user.model.js';
+import { JobPost } from '../../models/jobModel.js';
+import { User } from '../../models/userModel.js';
 import { ApiError } from '../../utils/apiError.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -8,7 +8,8 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 // set user rating
 
 export const setUserRating = asyncHandler(async (req, res) => {
-  const { targetUserId, jobId, rating, tags } = req.body;
+  const { targetUserId, jobId } = req.params;
+  const { rating, tags } = req.body;
 
   if (!targetUserId || !jobId || !rating) {
     throw new ApiError(400, 'Missing required fields');

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { RefreshSession } from '../models/refreshSession.model.js';
+import { RefreshSession } from '../models/refreshSessionModel.js';
 import ms from 'ms';
 
 export const generateAccessToken = (userId) => {
@@ -18,36 +18,41 @@ export const verifyAccessToken = (token) => {
 };
 
 export const generateRefreshToken = async (userId, type) => {
-  const jti = uuidv4();
+  try {
+    const jti = uuidv4();
 
-  const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
+    const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
 
-  const expiresAt = new Date(Date.now() + ms(expiresIn));
+    const expiresAt = new Date(Date.now() + ms(expiresIn));
 
-  const refreshToken = jwt.sign(
-    { _id: userId, jti, principalType: type },
-    process.env.JWT_REFRESH_SECRET,
-    {
-      expiresIn,
-    }
-  );
+    const refreshToken = jwt.sign(
+      { _id: userId.toString(), jti, principalType: type },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn,
+      }
+    );
 
-  await RefreshSession.create({
-    principalType: type,
-    principalId: userId,
-    jti,
-    expiresAt,
-    revoked: false,
-  });
+    await RefreshSession.create({
+      principalType: type,
+      principalId: userId,
+      jti,
+      expiresAt,
+      revoked: false,
+    });
 
-  return refreshToken;
+    return refreshToken;
+  } catch (error) {
+    console.log('refresh token error:', error);
+    throw new Error('Failed to generate refresh token');
+  }
 };
 
 export const verifyRefreshToken = async (token) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-    if (!decoded.jti) {
+    if (!decoded.jti || !decoded._id) {
       return null;
     }
 

@@ -1,8 +1,12 @@
-import { User } from '../../models/user.model.js';
+import { User } from '../../models/userModel.js';
 
 export const deleteUserAccount = async (req, res) => {
   try {
     const userId = req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     const deleteUser = await User.findByIdAndDelete(userId);
 

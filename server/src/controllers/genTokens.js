@@ -26,7 +26,7 @@ export const refreshAccessTokens = asyncHandler(async (req, res) => {
     const user = await User.findById(decoded._id);
 
     const newAccessToken = generateAccessToken(user._id);
-    const newRefreshToken = generateRefreshToken(user._id);
+    const newRefreshToken = await generateRefreshToken(user._id);
 
     res.cookie('refreshToken', newRefreshToken, cookieOptions);
     res.status(200).json(

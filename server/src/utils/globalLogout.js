@@ -1,20 +1,19 @@
 import { cookieOptions } from './cookieOptions.js';
 import { verifyRefreshToken } from './jwt.js';
-import { RefreshSession } from '../models/refreshSession.model.js';
+import { RefreshSession } from '../models/refreshSessionModel.js';
 
 export const globalLogout = async (req, res, next) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
+
     if (!refreshToken) {
-      return res.status(400).json({ message: 'Refresh token not found' });
+      return res.status(400).json({ message: 'token not found' });
     }
 
     const decoded = await verifyRefreshToken(refreshToken);
     if (!decoded) {
       res.clearCookie('refreshToken', cookieOptions);
-      return res
-        .status(200)
-        .json(new ApiResponse(200, 'Logged out successfully'));
+      return res.status(200).json({ message: 'Logged out successfully' });
     }
 
     const { _id: principalId, principalType } = decoded;
@@ -28,11 +27,7 @@ export const globalLogout = async (req, res, next) => {
     res.clearCookie('refreshToken', cookieOptions);
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, `${principalType} logged out globally`, {
-          revokedCount: result.modifiedCount,
-        })
-      );
+      .json({ message: `${principalType} logged out globally` });
   } catch (error) {
     return next(error);
   }
