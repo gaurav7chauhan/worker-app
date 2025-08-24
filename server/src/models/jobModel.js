@@ -25,7 +25,7 @@ const jobSchema = new mongoose.Schema(
 
     description: { type: String, required: true },
 
-    location: { type: String, required: true },
+    location: { type: String },
 
     budget: { type: Number, required: true },
 
@@ -43,18 +43,22 @@ const jobSchema = new mongoose.Schema(
       required: true,
     },
 
-    comments: [commentSchema], // worker responses to job
+    // comments: [commentSchema], // worker responses to job
 
-    payment: {
-      status: {
-        type: String,
-        enum: ['pending', 'escrow', 'released', 'refunded'],
-        default: 'pending',
-      },
-      amount: Number,
-    },
+    // payment: {
+    //   status: {
+    //     type: String,
+    //     enum: ['pending', 'escrow', 'released', 'refunded'],
+    //     default: 'pending',
+    //   },
+    //   amount: Number,
+    // },
   },
   { timestamps: true }
 );
+
+jobSchema.index({ createdAt: -1 }); // Index for sorting by creation date
+
+jobSchema.index({ owner: 1 });
 
 export const JobPost = mongoose.model('JobPost', jobSchema);

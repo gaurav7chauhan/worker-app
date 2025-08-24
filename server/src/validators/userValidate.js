@@ -1,4 +1,5 @@
-import { z } from 'zod';
+import { string, z } from 'zod';
+import { jobCategories } from '../../config/categoriesConfig.js';
 
 export const userRegistrationSchema = z.object({
   fullName: z.string({ message: 'fullName is required' }).min(2, {
@@ -161,4 +162,37 @@ export const userBioSchema = z.object({
     .optional(),
 
   summary: z.string().max(300).optional(),
+});
+
+export const jobPostSchema = z.object({
+  title: z
+    .string({ message: 'Title is required' })
+    .min(3, { message: `Title must be at least 3 character's long` }),
+
+  description: z.string({}).optional(),
+
+  location: z.string().optional(),
+
+  budget: z.string(),
+
+  images: z.array(z.string()).optional(),
+
+  status: z
+    .enum(['Open', 'Hired', 'In Progress', 'Completed', 'Cancelled'])
+    .refine(
+      (val) =>
+        val !== undefined ||
+        ['Open', 'Hired', 'In Progress', 'Completed', 'Cancelled'].includes(
+          val
+        ),
+      {
+        message: 'Select a vaild status',
+      }
+    ),
+
+  category: z
+    .enum(jobCategories)
+    .refine((val) => val !== undefined || jobCategories.includes(val), {
+      message: 'Select a valid category',
+    }),
 });
