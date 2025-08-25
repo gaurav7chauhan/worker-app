@@ -13,13 +13,13 @@ const commentSchema = new mongoose.Schema({
 
 const jobSchema = new mongoose.Schema(
   {
-    owner: {
+    employer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // client who posted the job
       required: true,
     },
 
-    selectedWorker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    worker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
     title: { type: String, required: true },
 
@@ -33,7 +33,7 @@ const jobSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['Open', 'Hired', 'In Progress', 'Completed', 'Cancelled'],
+      enum: ['Open', 'In Progress', 'Completed', 'Cancelled'],
       default: 'Open',
     },
 

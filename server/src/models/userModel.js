@@ -48,4 +48,9 @@ userSchema.methods.isPasswordMatch = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+userSchema.index({
+  'ratings.job': 1,
+  'ratings.fromUser': 1,
+});
+
 export const User = mongoose.model('User', userSchema);
