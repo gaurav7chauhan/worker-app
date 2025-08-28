@@ -1,3 +1,4 @@
+import mongoose, { isValidObjectId } from 'mongoose';
 import { ratingTagsConfig } from '../../../config/ratingTagsConfig.js';
 import { JobPost } from '../../models/jobModel.js';
 import { User } from '../../models/userModel.js';
@@ -38,19 +39,6 @@ export const setUserRating = async (req, res) => {
       return res.status(400).json({
         message: 'Invalid rating: both parties are not part of this job',
       });
-    }
-
-    // Validate tags based on job category and rating
-    if (tags.length > 0) {
-      const allowedTags = ratingTagsConfig[job.category]?.[rating] || [];
-
-      const invalidTags = tags.filter((tag) => !allowedTags.includes(tag));
-      if (invalidTags.length > 0) {
-        // ✅ Fixed bug: was "invalidTags > 0"
-        return res.status(400).json({
-          message: `Invalid tags: ${invalidTags.join(', ')}`,
-        });
-      }
     }
 
     // Find the user who is being rated
@@ -108,6 +96,14 @@ export const getUserRating = async (req, res) => {
   try {
     const targetUserId = req.params?.userId || req.user?._id;
 
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized user' });
+    }
+
+    if (!targetUserId || !isValidObjectId(targetUserId)) {
+      return res.status(400).json({ message: 'Invalid or missing user ID' });
+    }
+
     const user = await User.findById(targetUserId).select(
       'averageRating ratings'
     );
@@ -116,8 +112,11 @@ export const getUserRating = async (req, res) => {
       return res.status(404).json({ message: 'User rating not found' });
     }
 
-    if (!user.averageRating || user.averageRating === 0) {
-      return res.status(200).json({ message: 'No user rating yet', data: {} });
+    if (user.ratings.length === 0) {
+      return res.status(200).json({
+        message: 'No user rating yet',
+        data: { averageRating: 0, ratedUsers: 0 },
+      });
     }
 
     return res.status(200).json({
@@ -254,34 +253,90 @@ export const updateUserRating = async (req, res) => {
 
 export const getMyGivenRatings = async (req, res) => {
   try {
-    const loggedInUserId = req.user._id.toString();
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized user' });
+    }
 
-    // Step 1: Find all users who have received a rating from me
-    const users = await User.find({ 'ratings.fromUser': loggedInUserId })
-      .select('fullName profileImage ratings')
-      .populate('ratings.job', 'title'); // optional: job title
+    const loggedInUserId = new mongoose.Types.ObjectId(req.user._id);
+    const page = parseInt(req.params?.page, 10) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
 
-    const myRatings = [];
+    const pipeline = [
+      // Order matters: filter early with $match and trim fields with $project to reduce
+      // workload for downstream stages and improve index usage
 
-    users.forEach((user) => {
-      user.ratings.forEach((r) => {
-        if (r.fromUser._id.toString() === loggedInUserId) {
-          myRatings.push({
-            toUserId: user._id,
-            toUserName: user.fullName,
-            toUserImage: user.profileImage,
-            jobId: r.job?._id || null,
-            jobTitle: r.job?.title || null,
-            rating: r.rating,
-            tags: r.tags,
-          });
-        }
-      });
-    });
+      // Narrow to users that have at least one matching rating
+      { $match: { 'ratings.fromUser': loggedInUserId } },
+
+      // Keep only this user's ratings per user doc
+      {
+        $project: {
+          fullName: 1,
+          profileImage: 1,
+          ratings: {
+            $filter: {
+              input: '$ratings',
+              as: 'r',
+              cond: { $eq: ['$$r.fromUser', loggedInUserId] },
+            },
+          },
+        },
+      },
+
+      // Work with each rating as a separate doc
+      { $unwind: '$ratings' },
+
+      // Join job title
+      {
+        $lookup: {
+          from: 'jobposts',
+          localField: 'ratings.job',
+          foreignField: '_id',
+          as: 'job',
+        },
+      },
+      { $unwind: { path: '$job', preserveNullAndEmptyArrays: true } },
+
+      // Shape the final document
+      {
+        $project: {
+          _id: 0,
+          toUserId: '$_id',
+          toUserName: '$fullName',
+          toUserImage: '$profileImage',
+          jobId: '$job._id',
+          jobTitle: '$job.title',
+          rating: '$ratings.rating',
+          tags: '$ratings.tags',
+          createdAt: '$ratings.createdAt',
+        },
+      },
+    ];
+
+    const [out] = await User.aggregate([
+      ...pipeline,
+      {
+        $facet: {
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          total: [{ $count: 'count' }],
+        },
+      },
+    ]).option({ allowDiskUse: true });
+
+    const data = out?.data ?? [];
+    const total = out?.total?.[0]?.count ?? 0;
 
     return res.status(200).json({
       message: 'Ratings you have given to others',
-      data: myRatings,
+      page,
+      limit,
+      total,
+      data,
     });
   } catch (error) {
     console.error('Error getting given ratings:', error.message);

@@ -1,6 +1,31 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
+const ratingSubSchema = new mongoose.Schema(
+  {
+    fromUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+
+    job: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobPost',
+      index: true,
+    },
+    
+    rating: { type: Number, min: 1, max: 5, required: true },
+
+    tags: [{ type: String, trim: true, maxlength: 32 }],
+  },
+  {
+    _id: false,
+    timestamps: true,
+  }
+);
+
 const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true },
@@ -19,20 +44,24 @@ const userSchema = new mongoose.Schema(
 
     profileImage: String,
 
-    averageRating: { type: Number, default: 0 }, // ← add this for rating
+    averageRating: { type: Number, default: 0 },
 
-    ratings: [
-      {
-        // ← add this for rating history
-        fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        job: { type: mongoose.Schema.Types.ObjectId, ref: 'JobPost' },
-        rating: { type: Number, min: 1, max: 5 },
-        tags: [{ type: String }],
-      },
-    ],
+    ratingCount: { type: Number, default: 0 },
+
+    ratingSum: { type: Number, default: 0 },
+
+    ratings: {
+      type: [ratingSubSchema],
+      default: [],
+      select: false, // optional: hide heavy arrays by default
+    },
   },
   { timestamps: true }
 );
+
+userSchema.index({ 'ratings.fromUser': 1, 'ratings.createdAt': -1 });
+userSchema.index({ 'ratings.job': 1 });
+userSchema.index({ userType: 1 });
 
 // password hash for user
 userSchema.pre('save', async function (next) {
@@ -47,10 +76,4 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.isPasswordMatch = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
-
-userSchema.index({
-  'ratings.job': 1,
-  'ratings.fromUser': 1,
-});
-
 export const User = mongoose.model('User', userSchema);
