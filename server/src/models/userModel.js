@@ -53,7 +53,6 @@ const userSchema = new mongoose.Schema(
     ratings: {
       type: [ratingSubSchema],
       default: [],
-      select: false, // optional: hide heavy arrays by default
     },
   },
   { timestamps: true }

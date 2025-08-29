@@ -32,7 +32,7 @@ export const setUserRating = async (req, res) => {
     // Make sure both people are part of the job
     const raterId = req.user._id.toString();
 
-    const participants = [job.owner.toString(), job.selectedWorker.toString()];
+    const participants = [job.employer.toString(), job.worker.toString()];
     if (
       !(participants.includes(targetUserId) && participants.includes(raterId))
     ) {
@@ -41,49 +41,64 @@ export const setUserRating = async (req, res) => {
       });
     }
 
-    // Find the user who is being rated
-    const userToRate = await User.findById(targetUserId);
-    if (!userToRate) {
-      return res.status(404).json({ message: 'User to rate not found' });
-    }
-
-    // Prevent duplicate rating for the same job by same user
-    const alreadyRated = userToRate.ratings.find(
-      (r) =>
-        r.job.toString() === jobId.toString() &&
-        r.fromUser.toString() === raterId
-    );
-    if (alreadyRated) {
-      return res.status(400).json({
-        message: 'You already rated this user for this job',
-      });
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
+    const updatedUser = await User.updateOne(
       {
-        $push: { ratings: { fromUser: raterId, job: jobId, rating, tags } },
+        _id: targetUserId,
+        ratings: { $not: { $eleMatch: { fromUser: raterId, job: jobId } } },
       },
-      { new: true, select: 'ratings averageRating' }
+      [
+        {
+          $set: {
+            ratings: {
+              $concatArrays: [
+                { $ifNull: ['$ratings', []] },
+                [
+                  {
+                    fromUser: raterId,
+                    job: jobId,
+                    rating: Number(rating),
+                    tags,
+                  },
+                ],
+              ],
+            },
+            ratingCount: { $add: [{ $ifNull: ['$ratingCount', 0] }, 1] },
+            ratingSum: {
+              $add: [{ $ifNull: ['$ratingSum', 0] }, Number(rating)],
+            },
+
+            // Average = round((oldSum + r) / (oldCount + 1), 1)
+            averageRating: {
+              $round: [
+                {
+                  $divide: [
+                    { $add: [{ $ifNull: ['$ratingSum', 0] }, Number(rating)] },
+                    { $add: [{ $ifNull: ['$ratingCount', 0] }, 1] },
+                  ],
+                },
+                1,
+              ],
+            },
+          },
+        },
+      ],
+      { upsert: false }
     );
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User to rate not found' });
+    if (updatedUser.modifiedCount === 1) {
+      // optionally fetch minimal fields to return
+      const updated = await User.findById(targetUserId).select(
+        'averageRating ratingCount'
+      );
+
+      return res
+        .status(200)
+        .json({ message: 'Rating submitted', data: updated });
     }
 
-    // Recalculate average rating
-    const total = userToRate.ratings.reduce((sum, r) => sum + r.rating, 0);
-    updatedUser.averageRating =
-      updatedUser.ratings.length > 0
-        ? Number((total / updatedUser.ratings.length).toFixed(1))
-        : 0;
-
-    await updatedUser.save({ validateBeforeSave: false });
-
-    return res.status(200).json({
-      message: 'Rating submitted successfully',
-      data: updatedUser,
-    });
+    return res
+      .status(400)
+      .json({ message: 'You already rated this user for this job' });
   } catch (error) {
     console.error('Error setting user rating:', error.message);
     return res.status(500).json({ message: 'Internal server error' });
@@ -104,15 +119,15 @@ export const getUserRating = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or missing user ID' });
     }
 
-    const user = await User.findById(targetUserId).select(
-      'averageRating ratings'
-    );
+    const user = await User.findById(targetUserId)
+      .select('averageRating ratingCount -_id')
+      .lean();
 
     if (!user) {
       return res.status(404).json({ message: 'User rating not found' });
     }
 
-    if (user.ratings.length === 0) {
+    if (user.ratingCount === 0) {
       return res.status(200).json({
         message: 'No user rating yet',
         data: { averageRating: 0, ratedUsers: 0 },
@@ -122,129 +137,12 @@ export const getUserRating = async (req, res) => {
     return res.status(200).json({
       message: 'User rating',
       data: {
-        averageRating: user.averageRating,
-        ratedUsers: user.ratings.length,
+        averageRating: user.averageRating ?? 0,
+        ratedUsers: user.ratingCount ?? 0,
       },
     });
   } catch (error) {
     console.error('Error getting user rating:', error.message);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-// update user rating
-
-export const updateUserRating = async (req, res) => {
-  try {
-    const { jobId } = req.params;
-    const { rating, tags } = req.body;
-
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized user' });
-    }
-
-    const userId = req.user._id.toString();
-
-    if (!rating && !tags) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    const job = await JobPost.findById(jobId);
-
-    if (!job || job.status !== 'Completed') {
-      return res
-        .status(400)
-        .json({ message: 'Job not completed or not found' });
-    }
-
-    // Authorization: Ensure req.user is part of the job
-    const isEmployer = job.employer.toString() === userId;
-
-    const isWorker = job.worker.toString() === userId;
-
-    if (!isEmployer && !isWorker) {
-      return res
-        .status(403)
-        .json({ message: 'You are not authorized to rate this job' });
-    }
-
-    // Determine target based on rater's role
-    let targetUserId;
-
-    if (isEmployer) {
-      targetUserId = job.worker.toString(); // Employer rates worker
-    } else if (isWorker) {
-      targetUserId = job.employer.toString(); // Worker rates employer
-    } else {
-      return res.status(400).json({ message: 'Invalid user type for rating' });
-    }
-
-    if (rating && (rating < 1 || rating > 5)) {
-      return res
-        .status(400)
-        .json({ message: 'Invalid rating. Rating must be between 1 and 5.' });
-    }
-
-    // Find the user who received the rating for this job, containing a rating from this user
-
-    const targetUser = await User.findOne({
-      _id: targetUserId,
-      'ratings.job': jobId,
-      'ratings.fromUser': userId,
-    }).select('ratings averageRating');
-
-    if (!targetUser) {
-      return res.status(404).json({ message: 'Rating not found' });
-    }
-
-    // Find the specific rating in that array
-
-    const ratingToUpdate = targetUser.ratings.find(
-      (r) => r.job.toString() === jobId && r.fromUser.toString() === userId
-    );
-
-    if (!ratingToUpdate) {
-      return res.status(404).json({
-        message: 'Rating not found for this job by you',
-      });
-    }
-
-    if (tags) {
-      const validationRating = rating || ratingToUpdate.rating;
-      const allowedTags =
-        ratingTagsConfig[job.category]?.[validationRating] || [];
-
-      const invalidTags = tags.filter((tag) => !allowedTags.includes(tag));
-      if (invalidTags.length > 0) {
-        return res.status(400).json({
-          message: `Invalid tags: ${invalidTags.join(', ')}`,
-        });
-      }
-    }
-
-    // Conditional updates
-    if (rating) ratingToUpdate.rating = rating;
-    if (tags) ratingToUpdate.tags = tags;
-
-    const totalRatings = targetUser.ratings.reduce(
-      (sum, r) => sum + r.rating,
-      0
-    );
-
-    targetUser.averageRating =
-      targetUser.ratings.length > 0
-        ? totalRatings / targetUser.ratings.length
-        : 0;
-
-    targetUser.markModified('ratings');
-    await targetUser.save({ validateBeforeSave: false });
-
-    return res.status(200).json({
-      message: 'Rating updated successfully',
-      data: ratingToUpdate,
-    });
-  } catch (error) {
-    console.error('Error updating user rating:', error.message);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
