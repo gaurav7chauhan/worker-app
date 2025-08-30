@@ -13,6 +13,16 @@ import { updateUserEmail } from './controllers/user/updateUser.js';
 import { updateUserBio } from './controllers/user/userBio.js';
 import { getUserProfile } from './controllers/user/getUser.js';
 import { forgotPassword, resetPassword } from './controllers/user/password.js';
+import {
+  getMyGivenRatings,
+  getUserRating,
+  setUserRating,
+} from './controllers/user/rating.js';
+import {
+  createJobPost,
+  getAllUserJobPosts,
+  getUserJobPostById,
+} from './controllers/user/jobPost.js';
 
 const app = express();
 
@@ -41,5 +51,12 @@ app.put('/user/bio/update', authToken, updateUserBio);
 app.get('/user/profile', authToken, getUserProfile);
 app.put('/user/password/forgot', forgotPassword);
 app.put('/user/password/reset', authToken, resetPassword);
+// New brace-style optionals (supported)
+app.get('/user/rating{/:userId}', authToken, getUserRating);
+app.post('/user/set-ratings/:targetUserId/:jobId', authToken, setUserRating);
+app.get('/user/ratings/given{/:page}', authToken, getMyGivenRatings);
 
+app.post('/job/post/create', authToken, createJobPost);
+app.get('/job/user/posts{/:page}{/:limit}', authToken, getAllUserJobPosts);
+app.get('/job/user/post/:jobId', authToken, getUserJobPostById);
 export default app;

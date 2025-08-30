@@ -1,5 +1,4 @@
 import mongoose, { isValidObjectId } from 'mongoose';
-import { ratingTagsConfig } from '../../../config/ratingTagsConfig.js';
 import { JobPost } from '../../models/jobModel.js';
 import { User } from '../../models/userModel.js';
 

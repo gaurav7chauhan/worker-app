@@ -7,13 +7,11 @@ const ratingSubSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
     },
 
     job: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'JobPost',
-      index: true,
     },
     
     rating: { type: Number, min: 1, max: 5, required: true },

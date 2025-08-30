@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { jobCategories } from '../../config/categoriesConfig';
+import { jobCategories } from '../../config/categoriesConfig.js';
 
 const commentSchema = new mongoose.Schema({
   worker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
