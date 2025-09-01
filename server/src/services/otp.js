@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import { Otp } from '../models/otpModel.js';
 import bcrypt from 'bcrypt';
 import { OtpToken } from '../models/otpTokens.js';
+import { sendOtp } from './mail/mailer.js';
 
 // // Generate OTP code
 // export const generateOtp = () => {
@@ -54,19 +55,10 @@ import { OtpToken } from '../models/otpTokens.js';
 //   return { otp, reissued: true };
 // };
 
-// Nodemailer setup
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-export const requestOtp = async (req, res, next) => {
+export const requestOtp = async (req, res, next, email) => {
   try {
     const { userId, purpose, channel } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000); // 6 digit
+    const otp = String(Math.floor(100000 + Math.random() * 900000)); // 6 digit
     const codeHash = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
@@ -78,6 +70,8 @@ export const requestOtp = async (req, res, next) => {
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+
+    await sendOtp(email, otp);
     return res.status(200).json({ message: 'OTP sent' });
   } catch (error) {
     next(error);
@@ -101,7 +95,7 @@ export const verifyOtp = async (req, res, next) => {
       return res.status(429).json({ error: 'Too many attempts' });
     }
 
-    const ok = await bcrypt.compare(code, otp.hashOtp);
+    const ok = await bcrypt.compare(String(code), otp.codeHash);
     if (!ok) {
       await OtpToken.updateOne({ _id: otp._id }, { $inc: { attempts: 1 } });
       return res.status(400).json({ error: 'Invalid or expired OTP' });
@@ -112,30 +106,5 @@ export const verifyOtp = async (req, res, next) => {
     return res.status(200).json({ message: 'OTP verify successfully' });
   } catch (error) {
     next(error);
-  }
-};
-
-// // Send OTP
-export const sendOtp = async (email, otp) => {
-  try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Your OTP Code',
-      html: `
-       <div style="font-family: sans-serif; padding: 10px;">
-         <h2>Hello,</h2>
-         <p>Your OTP Code is:</p>
-         <h1 style="color: #333;">${otp}</h1>
-         <p>This code is valid for 10 minutes. Do not share it with anyone.</p>
-         <br />
-         <small>If you did not request this, please ignore this email.</small>
-       </div>
-     `,
-    };
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.log('error', error.message);
-    return error;
   }
 };
