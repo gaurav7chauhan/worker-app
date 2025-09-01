@@ -1,0 +1,18 @@
+<!-- Is app ka MVP
+
+Auth + roles: signup/login with Employer/Worker roles taa ki dono sides onboard ho sakein quickly.
+
+Profile: basic details (name, area, skills) dikhaye, taa ki trust aur matching improve ho.
+
+Job post: Employer title, category, budget, timing, description + images upload karke listing publish kare.
+
+Browse/filter: Workers category, budget, timing, area se jobs filter karke apply/DM kar sakein for quick discovery.
+
+Basic chat: Employer-Worker 1:1 messages for clarifications/hire decision (Socket.IO private messaging pattern).
+
+Hire + complete: job status open → hired → completed/cancelled with a simple accept/complete flow.
+
+Ratings: job complete par dono taraf se 1–5 rating + short review for future trust.
+
+Report + admin block: complaint report ho, admin list se warn/block kar sake for platform safety.
+ -->
