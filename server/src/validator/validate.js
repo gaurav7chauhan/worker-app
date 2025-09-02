@@ -20,6 +20,7 @@ export const registerEmployerSchema = z.object({
     password: passwordStr,
     fullName: z.string().trim().min(3, 'Name must be minimum 3 character'),
     area: z.string().trim().optional(),
+    role: z.literal('Employer'),
   }),
 });
 
@@ -31,5 +32,6 @@ export const registerWorkerSchema = z.object({
     area: z.string().trim().optional(),
     skills: z.array(z.string()).min(1, 'At least 1 skill'),
     experienceYears: z.coerce.number().int().min(0).optional(),
+    role: z.literal('Worker'),
   }),
 });

@@ -6,11 +6,10 @@ const otpTokenSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'AuthUser',
       index: true,
-      // required: true
+      required: true
     },
     channel: {
       type: String,
-      enum: ['email', 'phone'],
       required: true,
     },
     purpose: {

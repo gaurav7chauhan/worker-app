@@ -10,13 +10,6 @@ const authUserSchema = new Schema(
       unique: true,
       required: true,
     },
-    phone: {
-      type: String,
-      unique: true,
-      sparse: true,
-      minlength: 10,
-      maxlength: 10,
-    },
     password: { type: String, required: true },
     role: {
       type: String,
@@ -29,7 +22,7 @@ const authUserSchema = new Schema(
 );
 
 authUserSchema.pre('save', async function () {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) return;
 
   this.password = await bcrypt.hash(this.password, 10);
 });
