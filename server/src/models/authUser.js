@@ -17,8 +17,15 @@ const authUserSchema = new Schema(
       required: true,
     },
     isBlocked: { type: Boolean, default: false },
+    emailVerified: { type: Boolean, default: false },
+    verificationExpires: { type: Date, required: true },
   },
   { timestamps: true }
+);
+
+authUserSchema.index(
+  { verificationExpires: 1 },
+  { expireAfterSeconds: 0, partialFilterExpression: { emailVerified: false } }
 );
 
 authUserSchema.pre('save', async function () {

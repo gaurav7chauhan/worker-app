@@ -6,9 +6,9 @@ const otpTokenSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'AuthUser',
       index: true,
-      required: true
+      required: true,
     },
-    channel: {
+    email: {
       type: String,
       required: true,
     },
@@ -19,9 +19,16 @@ const otpTokenSchema = new Schema(
     codeHash: { type: String, required: true },
     consumed: { type: Boolean, default: false },
     attempts: { type: Number, default: 0, min: 0 },
-    expiresAt: { type: Date, required: true, index: { expires: 0 } },
+    expiresAt: { type: Date, required: true },
   },
   { timestamps: true }
+);
+
+otpTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+otpTokenSchema.index(
+  { userId: 1, purpose: 1, email: 1, consumed: 1 },
+  { unique: true, partialFilterExpression: { consumed: false } }
 );
 
 export const OtpToken = model('OtpToken', otpTokenSchema);

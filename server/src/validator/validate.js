@@ -18,9 +18,13 @@ export const registerEmployerSchema = z.object({
   body: z.object({
     email: emailStr,
     password: passwordStr,
-    fullName: z.string().trim().min(3, 'Name must be minimum 3 character'),
-    area: z.string().trim().optional(),
+    fullName: z
+      .string({ required_error: 'Full name is required' })
+      .trim()
+      .min(3, 'Full name must be at least 3 characters'),
+    area: z.string().trim().min(1, 'Area cannot be empty').optional(),
     role: z.literal('Employer'),
+    otp: z.string().length(6, 'OTP must be 6 digits').optional(),
   }),
 });
 
@@ -28,10 +32,14 @@ export const registerWorkerSchema = z.object({
   body: z.object({
     email: emailStr,
     password: passwordStr,
-    fullName: z.string().trim().min(3, 'Name must be minimum 3 character'),
-    area: z.string().trim().optional(),
-    skills: z.array(z.string()).min(1, 'At least 1 skill'),
+    fullName: z
+      .string({ required_error: 'Full name is required' })
+      .trim()
+      .min(3, 'Full name must be at least 3 characters'),
+    area: z.string().trim().min(1, 'Area cannot be empty').optional(),
+    skills: z.array(z.string()).min(1, 'Add at least one skill'),
     experienceYears: z.coerce.number().int().min(0).optional(),
     role: z.literal('Worker'),
+    otp: z.string().length(6, 'OTP must be 6 digits').optional(),
   }),
 });
