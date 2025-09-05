@@ -6,6 +6,7 @@ import {
 } from '../validator/validate';
 import { AuthUser } from '../models/AuthUser';
 import { requestOtpService } from '../utils/otp';
+import { AppError } from '../utils/apiError';
 
 export const registerEmployer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -23,7 +24,10 @@ export const registerEmployer = async (req, res, next) => {
       const exists = await AuthUser.exists({ email }).session(session);
 
       if (exists) {
-        throw Object.assign(new Error('User already exists'), { status: 409 });
+        throw new AppError('User already exists', {
+          status: 409,
+          code: 'USER_EXISTS',
+        });
       }
 
       // Create AuthUser
@@ -105,12 +109,13 @@ export const registerWorker = async (req, res, next) => {
       userId = created._id;
 
       // Create WorkerProfile
+      const areaClean = area?.trim();
       await WorkerProfile.create(
         {
           userId,
           fullName,
           skills,
-          ...(area.trim() ? { area: area.trim() } : {}),
+          ...(areaClean ? { area: areaClean } : {}),
           ...(experienceYears !== undefined ? { experienceYears } : {}),
         },
         { session }

@@ -3,20 +3,12 @@ import { OtpToken } from '../models/otpTokens.js';
 import { sendOtp } from '../services/mail/mailer.js';
 import { redis } from '../../config/rateLimiterConfig.js';
 import { AuthUser } from '../models/AuthUser.js';
+import { AppError } from './apiError.js';
 
 const OTP_TTL_SECONDS = 5 * 60; // 5min
 const redisKey = (userId, purpose, email) => {
   return `otp:${userId}:${purpose}:${email}`;
 };
-
-class AppError extends Error {
-  constructor(message, { status = 500, code = 'INTERNAL', meta = {} } = {}) {
-    super(message);
-    this.status = status;
-    this.code = code;
-    this.meta = meta;
-  }
-}
 
 export const requestOtpService = async (userId, email, purpose) => {
   if (!userId || !email || !purpose) {
@@ -152,7 +144,14 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
     $set: { emailVerified: true },
     $unset: { verificationExpires: '' },
   });
-
-  await redis.del(redisKey(userId, purpose, email));
+  
+  try {
+    await redis.del(redisKey(userId, purpose, email));
+  } catch (e) {
+    throw new AppError('Redis delete failed', {
+      status: 503,
+      code: 'REDIS_DEL_FAILED',
+    });
+  }
   return { ok: true };
 };
