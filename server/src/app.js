@@ -1,6 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import crypto from 'crypto';
 import { adminLogin } from './controllers/admin/admin.js';
 import {
   loginUser,
@@ -59,4 +60,31 @@ app.get('/user/ratings/given{/:page}', authToken, getMyGivenRatings);
 app.post('/job/post/create', authToken, createJobPost);
 app.get('/job/user/posts{/:page}{/:limit}', authToken, getAllUserJobPosts);
 app.get('/job/user/post/:jobId', authToken, getUserJobPostById);
+
+// error handler
+app.use((err, req, res) => {
+  const status = err.status || 500;
+  const code = err.code || 'INTERNAL';
+  const requestId = req.headers['x-request-id'] || crypto.randomUUID();
+
+  // Server logs: include stack for exact file/line
+  console.error({
+    requestId,
+    status,
+    code,
+    message: err.message,
+    meta: err.meta,
+    stack: err.stack, // shows file:line for quick debugging
+  });
+
+  // Client JSON: clean message
+  res.status(status).json({
+    error: {
+      code,
+      message: status >= 500 ? 'Internal server error' : err.message,
+    },
+    requestId,
+  });
+});
+
 export default app;

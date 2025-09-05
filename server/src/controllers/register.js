@@ -5,9 +5,9 @@ import {
   registerWorkerSchema,
 } from '../validator/validate';
 import { AuthUser } from '../models/AuthUser';
-import { requestOtpService, verifyOtpService } from '../utils/otp';
+import { requestOtpService } from '../utils/otp';
 
-export const registerEmployer = async (req, res) => {
+export const registerEmployer = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     const payload = registerEmployerSchema.safeParse(req.body);
@@ -42,31 +42,33 @@ export const registerEmployer = async (req, res) => {
       userId = created._id;
 
       // Create EmployerProfile
+      const areaClean = area?.trim();
       await EmployerProfile.create(
-        { userId, fullName, ...(area.trim() ? { area } : {}) },
+        { userId, fullName, ...(areaClean ? { area: areaClean } : {}) },
         { session }
       );
     });
 
     // Important: send OTP after the transaction is committed
-    await requestOtpService({
-      userId: String(userId),
-      email,
-      purpose: 'register',
-    });
+    const response = await requestOtpService(String(userId), email, 'register');
 
-    return res.status(201).json({ message: 'Registered; OTP sent. Please verify.' });
+    return res.status(201).json({
+      message: response.resent
+        ? 'Registered; OTP resent. Please verify.'
+        : 'Registered; OTP sent. Please verify.',
+    });
   } catch (error) {
-    const code = error?.status || 400;
-    return res
-      .status(code)
-      .json({ message: error.message || 'Invalid request payload' });
+    return next(error);
+    // const code = error?.status || 500;
+    // return res
+    //   .status(code)
+    //   .json({ message: error.message || 'Invalid request payload' });
   } finally {
     await session.endSession();
   }
 };
 
-export const registerWorker = async (req, res) => {
+export const registerWorker = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     const payload = registerWorkerSchema.safeParse(req.body);
@@ -78,6 +80,8 @@ export const registerWorker = async (req, res) => {
     const { email, password, fullName, area, skills, experienceYears } =
       payload.data.body;
 
+    let userId;
+
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
 
@@ -85,16 +89,20 @@ export const registerWorker = async (req, res) => {
         throw Object.assign(new Error('User already exists'), { status: 409 });
       }
 
-      const user = await AuthUser.create(
+      const setExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+
+      const created = await AuthUser.create(
         {
           email,
           password,
           role: 'Worker',
+          emailVerified: false,
+          verificationExpires: setExpiration,
         },
         { session }
       );
 
-      const userId = user._id;
+      userId = created._id;
 
       // Create WorkerProfile
       await WorkerProfile.create(
@@ -108,12 +116,16 @@ export const registerWorker = async (req, res) => {
         { session }
       );
     });
-    return res.status(201).json({ message: 'User registered successfully' });
+
+    const response = await requestOtpService(String(userId), email, 'register');
+
+    return res.status(201).json({
+      message: response.resent
+        ? 'Registered; OTP resent. Please verify.'
+        : 'Registered; OTP sent. Please verify.',
+    });
   } catch (error) {
-    const status = error.status || 400;
-    return res
-      .status(status)
-      .json({ message: error.message || 'Invalid request payload' });
+    return next(error);
   } finally {
     await session.endSession();
   }
