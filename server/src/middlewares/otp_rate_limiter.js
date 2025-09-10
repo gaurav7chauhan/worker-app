@@ -24,6 +24,7 @@ export const limitResend = async (req, res, next) => {
     (req.body.userId || req.body.email || 'anon') +
     ':' +
     (req.body.purpose || 'na');
+    
   const key = `${req.ip}:${who}`;
   try {
     const resConsume = await rlResend.consume(key);

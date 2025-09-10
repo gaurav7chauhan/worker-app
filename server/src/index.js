@@ -1,20 +1,27 @@
 import { connectDB } from './database/dbConnection.js';
+import { ensureRedis } from '../config/rateLimiterConfig.js';
 import app from './app.js';
 import dotenv from 'dotenv';
-console.log("running")
 
 dotenv.config({ path: './.env' });
 
-connectDB()
-  .then(() => {
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server is running on port ${process.env.PORT || 3000}`);
+async function start() {
+  try {
+    await ensureRedis();
+    await connectDB();
+
+    const port = process.env.PORT || 3000;
+    const server = app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
     });
-    app.on('error', (err) => {
-      console.log('ERROR:', err);
-      throw err;
+    server.on('error', (err) => {
+      console.log('HTTP Server error:', err);
+      process.exit(1);
     });
-  })
-  .catch((error) => {
-    console.error('Failed to connect to the database:', error);
-  });
+  } catch (error) {
+    console.error('Startup failure', error);
+    process.exit(1);
+  }
+}
+
+start();

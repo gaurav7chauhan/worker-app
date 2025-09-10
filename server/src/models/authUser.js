@@ -28,6 +28,8 @@ authUserSchema.index(
   { expireAfterSeconds: 0, partialFilterExpression: { emailVerified: false } }
 );
 
+authUserSchema.index({ email: 1 });
+
 authUserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
 

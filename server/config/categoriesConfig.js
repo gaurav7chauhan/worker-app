@@ -1,10 +1,10 @@
 export const jobCategories = [
-  "Household Work",
-  "Cooking",
-  "Plumbing",
-  "Security Guard",
-  "Cleaning",
-  "Construction & Skilled Labor",
-  "General Manual Labor",
-  "Others"
+  "household work",
+  "cooking",
+  "plumbing",
+  "security guard",
+  "cleaning",
+  "construction & skilled labor",
+  "general manual labor",
+  "others"
 ];

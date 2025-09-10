@@ -14,7 +14,6 @@ export const requestOtpService = async (userId, email, purpose) => {
   if (!userId || !email || !purpose) {
     throw new AppError('Missing required params', {
       status: 400,
-      code: 'BAD_REQUEST',
     });
   }
   const key = redisKey(userId, purpose, email);
@@ -26,7 +25,6 @@ export const requestOtpService = async (userId, email, purpose) => {
   } catch (error) {
     throw new AppError('Redis Unavailable', {
       status: 503,
-      code: 'REDIS_GET_FAILED',
       meta: { key },
     });
   }
@@ -37,7 +35,7 @@ export const requestOtpService = async (userId, email, purpose) => {
     } catch (error) {
       throw new AppError('Failed to send OTP email', {
         status: 500,
-        code: 'MAIL_SEND_FAILED',
+
         meta: { step: 'resend' },
       });
     }
@@ -97,10 +95,7 @@ export const requestOtpService = async (userId, email, purpose) => {
 
 export const verifyOtpService = async (userId, email, purpose, code) => {
   if (!userId || !email || !purpose || !code) {
-    throw new AppError('Missing required params', {
-      status: 400,
-      code: 'BAD_REQUEST',
-    });
+    throw new AppError('Missing required params', { status: 400 });
   }
   let token = await OtpToken.findOne({
     userId,
@@ -122,14 +117,7 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
 
   // Compare code
   let match = false;
-  try {
-    match = await bcrypt.compare(String(code), token.codeHash);
-  } catch (e) {
-    throw new AppError('Hash compare failed', {
-      status: 500,
-      code: 'HASH_COMPARE_FAILED',
-    });
-  }
+  match = await bcrypt.compare(String(code), token.codeHash);
 
   if (!match) {
     await OtpToken.updateOne({ _id: token._id }, { $inc: { attempts: 1 } });
@@ -140,18 +128,27 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
   await OtpToken.updateOne({ _id: token._id }, { $set: { consumed: true } });
 
   // Mark user verified
-  await AuthUser.findByIdAndUpdate(userId, {
-    $set: { emailVerified: true },
-    $unset: { verificationExpires: '' },
-  });
-  
-  try {
-    await redis.del(redisKey(userId, purpose, email));
-  } catch (e) {
-    throw new AppError('Redis delete failed', {
-      status: 503,
-      code: 'REDIS_DEL_FAILED',
-    });
+  switch (purpose) {
+    case 'register':
+      await AuthUser.findByIdAndUpdate(userId, {
+        $set: { emailVerified: true },
+        $unset: { verificationExpires: '' },
+      });
+      break;
+    case 'login':
+      await AuthUser.findByIdAndUpdate(userId, {
+        $set: { emailVerified: true },
+        $unset: { verificationExpires: '' },
+      });
+      break;
+    case 'password_reset':
+      break;
+    case 'email_change':
+      break;
+    default:
+      throw new AppError('Unknown OTP purpose', { status: 400 });
   }
+
+  await redis.del(redisKey(userId, purpose, email));
   return { ok: true };
 };

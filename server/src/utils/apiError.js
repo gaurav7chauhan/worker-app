@@ -1,8 +1,7 @@
 export class AppError extends Error {
-  constructor(message, { status = 500, code = 'INTERNAL', meta = {} } = {}) {
+  constructor(message, { status = 500, meta = {} } = {}) {
     super(message);
     this.status = status;
-    this.code = code;
     this.meta = meta;
   }
 }

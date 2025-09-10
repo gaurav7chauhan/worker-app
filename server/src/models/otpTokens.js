@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const otpTokenSchema = new Schema(
   {
@@ -31,4 +31,4 @@ otpTokenSchema.index(
   { unique: true, partialFilterExpression: { consumed: false } }
 );
 
-export const OtpToken = model('OtpToken', otpTokenSchema);
+export const OtpToken = mongoose.model('OtpToken', otpTokenSchema);

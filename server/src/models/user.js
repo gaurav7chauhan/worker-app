@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { jobCategories } from '../../config/categoriesConfig';
+import { jobCategories } from '../../config/categoriesConfig.js';
 
 const employerProfileSchema = new Schema(
   {
