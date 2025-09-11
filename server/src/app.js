@@ -4,6 +4,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 
 import { registerEmployer, registerWorker } from './controllers/register.js';
+import { loginUser } from './controllers/login.js';
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.use(express.static('public'));
 
 app.post('/user/registerEmployer', registerEmployer);
 app.post('/user/registerWorker', registerWorker);
-// app.post('/user/login', loginUser);
+app.post('/user/login', loginUser);
 // app.get('/user/logout', logoutUser);
 // app.delete('/user/delete', authToken, deleteUserAccount);
 // app.put('/user/email/update', authToken, updateUserEmail);

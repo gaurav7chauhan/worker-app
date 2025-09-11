@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 import { jobCategories } from '../../config/categoriesConfig.js';
 
 const employerProfileSchema = new Schema(
@@ -16,10 +16,10 @@ const employerProfileSchema = new Schema(
   { timestamps: true }
 );
 
-employerProfileSchema.index({ area: 1, ratingAvg: -1 });      //Equality → Sort → Range //ESR
+employerProfileSchema.index({ area: 1, ratingAvg: -1 }); //Equality → Sort → Range //ESR
 employerProfileSchema.index({ userId: 1 }, { unique: true });
-export const EmployerProfile = model('EmployerProfile', employerProfileSchema);
 
+// next....
 const workerProfileSchema = new Schema(
   {
     userId: {
@@ -39,4 +39,6 @@ const workerProfileSchema = new Schema(
 
 workerProfileSchema.index({ area: 1, skills: 1, ratingAvg: -1 });
 workerProfileSchema.index({ userId: 1 }, { unique: true });
-export const WorkerProfile = model('WorkerProfile', workerProfileSchema);
+
+export const EmployerProfile = mongoose.models.EmployerProfile || model('EmployerProfile', employerProfileSchema);
+export const WorkerProfile = mongoose.models.WorkerProfile || model('WorkerProfile', workerProfileSchema);

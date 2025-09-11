@@ -31,4 +31,4 @@ otpTokenSchema.index(
   { unique: true, partialFilterExpression: { consumed: false } }
 );
 
-export const OtpToken = mongoose.model('OtpToken', otpTokenSchema);
+export const OtpToken = mongoose.models.OtpToken || mongoose.model('OtpToken', otpTokenSchema);

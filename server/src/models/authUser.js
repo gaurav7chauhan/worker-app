@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 const authUserSchema = new Schema(
@@ -36,8 +36,8 @@ authUserSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-authUserSchema.method.isPasswordMatch = async function (incomingPassword) {
-  return await bcrypt.compare(incomingPassword, this.password);
+authUserSchema.methods.isPasswordMatch = async function (incomingPassword) {
+  return bcrypt.compare(incomingPassword, this.password);
 };
 
-export const AuthUser = model('AuthUser', authUserSchema);
+export const AuthUser = mongoose.models.AuthUser || model('AuthUser', authUserSchema);
