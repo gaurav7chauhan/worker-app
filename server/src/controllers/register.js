@@ -1,24 +1,29 @@
 import mongoose from 'mongoose';
-import { EmployerProfile, WorkerProfile } from '../models/user.js';
+import { EmployerProfile, WorkerProfile } from '../models/userModel.js';
 import {
   registerEmployerSchema,
   registerWorkerSchema,
 } from '../validator/validate.js';
 import { requestOtpService } from '../utils/otp.js';
 import { AppError } from '../utils/apiError.js';
-import { AuthUser } from '../models/AuthUser.js';
+import { AuthUser } from '../models/authModel.js';
+import { cookieOptions } from '../services/cookieOptions.js';
+import { generateAccessToken, generateRefreshToken } from '../services/jwt.js';
 
 export const registerEmployer = async (req, res, next) => {
+  const userAgent = req.headers['user-agent'] || 'unknown';
+  const ip = req.ip;
   const session = await mongoose.startSession();
   try {
     const payload = registerEmployerSchema.safeParse(req.body);
     if (!payload.success) {
-      return res.status(400).json({ message: payload.error.issues[0].message });
+      throw new AppError(payload.error.issues[0].message, { status: 400 });
     }
 
     const { email, password, fullName, area, role } = payload.data;
 
     let data;
+    let id;
 
     // session started
     await session.withTransaction(async () => {
@@ -66,6 +71,8 @@ export const registerEmployer = async (req, res, next) => {
         role,
         area,
       };
+
+      id = data.auth_id;
     });
 
     // Important: send OTP after the transaction is committed
@@ -76,7 +83,12 @@ export const registerEmployer = async (req, res, next) => {
     //     ? 'Registered; OTP resent. Please verify.'
     //     : 'Registered; OTP sent. Please verify.',
     // });
-    return res.status(201).json({ data, message: 'Registered successfully' });
+    const accessToken = await generateAccessToken(id);
+    const refreshToken = await generateRefreshToken(id, 'User', ip, userAgent);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+    return res
+      .status(201)
+      .json({ data, accessToken, message: 'Registered successfully' });
   } catch (error) {
     return next(error);
   } finally {

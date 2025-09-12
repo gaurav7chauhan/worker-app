@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { RefreshSession } from '../models/refreshSessionModel.js';
 import ms from 'ms';
+import { RefreshSession } from '../models/tokenModel.js';
 
 export const generateAccessToken = (userId) => {
   return jwt.sign({ _id: userId }, process.env.JWT_ACCESS_SECRET, {
@@ -17,7 +17,7 @@ export const verifyAccessToken = (token) => {
   }
 };
 
-export const generateRefreshToken = async (userId, type) => {
+export const generateRefreshToken = async (userId, type, ip, userAgent) => {
   try {
     const jti = uuidv4();
 
@@ -39,6 +39,8 @@ export const generateRefreshToken = async (userId, type) => {
       jti,
       expiresAt,
       revoked: false,
+      ip,
+      userAgent,
     });
 
     return refreshToken;
@@ -51,21 +53,17 @@ export const generateRefreshToken = async (userId, type) => {
 export const verifyRefreshToken = async (token) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-
-    if (!decoded.jti || !decoded._id) {
-      return null;
-    }
+    if (!decoded?.jti || !decoded?._id) return null;
 
     const session = await RefreshSession.findOne({
       jti: decoded.jti,
+      principalId: decoded._id,
       revoked: false,
+      expiresAt: { $gt: new Date() },
     });
+    if (!session) return null;
 
-    if (!session) {
-      return null;
-    }
-
-    return decoded;
+    return { decoded, session };
   } catch (error) {
     return null;
   }

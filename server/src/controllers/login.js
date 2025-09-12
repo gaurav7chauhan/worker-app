@@ -1,4 +1,4 @@
-import { AuthUser } from '../models/authUser.js';
+import { AuthUser } from '../models/authModel.js';
 import { loginSchema } from '../validator/validate.js';
 
 export const loginUser = async (req, res, next) => {

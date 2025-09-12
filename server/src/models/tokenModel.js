@@ -23,6 +23,8 @@ const refreshSessionSchema = new Schema(
       default: false,
       index: true,
     },
+    revokedAt: { type: Date },
+    reason: { type: String },
     // Optional: bind to client context for added security
     userAgent: { type: String },
     ip: { type: String },
