@@ -1,4 +1,6 @@
 import { AuthUser } from '../models/authModel.js';
+import { generateAccessToken, generateRefreshToken } from '../services/jwt.js';
+import { requestOtpService } from '../utils/otp.js';
 import { loginSchema } from '../validator/validate.js';
 
 export const loginUser = async (req, res, next) => {
@@ -22,6 +24,9 @@ export const loginUser = async (req, res, next) => {
   if (foundUser.isBlocked) {
     return res.status(409).json({ message: 'You are blocked by admin.' });
   }
+
+  const ua = req.headers['user-agent'] || 'unknown';
+  const ip = req.ip;
 
   const fromColl =
     foundUser.role === 'Employer' ? 'employerprofiles' : 'workerprofiles';
@@ -56,7 +61,23 @@ export const loginUser = async (req, res, next) => {
   if (!out.length) {
     return res.status(404).json({ message: 'User not found' });
   }
+
+  // const response = await requestOtpService(String(foundUser._id), email, 'login');
+
+  // return res.status(201).json({
+  //   message: response.resent
+  //     ? 'Login; OTP resent. Please verify.'
+  //     : 'Login; OTP sent. Please verify.',
+  // });
+
   const user = out[0];
- 
-  return res.status(200).json({user, message: 'Login successfull'})
+
+  const accessToken = generateAccessToken(foundUser._id);
+  const refreshToken = await generateRefreshToken(foundUser._id, ip, ua);
+
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  return res
+    .status(200)
+    .json({ user, accessToken, message: 'Login successfull' });
 };

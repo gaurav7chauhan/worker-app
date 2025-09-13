@@ -11,8 +11,6 @@ import { cookieOptions } from '../services/cookieOptions.js';
 import { generateAccessToken, generateRefreshToken } from '../services/jwt.js';
 
 export const registerEmployer = async (req, res, next) => {
-  const userAgent = req.headers['user-agent'] || 'unknown';
-  const ip = req.ip;
   const session = await mongoose.startSession();
   try {
     const payload = registerEmployerSchema.safeParse(req.body);
@@ -24,13 +22,15 @@ export const registerEmployer = async (req, res, next) => {
 
     let data;
     let id;
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ip = req.ip || req.headers['x-forwarded-for']?.split(',')?.trim();
 
     // session started
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
 
       if (exists) {
-        throw new AppError('User already exists', {
+        throw new AppError('User already exists. Please login', {
           status: 409,
         });
       }
@@ -76,14 +76,14 @@ export const registerEmployer = async (req, res, next) => {
     });
 
     // Important: send OTP after the transaction is committed
-    // const response = await requestOtpService(String(userId), email, 'register');
+    // const response = await requestOtpService(String(id), email, 'register');
 
     // return res.status(201).json({
     //   message: response.resent
     //     ? 'Registered; OTP resent. Please verify.'
     //     : 'Registered; OTP sent. Please verify.',
     // });
-    const accessToken = await generateAccessToken(id);
+    const accessToken = generateAccessToken(id);
     const refreshToken = await generateRefreshToken(id, 'User', ip, userAgent);
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res
@@ -109,6 +109,9 @@ export const registerWorker = async (req, res, next) => {
       payload.data;
 
     let data;
+    let id;
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ip = req.ip;
 
     // session started
     await session.withTransaction(async () => {
@@ -158,16 +161,24 @@ export const registerWorker = async (req, res, next) => {
         area,
         experienceYears,
       };
+
+      id = data.auth_id;
     });
 
-    // const response = await requestOtpService(String(userId), email, 'register');
+    // const response = await requestOtpService(String(id), email, 'register');
 
     // return res.status(201).json({
     //   message: response.resent
     //     ? 'Registered; OTP resent. Please verify.'
     //     : 'Registered; OTP sent. Please verify.',
     // });
-    return res.status(201).json({ data, message: 'Registered successfully' });
+    const accessToken = generateAccessToken(id);
+    const refreshToken = await generateRefreshToken(id, 'User', ip, userAgent);
+
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+    return res
+      .status(201)
+      .json({ data, accessToken, message: 'Registered successfully' });
   } catch (error) {
     return next(error);
   } finally {

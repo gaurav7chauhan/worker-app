@@ -35,7 +35,7 @@ const refreshSessionSchema = new Schema(
 refreshSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Helpful compound index for common queries: active sessions per user
-RefreshSessionSchema.index({ principalId: 1, revoked: 1 });
+refreshSessionSchema.index({ principalId: 1, revoked: 1 });
 
 export const RefreshSession =
   mongoose.models.RefreshSession ||

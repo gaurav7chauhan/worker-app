@@ -23,6 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
+// app.set('trust proxy', true);
+
 app.post('/user/registerEmployer', registerEmployer);
 app.post('/user/registerWorker', registerWorker);
 app.post('/user/login', loginUser);
