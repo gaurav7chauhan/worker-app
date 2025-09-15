@@ -1,0 +1,52 @@
+import { z } from 'zod';
+import { languages as allowedLangs } from '../../config/languageConfig.js';
+import { jobCategories } from '../../config/categoriesConfig.js';
+
+const AddressSchema = z.object({
+  line1: z.string().trim().max(120),
+  line2: z.string().trim().max(120).optional(),
+  line3: z.string().trim().max(120).optional(),
+  pincode: z.string().trim().max(10),
+  city: z.string().trim().max(80),
+  state: z.string().trim().max(80),
+});
+
+export const updateEmployerProfileSchema = z
+  .object({
+    fullName: z.string().trim().min(1).max(80).optional(),
+    address: AddressSchema.partial().optional(),
+    bio: z.string().trim().max(500).optional(),
+    avatarUrl: z.string().url().optional(),
+    coverUrl: z.string().url().optional(),
+    languages: z
+      .array(z.string().trim().toLowerCase()) // normalize case first [6]
+      .max(5)
+      .refine(
+        (arr) => arr.every((v) => allowedLangs.includes(v)),
+        'Invalid language'
+      )
+      .optional(),
+    availability: z.enum(['available', 'off-work', 'outside']).optional(),
+  })
+  .strict();
+
+export const updateWorkerProfileSchema = z
+  .object({
+    fullName: z.string().trim().min(1).max(80).optional(),
+    address: AddressSchema.partial().optional(),
+    skills: z.array(jobCategories).max(20).optional(),
+    experienceYears: z.number().int().min(0).max(60).optional(),
+    bio: z.string().trim().max(500).optional(),
+    avatarUrl: z.string().url().optional(),
+    coverUrl: z.string().url().optional(),
+    languages: z
+      .array(z.string().trim().toLowerCase())
+      .max(5)
+      .refine(
+        (arr) => arr.every((v) => allowedLangs.includes(v)),
+        'Invalid language'
+      )
+      .optional(),
+    availability: z.enum(['available', 'off-work', 'outside']).optional(),
+  })
+  .strict();

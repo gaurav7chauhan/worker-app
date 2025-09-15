@@ -1,14 +1,18 @@
 import mongoose from 'mongoose';
-import { EmployerProfile, WorkerProfile } from '../models/userModel.js';
+import { EmployerProfile } from '../../models/employerModel.js';
+import { WorkerProfile } from '../../models/workerModel.js';
 import {
   registerEmployerSchema,
   registerWorkerSchema,
-} from '../validator/validate.js';
-import { requestOtpService } from '../utils/otp.js';
-import { AppError } from '../utils/apiError.js';
-import { AuthUser } from '../models/authModel.js';
-import { cookieOptions } from '../services/cookieOptions.js';
-import { generateAccessToken, generateRefreshToken } from '../services/jwt.js';
+} from '../../validator/registerValidate.js';
+import { requestOtpService } from '../../utils/otp.js';
+import { AppError } from '../../utils/apiError.js';
+import { AuthUser } from '../../models/authModel.js';
+import { cookieOptions } from '../../services/cookieOptions.js';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from '../../services/jwt.js';
 
 export const registerEmployer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -23,7 +27,7 @@ export const registerEmployer = async (req, res, next) => {
     let data;
     let id;
     const userAgent = req.headers['user-agent'] || 'unknown';
-    const ip = req.ip || req.headers['x-forwarded-for']?.split(',')?.trim();
+    const ip = req.ip;
 
     // session started
     await session.withTransaction(async () => {

@@ -30,14 +30,19 @@ authUserSchema.index(
 
 authUserSchema.index({ email: 1 });
 
-authUserSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
-
-  this.password = await bcrypt.hash(this.password, 10);
+authUserSchema.pre('save', async function (next) {
+  try {
+    if (!this.isModified('password')) return next(); // skip if unchanged [1]
+    this.password = await bcrypt.hash(this.password, 10); // async, non-blocking [12][9]
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 authUserSchema.methods.isPasswordMatch = async function (incomingPassword) {
   return bcrypt.compare(incomingPassword, this.password);
 };
 
-export const AuthUser = mongoose.models.AuthUser || model('AuthUser', authUserSchema);
+export const AuthUser =
+  mongoose.models.AuthUser || model('AuthUser', authUserSchema);

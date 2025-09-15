@@ -3,8 +3,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import crypto from 'crypto';
 
-import { registerEmployer, registerWorker } from './controllers/register.js';
-import { loginUser } from './controllers/login.js';
+import { registerEmployer, registerWorker } from './controllers/user/register.js';
+import { loginUser } from './controllers/user/login.js';
 
 const app = express();
 
