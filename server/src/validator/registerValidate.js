@@ -44,8 +44,3 @@ export const registerWorkerSchema = z.object({
   role: z.literal('Worker', 'Please select Worker as role'),
   otp: z.string().length(6, 'OTP must be 6 digits').optional(),
 });
-
-export const loginSchema = z.object({
-  email: emailStr,
-  password: passwordStr,
-});

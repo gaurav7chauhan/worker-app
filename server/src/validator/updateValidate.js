@@ -11,7 +11,7 @@ const AddressSchema = z.object({
   state: z.string().trim().max(80),
 });
 
-export const updateEmployerProfileSchema = z
+const baseProfileUpdate = z
   .object({
     fullName: z.string().trim().min(1).max(80).optional(),
     address: AddressSchema.partial().optional(),
@@ -26,27 +26,23 @@ export const updateEmployerProfileSchema = z
         'Invalid language'
       )
       .optional(),
-    availability: z.enum(['available', 'off-work', 'outside']).optional(),
   })
   .strict();
 
-export const updateWorkerProfileSchema = z
-  .object({
-    fullName: z.string().trim().min(1).max(80).optional(),
-    address: AddressSchema.partial().optional(),
-    skills: z.array(jobCategories).max(20).optional(),
-    experienceYears: z.number().int().min(0).max(60).optional(),
-    bio: z.string().trim().max(500).optional(),
-    avatarUrl: z.string().url().optional(),
-    coverUrl: z.string().url().optional(),
-    languages: z
-      .array(z.string().trim().toLowerCase())
-      .max(5)
-      .refine(
-        (arr) => arr.every((v) => allowedLangs.includes(v)),
-        'Invalid language'
-      )
-      .optional(),
-    availability: z.enum(['available', 'off-work', 'outside']).optional(),
+const skillsSchema = z
+  .array(z.string().trim().toLowerCase())
+  .max(20)
+  .refine((arr) => arr.every((v) => jobCategories.includes(v)), {
+    message: 'Invalid skill',
   })
-  .strict();
+  .refine((arr) => new set(arr).size === arr.length, {
+    message: 'Duplicate skills not allowed',
+  });
+
+export const workerUpdate = baseProfileUpdate.extend({
+  skills: skillsSchema.optional(),
+  experienceYears: z.number().int().min(0).max(60).optional(),
+  availability: z.enum(['available', 'off-work', 'outside']).optional(),
+});
+
+export const employerUpdate = baseProfileUpdate;

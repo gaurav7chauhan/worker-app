@@ -8,7 +8,7 @@ export const jwtVerify = async (req, res, next) => {
       return next(new AppError('Missing access token', { status: 401 }));
     }
     const token = auth.split(' ')[1];
-    const decoded = await verifyAccessToken(token);
+    const decoded = verifyAccessToken(token);
 
     req.auth = { _id: decoded._id };
     return next();
