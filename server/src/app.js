@@ -5,6 +5,8 @@ import crypto from 'crypto';
 
 import { registerEmployer, registerWorker } from './controllers/user/register.js';
 import { loginUser } from './controllers/user/login.js';
+import { updateUserProfile } from './controllers/user/updateProfile.js';
+import { jwtVerify } from './middlewares/jwtAuth.js';
 
 const app = express();
 
@@ -28,6 +30,7 @@ app.use(express.static('public'));
 app.post('/user/registerEmployer', registerEmployer);
 app.post('/user/registerWorker', registerWorker);
 app.post('/user/login', loginUser);
+app.patch('/user/profile/update', jwtVerify, updateUserProfile)
 // app.get('/user/logout', logoutUser);
 // app.delete('/user/delete', authToken, deleteUserAccount);
 // app.put('/user/email/update', authToken, updateUserEmail);

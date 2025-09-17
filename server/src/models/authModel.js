@@ -7,7 +7,6 @@ const authUserSchema = new Schema(
       type: String,
       lowercase: true,
       trim: true,
-      unique: true,
       required: true,
     },
     password: { type: String, required: true },
@@ -29,6 +28,7 @@ authUserSchema.index(
 );
 
 authUserSchema.index({ email: 1 });
+// authUserSchema.index({ email: 1, isBlocked: 1 });
 
 authUserSchema.pre('save', async function (next) {
   try {

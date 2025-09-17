@@ -14,7 +14,7 @@ export const updateUserProfile = async (req, res, next) => {
     }
 
     const authUser = await AuthUser.findById(req.auth._id).select(
-      'email isBlocked role'
+      'isBlocked role'
     );
 
     if (!authUser) {
@@ -36,7 +36,6 @@ export const updateUserProfile = async (req, res, next) => {
     const cleaned = Object.fromEntries(
       Object.entries(parsed.data).filter(([_, v]) => v !== undefined)
     );
-
     if (cleaned.address) {
       cleaned.address = Object.fromEntries(
         Object.entries(cleaned.address).filter(([_, v]) => v !== undefined)
@@ -45,9 +44,9 @@ export const updateUserProfile = async (req, res, next) => {
 
     const model = authUser.role === 'Employer' ? EmployerProfile : WorkerProfile;
     const profile = await model.findOneAndUpdate(
-      { email: authUser.email },
+      { userId: authUser._id },
       { $set: cleaned },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, context: 'query' }
     );
 
     if (!profile) {
