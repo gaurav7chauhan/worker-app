@@ -39,11 +39,14 @@ export const switchRole = async (req, res, next) => {
       coverUrl: sourceUser?.coverUrl || '',
     };
 
-    const profile = await targetUser.findOneAndUpdate(
-      { userId: authUser._id },
-      { $setOnInsert: seed },
-      { new: true, upsert: true }
-    );
+    const profile = await targetUser
+      .findOneAndUpdate(
+        { userId: authUser._id },
+        { $setOnInsert: seed },
+        { new: true, upsert: true }
+      )
+      .select('fullName area languages avatarUrl userId')
+      .lean();
 
     if (authUser.role !== targetRole) {
       authUser.role = targetRole;

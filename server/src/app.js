@@ -3,10 +3,14 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import crypto from 'crypto';
 
-import { registerEmployer, registerWorker } from './controllers/user/register.js';
+import {
+  registerEmployer,
+  registerWorker,
+} from './controllers/user/register.js';
 import { loginUser } from './controllers/user/login.js';
 import { updateUserProfile } from './controllers/user/updateProfile.js';
 import { jwtVerify } from './middlewares/jwtAuth.js';
+import { switchRole } from './controllers/user/toggleRole.js';
 
 const app = express();
 
@@ -31,6 +35,7 @@ app.post('/user/registerEmployer', registerEmployer);
 app.post('/user/registerWorker', registerWorker);
 app.post('/user/login', loginUser);
 app.patch('/user/profile/update', jwtVerify, updateUserProfile);
+app.post('/user/account/switch/:role', jwtVerify, switchRole);
 // app.get('/user/logout', logoutUser);
 // app.delete('/user/delete', authToken, deleteUserAccount);
 // app.put('/user/email/update', authToken, updateUserEmail);
