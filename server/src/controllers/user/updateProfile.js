@@ -10,7 +10,9 @@ import {
 export const updateUserProfile = async (req, res, next) => {
   try {
     if (!req.auth) {
-      throw new AppError('User not found', { status: 400 });
+      throw new AppError('Authentication required. Please log in again.', {
+        status: 401,
+      });
     }
 
     const authUser = await AuthUser.findById(req.auth._id).select(
@@ -18,31 +20,39 @@ export const updateUserProfile = async (req, res, next) => {
     );
 
     if (!authUser) {
-      throw new AppError('User not found', { status: 404 });
+      throw new AppError('User account not found.', { status: 404 });
     }
 
     if (authUser.isBlocked) {
-      throw new AppError('Sorry, you are blocked by admin.', { status: 409 });
+      throw new AppError(
+        'Your account is currently blocked by the administrator.',
+        { status: 403 }
+      );
     }
 
     const schema = authUser.role === 'Employer' ? employerUpdate : workerUpdate;
-
     const parsed = schema.safeParse(req.body);
+
     if (!parsed.success) {
       const first = parsed.error.issues[0];
-      throw new AppError(first?.message, { status: 400 });
+      throw new AppError(first?.message || 'Invalid input data.', {
+        status: 422,
+      });
     }
 
     const cleaned = Object.fromEntries(
       Object.entries(parsed.data).filter(([_, v]) => v !== undefined)
     );
+
     if (cleaned.address) {
       cleaned.address = Object.fromEntries(
         Object.entries(cleaned.address).filter(([_, v]) => v !== undefined)
       );
     }
 
-    const model = authUser.role === 'Employer' ? EmployerProfile : WorkerProfile;
+    const model =
+      authUser.role === 'Employer' ? EmployerProfile : WorkerProfile;
+
     const profile = await model.findOneAndUpdate(
       { userId: authUser._id },
       { $set: cleaned },
@@ -50,12 +60,14 @@ export const updateUserProfile = async (req, res, next) => {
     );
 
     if (!profile) {
-      throw new AppError('Profile not found', { status: 404 });
+      throw new AppError('Profile record not found.', { status: 404 });
     }
 
-    return res
-      .status(200)
-      .json({ profile, message: 'Profile successfully updated' });
+    return res.status(200).json({
+      success: true,
+      profile,
+      message: 'Your profile has been updated successfully.',
+    });
   } catch (e) {
     return next(e);
   }

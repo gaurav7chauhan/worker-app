@@ -30,7 +30,7 @@ app.use(express.static('public'));
 app.post('/user/registerEmployer', registerEmployer);
 app.post('/user/registerWorker', registerWorker);
 app.post('/user/login', loginUser);
-app.patch('/user/profile/update', jwtVerify, updateUserProfile)
+app.patch('/user/profile/update', jwtVerify, updateUserProfile);
 // app.get('/user/logout', logoutUser);
 // app.delete('/user/delete', authToken, deleteUserAccount);
 // app.put('/user/email/update', authToken, updateUserEmail);

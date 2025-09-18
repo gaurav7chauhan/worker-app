@@ -27,11 +27,6 @@ const employerProfileSchema = new Schema(
         message: 'Invalid language in languages array',
       },
     },
-    availability: {
-      type: String,
-      enum: ['available', 'off-work', 'outside'],
-      default: null,
-    },
     ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0, min: 0 },
     jobsPosted: { type: Number, default: 0, min: 0 },
