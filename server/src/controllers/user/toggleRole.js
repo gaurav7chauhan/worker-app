@@ -5,7 +5,8 @@ import { AppError } from '../../utils/apiError.js';
 
 export const switchRole = async (req, res, next) => {
   try {
-    if (!req.auth?._id) throw new AppError('Unauthorized', { status: 401 });
+    if (!req.auth?._id)
+      throw new AppError('Authentication required', { status: 401 });
 
     const authUser = await AuthUser.findById(req.auth._id).select(
       'isBlocked role'
@@ -13,16 +14,15 @@ export const switchRole = async (req, res, next) => {
 
     if (!authUser) throw new AppError('Auth user not found', { status: 404 });
     if (authUser.isBlocked) {
-      throw new AppError('You are blocked by admin', { status: 409 });
+      throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
     // in which account user wants to switch
     const targetRole = req.params.role === 'Employer' ? 'Employer' : 'Worker';
-    const source = targetRole === 'Employer' ? WorkerProfile : EmployerProfile;
-    const targetUser =
-      targetRole === 'Employer' ? EmployerProfile : WorkerProfile;
+    const Source = targetRole === 'Employer' ? WorkerProfile : EmployerProfile;
+    const targetUser = targetRole === 'Employer' ? EmployerProfile : WorkerProfile;
 
-    const sourceUser = await source
+    const sourceUser = await Source
       .findOne({ userId: authUser._id })
       .select('fullName area languages avatarUrl')
       .lean();
@@ -45,7 +45,7 @@ export const switchRole = async (req, res, next) => {
         { $setOnInsert: seed },
         { new: true, upsert: true }
       )
-      .select('fullName area languages avatarUrl userId')
+      // .select('fullName area languages avatarUrl userId')
       .lean();
 
     if (authUser.role !== targetRole) {
@@ -56,7 +56,7 @@ export const switchRole = async (req, res, next) => {
     return res.status(200).json({
       role: targetRole,
       profile,
-      message: 'Switched role',
+      message: 'Role switched successfully',
     });
   } catch (e) {
     return next(e);

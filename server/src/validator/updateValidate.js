@@ -25,6 +25,9 @@ const baseProfileUpdate = z
         (arr) => arr.every((v) => allowedLangs.includes(v)),
         'Invalid language'
       )
+      .refine((arr) => new Set(arr).size === arr.length, {
+        message: 'Duplicate languages not allowed',
+      })
       .optional(),
   })
   .strict();
@@ -35,7 +38,7 @@ const skillsSchema = z
   .refine((arr) => arr.every((v) => jobCategories.includes(v)), {
     message: 'Invalid skill',
   })
-  .refine((arr) => new set(arr).size === arr.length, {
+  .refine((arr) => new Set(arr).size === arr.length, {
     message: 'Duplicate skills not allowed',
   });
 

@@ -9,8 +9,8 @@ import {
 
 export const updateUserProfile = async (req, res, next) => {
   try {
-    if (!req.auth) {
-      throw new AppError('Authentication required. Please log in again.', {
+    if (!req.auth?._id) {
+      throw new AppError('Authentication required', {
         status: 401,
       });
     }
@@ -20,14 +20,11 @@ export const updateUserProfile = async (req, res, next) => {
     );
 
     if (!authUser) {
-      throw new AppError('User account not found.', { status: 404 });
+      throw new AppError('User not found', { status: 404 });
     }
 
     if (authUser.isBlocked) {
-      throw new AppError(
-        'Your account is currently blocked by the administrator.',
-        { status: 403 }
-      );
+      throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
     const schema = authUser.role === 'Employer' ? employerUpdate : workerUpdate;
@@ -53,11 +50,15 @@ export const updateUserProfile = async (req, res, next) => {
     const model =
       authUser.role === 'Employer' ? EmployerProfile : WorkerProfile;
 
-    const profile = await model.findOneAndUpdate(
-      { userId: authUser._id },
-      { $set: cleaned },
-      { new: true, runValidators: true, context: 'query' }
-    );
+    const profile = await model
+      .findOneAndUpdate(
+        { userId: authUser._id },
+        { $set: cleaned },
+        { new: true, runValidators: true, context: 'query' }
+      )
+      .select(
+        '-onTimeRate -ratingAvg -ratingCount -repeatClientRate -userId -badges'
+      );
 
     if (!profile) {
       throw new AppError('Profile record not found.', { status: 404 });
