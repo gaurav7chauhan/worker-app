@@ -11,6 +11,14 @@ const AddressSchema = z.object({
   state: z.string().trim().max(80),
 });
 
+const validCategories = new Set(jobCategories.map((e) => e.name.toLowerCase()));
+const categoryToSubs = new Map(
+  jobCategories.map((e) => [
+    e.name.toLowerCase(),
+    new Set(e.subcategories.map((s) => s.toLowerCase())),
+  ])
+);
+
 const baseProfileUpdate = z
   .object({
     fullName: z.string().trim().min(1).max(80).optional(),
@@ -32,20 +40,63 @@ const baseProfileUpdate = z
   })
   .strict();
 
-const skillsSchema = z
-  .array(z.string().trim().toLowerCase())
-  .max(20)
-  .refine((arr) => arr.every((v) => jobCategories.includes(v)), {
-    message: 'Invalid skill',
+export const workerUpdate = baseProfileUpdate
+  .extend({
+    experienceYears: z.coerce.number().int().min(0).max(60).optional(),
+    availability: z.enum(['available', 'off-work', 'outside']).optional(),
+    skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
+    category: z
+      .array(z.string().trim().toLowerCase())
+      .nonempty()
+      .max(5)
+      .optional(),
   })
-  .refine((arr) => new Set(arr).size === arr.length, {
-    message: 'Duplicate skills not allowed',
-  });
+  .superRefine((data, ctx) => {
+    const categories = data.category ?? [];
+    const catDupes = new Set(categories);
+    if (catDupes.size !== categories.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
 
-export const workerUpdate = baseProfileUpdate.extend({
-  skills: skillsSchema.optional(),
-  experienceYears: z.number().int().min(0).max(60).optional(),
-  availability: z.enum(['available', 'off-work', 'outside']).optional(),
-});
+    for (const c of categories) {
+      if (!validCategories.has(c)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Category ${c} is not valid.`,
+        });
+      }
+    }
+
+    const skills = data.skills ?? [];
+    const allowed = new Set();
+    for (const c of categories) {
+      const subs = categoryToSubs.get(c);
+      if (subs) for (const s of subs) allowed.add(s);
+    }
+
+    const skillDupes = new Set(skills);
+    if (skillDupes.size !== skills.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
+
+    for (const s of skills) {
+      if (!allowed.has(s)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Skill ${s} is not valid for selected categories`,
+        });
+      }
+    }
+  });
 
 export const employerUpdate = baseProfileUpdate;

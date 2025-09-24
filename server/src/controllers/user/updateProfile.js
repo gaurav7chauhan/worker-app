@@ -2,6 +2,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
+import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
 import {
   employerUpdate,
   workerUpdate,
@@ -45,6 +46,29 @@ export const updateUserProfile = async (req, res, next) => {
       cleaned.address = Object.fromEntries(
         Object.entries(cleaned.address).filter(([_, v]) => v !== undefined)
       );
+    }
+
+    if (req.file) {
+      const media = await uploadOnCloudinary(
+        req.file.path,
+        'image',
+        req.file.mimetype,
+        {
+          folder: 'users/avatar',
+          public_id: `avatar_${authUser._id}`,
+        }
+      );
+      if (!media) {
+        throw new AppError('Avatar did not meet upload policy', {
+          status: 422,
+        });
+      }
+
+      if (!media.secure_url) {
+        throw new AppError('Cloud upload returned no URL', { status: 502 });
+      }
+
+      cleaned.avatarUrl = media.secure_url;
     }
 
     const model =

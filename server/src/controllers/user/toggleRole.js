@@ -5,8 +5,9 @@ import { AppError } from '../../utils/apiError.js';
 
 export const switchRole = async (req, res, next) => {
   try {
-    if (!req.auth?._id)
+    if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
+    }
 
     const authUser = await AuthUser.findById(req.auth._id).select(
       'isBlocked role'
@@ -20,10 +21,10 @@ export const switchRole = async (req, res, next) => {
     // in which account user wants to switch
     const targetRole = req.params.role === 'Employer' ? 'Employer' : 'Worker';
     const Source = targetRole === 'Employer' ? WorkerProfile : EmployerProfile;
-    const targetUser = targetRole === 'Employer' ? EmployerProfile : WorkerProfile;
+    const targetUser =
+      targetRole === 'Employer' ? EmployerProfile : WorkerProfile;
 
-    const sourceUser = await Source
-      .findOne({ userId: authUser._id })
+    const sourceUser = await Source.findOne({ userId: authUser._id })
       .select('fullName area languages avatarUrl')
       .lean();
 
