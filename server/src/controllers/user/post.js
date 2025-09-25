@@ -1,4 +1,6 @@
 import { AuthUser } from '../../models/authModel.js';
+import { EmployerProfile } from '../../models/employerModel.js';
+import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { jobPostBodyUser } from '../../validator/postValidate.js';
 
@@ -16,14 +18,58 @@ export const post = async (req, res, next) => {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
-    const payload = jobPostBodyUser.safeParse(req.body);
-    if (!payload.success) {
-      throw new AppError(`${payload.error.issues[0].message}`);
+    const user = await EmployerProfile.findOne({ userId: auth._id });
+    if (!user) {
+      throw new AppError('User not found', { status: 404 });
+    }
+
+    const parsed = jobPostBodyUser.safeParse(req.body);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      throw new AppError(first?.message || 'Invalid post data', {
+        status: 422,
+      });
     }
 
     const cleaned = Object.fromEntries(
-      Object.entries(payload.data).filter(([_, val]) => val !== undefined)
+      Object.entries(parsed.data).filter(([_, val]) => val !== undefined)
     );
+
+    if (cleaned.location) {
+      cleaned.location = Object.fromEntries(
+        Object.entries(cleaned.location).filter(([_, val]) => val !== undefined)
+      );
+    }
+
+    const created = await JobPost.create({
+      employerId: user._id,
+      ...cleaned,
+    });
+
+    if (!created) {
+      throw new AppError('Failed to create post', { status: 500 });
+    }
+
+    const responseBody = {
+      _id: created._id,
+      employerId: created.employerId,
+      category: created.category,
+      skills: created.skills,
+      description: created.description,
+      budgetAmount: created.budgetAmount,
+      location: created.location,
+      schedule: created.schedule,
+      status: created.status,
+      employerAssets: created.employerAssets,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    };
+
+    // res.set('Location', `/api/posts/${created._id}`); // adjust base path as needed
+
+    return res
+      .status(201)
+      .json({ responseBody, message: 'User successfully created post' });
   } catch (error) {
     return next(error);
   }

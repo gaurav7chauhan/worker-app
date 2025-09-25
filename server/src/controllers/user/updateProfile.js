@@ -42,9 +42,9 @@ export const updateUserProfile = async (req, res, next) => {
       Object.entries(parsed.data).filter(([_, v]) => v !== undefined)
     );
 
-    if (cleaned.address) {
-      cleaned.address = Object.fromEntries(
-        Object.entries(cleaned.address).filter(([_, v]) => v !== undefined)
+    if (cleaned.location) {
+      cleaned.location = Object.fromEntries(
+        Object.entries(cleaned.location).filter(([_, v]) => v !== undefined)
       );
     }
 

@@ -22,7 +22,7 @@ const categoryToSubs = new Map(
 const baseProfileUpdate = z
   .object({
     fullName: z.string().trim().min(1).max(80).optional(),
-    address: AddressSchema.partial().optional(),
+    location: AddressSchema.partial().optional(),
     bio: z.string().trim().max(500).optional(),
     avatarUrl: z.string().url().optional(),
     coverUrl: z.string().url().optional(),
@@ -39,6 +39,8 @@ const baseProfileUpdate = z
       .optional(),
   })
   .strict();
+
+export const employerUpdate = baseProfileUpdate;
 
 export const workerUpdate = baseProfileUpdate
   .extend({
@@ -98,5 +100,3 @@ export const workerUpdate = baseProfileUpdate
       }
     }
   });
-
-export const employerUpdate = baseProfileUpdate;
