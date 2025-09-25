@@ -1,55 +1,87 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
 
-const categorySet = new Set(jobCategories);
-export const jobPostBody = z.object({
-  title: z.string().trim().min(3, 'Title too short'),
-  description: z.string().trim().max(5000).optional(),
-  category: z.string().refine((c) => categorySet.has(c), {
-    message: 'Invalid category',
-  }),
-  skills: z
-    .union([
-      z
-        .array(z.string().trim().toLowerCase())
-        .nonempty('At least one skill required')
-        .max(20, 'Too many skills')
-        .refine((arr) => new Set(arr).size === arr.length, {
-          message: 'Duplicate skills not allowed',
-        }),
-      z.string().trim().toLowerCase(),
-    ])
-    .optional(),
-  budgetAmount: z.number().positive('Budget must be > 0'),
-  budgetCurrency: z.string().length(3, 'Use ISO currency code'),
-  location: z.string().trim().min(2),
-  schedule: z.string().trim().min(2),
-  status: z
-    .enum([
-      'Open',
-      'Assigned',
-      'InProgress',
-      'SubmittedByWorker',
-      'Completed',
-      'Canceled',
-    ])
-    .optional(),
-  employerAssets: z
-    .array(
-      z.object({
-        url: z.string().url(),
-        type: z.enum(['photo', 'video']),
-        meta: z
-          .object({
-            width: z.number().int().positive().optional(),
-            height: z.number().int().positive().optional(),
-            durationSec: z.number().positive().max(10).optional(), // your policy
-            mime: z.string().optional(),
-            size: z.number().int().positive().optional(),
-          })
-          .optional(),
-      })
-    )
-    .max(6)
-    .optional(),
+const statusType = [
+  'Open',
+  'Assigned',
+  'InProgress',
+  'SubmittedByWorker',
+  'Completed',
+  'Canceled',
+];
+const AddressSchema = z.object({
+  line1: z.string().trim().max(120),
+  line2: z.string().trim().max(120).optional(),
+  line3: z.string().trim().max(120).optional(),
+  pincode: z.string().trim().max(10),
+  city: z.string().trim().max(80),
+  state: z.string().trim().max(80),
 });
+const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
+const categoryToSubs = new Map(
+  jobCategories.map((c) => [
+    c.name.toLowerCase(),
+    new Set(c.subcategories.map((s) => s.toLowerCase())),
+  ])
+);
+
+export const jobPostBodyUser = z
+  .object({
+    category: z
+      .array(z.string().trim().toLowerCase())
+      .nonempty()
+      .max(5),
+    skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
+    description: z.string().trim().max(5000).optional(),
+    budgetAmount: z.coerce.number().positive('Budget must be > 0'),
+    location: AddressSchema.partial().optional(),
+    schedule: z.string().trim().min(2),
+    status: z.string().enum(statusType).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const categories = data.category ?? [];
+    const catDupes = new Set(categories);
+    if (catDupes.size !== categories.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
+
+    for (const c of categories) {
+      if (!validCategories.has(c)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Category ${c} is not valid.`,
+        });
+      }
+    }
+
+    const skills = data.skills ?? [];
+    const allowed = new Set();
+    for (const c of categories) {
+      const subs = categoryToSubs.get(c);
+      if (subs) for (const s of subs) allowed.add(s);
+    }
+
+    const skillDupes = new Set(skills);
+    if (skillDupes.size !== skills.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
+
+    for (const s of skills) {
+      if (!allowed.has(s)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Skill ${s} is not valid for selected categories`,
+        });
+      }
+    }
+  });

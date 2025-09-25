@@ -1,5 +1,5 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { jobCategories } from '../../config/categoriesConfig.js';
+import { addressSchema } from './addressSchema.js';
 
 const statusType = [
   'Open',
@@ -37,17 +37,15 @@ const jobPostSchema = new Schema(
       ref: 'EmployerProfile',
       required: true,
     },
-    title: { type: String, required: true, trim: true },
+    category: { type: [String], default: [], required: true },
+    skills: { type: [String], default: [] },
     description: { type: String, trim: true },
-    category: { type: String, enum: jobCategories, required: true },
-    skills: { type: String, trim: true },
     budgetAmount: { type: Number, required: true },
-    budgetCurrency: { type: String, required: true },
-    location: { type: String, required: true, trim: true },
-    schedule: { type: String, required: true, trim: true },
+    location: { type: addressSchema, trim: true },
+    schedule: { type: String, trim: true },
     status: { type: String, enum: statusType, default: 'Open' },
     employerAssets: { type: [mediaItemSchema], default: [] },
-    
+
     assignedWorkerId: { type: Schema.Types.ObjectId, ref: 'WorkerProfile' },
     completionProofs: { type: [mediaItemSchema], default: [] },
     submittedAt: { type: Date },

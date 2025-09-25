@@ -1,5 +1,6 @@
 import { AuthUser } from '../../models/authModel.js';
 import { AppError } from '../../utils/apiError.js';
+import { jobPostBodyUser } from '../../validator/postValidate.js';
 
 export const post = async (req, res, next) => {
   try {
@@ -15,7 +16,14 @@ export const post = async (req, res, next) => {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
-    const payload = req.body;
+    const payload = jobPostBodyUser.safeParse(req.body);
+    if (!payload.success) {
+      throw new AppError(`${payload.error.issues[0].message}`);
+    }
+
+    const cleaned = Object.fromEntries(
+      Object.entries(payload.data).filter(([_, val]) => val !== undefined)
+    );
   } catch (error) {
     return next(error);
   }
