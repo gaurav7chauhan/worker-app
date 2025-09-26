@@ -36,7 +36,7 @@ export const jobPostBodyUser = z
     budgetAmount: z.coerce.number().positive('Budget must be > 0'),
     location: AddressSchema.partial().optional(),
     schedule: z.string().trim().min(2),
-    status: z.string().enum(statusType).optional(),
+    status: z.enum(statusType).optional(),
   })
   .superRefine((data, ctx) => {
     const categories = data.category ?? [];
@@ -54,7 +54,7 @@ export const jobPostBodyUser = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['category'],
-          message: `Category ${c} is not valid.`,
+          message: `Category ${c} is not valid`,
         });
       }
     }
@@ -84,4 +84,24 @@ export const jobPostBodyUser = z
         });
       }
     }
-  });
+  }).strict();
+
+
+  // Term options
+// const termOptions = [
+//   'one_time',
+//   '1_week','2_weeks','3_weeks',
+//   '1_month','2_months','3_months',
+// ];
+// const Term = z.enum(termOptions);
+
+// // Schedule object to replace plain string
+// const Schedule = z.object({
+//   timeFrom: HHMM,
+//   timeTo: HHMM,
+//   term: Term,
+// }).superRefine((v, ctx) => {
+//   if (v.timeFrom >= v.timeTo) {
+//     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['timeTo'], message: 'timeTo must be after timeFrom' });
+//   }
+// });

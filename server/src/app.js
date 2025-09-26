@@ -12,6 +12,7 @@ import { updateUserProfile } from './controllers/user/updateProfile.js';
 import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/user/toggleRole.js';
 import { upload } from './middlewares/multer.js';
+import { post } from './controllers/user/post.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.post('/user/registerWorker', registerWorker);
 app.post('/user/login', loginUser);
 app.patch('/user/profile/update', jwtVerify, upload.single('avatar'), updateUserProfile);
 app.post('/user/account/switch/:role', jwtVerify, switchRole);
+app.post('/user/post/create', jwtVerify, post)
 // app.get('/user/logout', logoutUser);
 // app.delete('/user/delete', authToken, deleteUserAccount);
 // app.put('/user/email/update', authToken, updateUserEmail);

@@ -26,9 +26,12 @@ export const post = async (req, res, next) => {
     const parsed = jobPostBodyUser.safeParse(req.body);
     if (!parsed.success) {
       const first = parsed.error.issues[0];
-      throw new AppError(first?.message || 'Invalid post data', {
-        status: 422,
-      });
+      throw new AppError(
+        `${first?.message} in ${first?.path}` || 'Invalid post data',
+        {
+          status: 422,
+        }
+      );
     }
 
     const cleaned = Object.fromEntries(
