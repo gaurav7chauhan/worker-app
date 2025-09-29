@@ -13,6 +13,7 @@ import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/user/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/user/post.js';
+import { workerApply } from './controllers/user/application.js';
 
 const app = express();
 
@@ -33,27 +34,18 @@ app.use(express.static('public'));
 
 // app.set('trust proxy', true);
 
-app.post('/user/registerEmployer', registerEmployer);
-app.post('/user/registerWorker', registerWorker);
-app.post('/user/login', loginUser);
-app.patch('/user/profile/update', jwtVerify, upload.single('avatar'), updateUserProfile);
-app.post('/user/account/switch/:role', jwtVerify, switchRole);
-app.post('/user/post/create', jwtVerify, post)
-// app.get('/user/logout', logoutUser);
-// app.delete('/user/delete', authToken, deleteUserAccount);
-// app.put('/user/email/update', authToken, updateUserEmail);
-// app.put('/user/bio/update', authToken, updateUserBio);
-// app.get('/user/profile', authToken, getUserProfile);
-// app.put('/user/password/forgot', forgotPassword);
-// app.put('/user/password/reset', authToken, resetPassword);
-// // New brace-style optionals (supported)
-// app.get('/user/rating{/:userId}', authToken, getUserRating);
-// app.post('/user/set-ratings/:targetUserId/:jobId', authToken, setUserRating);
-// app.get('/user/ratings/given{/:page}', authToken, getMyGivenRatings);
+// Authentication & Registration
+app.post('/auth/employer/register', registerEmployer);
+app.post('/auth/worker/register', registerWorker);
+app.post('/auth/login', loginUser);
 
-// app.post('/job/post/create', authToken, createJobPost);
-// app.get('/job/user/posts{/:page}{/:limit}', authToken, getAllUserJobPosts);
-// app.get('/job/user/post/:jobId', authToken, getUserJobPostById);
+// User Profile
+app.patch('/user/profile', jwtVerify, upload.single('avatar'), updateUserProfile);
+app.post('/user/role/switch/:role', jwtVerify, switchRole);
+
+// Job Posts
+app.post('/jobs/create', jwtVerify, post);
+app.post('/jobs/apply', jwtVerify, workerApply);
 
 // error handler
 app.use((err, req, res, next) => {

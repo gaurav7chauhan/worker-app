@@ -106,11 +106,22 @@ export const registerWorker = async (req, res, next) => {
     const payload = registerWorkerSchema.safeParse(req.body);
 
     if (!payload.success) {
-      return res.status(400).json({ message: payload.error.issues[0].message });
+      const first = payload.error?.issues[0];
+      return res
+        .status(400)
+        .json({ message: `${first?.message} in ${first?.path}` });
     }
 
-    const { email, password, fullName, area, skills, experienceYears, role } =
-      payload.data;
+    const {
+      email,
+      password,
+      fullName,
+      location,
+      category,
+      skills,
+      experienceYears,
+      role,
+    } = payload.data;
 
     let data;
     let id;
@@ -141,14 +152,15 @@ export const registerWorker = async (req, res, next) => {
       );
 
       // Create WorkerProfile
-      const areaClean = area?.trim();
+      const areaClean = location?.trim();
       const [user] = await WorkerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
-            skills,
-            ...(areaClean ? { area: areaClean } : {}),
+            category,
+            ...(skills !== undefined ? { skills } : {}),
+            ...(areaClean ? { location: areaClean } : {}),
             ...(experienceYears !== undefined ? { experienceYears } : {}),
           },
         ],
@@ -161,8 +173,9 @@ export const registerWorker = async (req, res, next) => {
         fullName,
         email,
         role,
+        category,
         skills,
-        area,
+        location,
         experienceYears,
       };
 

@@ -1,14 +1,17 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
 
-// const normalized = z.string().transform(s => s.trim().toLowerCase())
-// const emailSchema = normalized.pipe(z.string().email({ message: 'Invalid email' }))
-
-const skills = z.preprocess(
-  (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
-  z.enum(jobCategories, {
-    errorMap: () => ({ message: 'Please select from dropdown.' }),
-  })
+const categoryItem = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1, { message: 'Category cannot be empty or spaces' });
+const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
+const categoryToSubs = new Map(
+  jobCategories.map((c) => [
+    c.name.toLowerCase(),
+    new Set(c.subcategories.map((s) => s.toLowerCase())),
+  ])
 );
 
 const emailStr = z
@@ -26,21 +29,86 @@ export const registerEmployerSchema = z.object({
     .string({ required_error: 'Full name is required' })
     .trim()
     .min(3, 'Full name must be at least 3 characters'),
-  area: z.string().trim().min(1, 'Area cannot be empty').optional(),
+  location: z.string().trim().min(1, 'Area cannot be empty').optional(),
   role: z.literal('Employer', 'Please select Employer as role'),
   otp: z.string().length(6, 'OTP must be 6 digits').optional(),
 });
 
-export const registerWorkerSchema = z.object({
-  email: emailStr,
-  password: passwordStr,
-  fullName: z
-    .string({ required_error: 'Full name is required' })
-    .trim()
-    .min(3, 'Full name must be at least 3 characters'),
-  area: z.string().trim().min(1, 'Area cannot be empty').optional(),
-  skills: z.array(skills).nonempty(1, 'Add at least one skill'),
-  experienceYears: z.coerce.number().int().min(0).optional(),
-  role: z.literal('Worker', 'Please select Worker as role'),
-  otp: z.string().length(6, 'OTP must be 6 digits').optional(),
-});
+export const registerWorkerSchema = z
+  .object({
+    email: emailStr,
+    password: passwordStr,
+    fullName: z
+      .string({ required_error: 'Full name is required' })
+      .trim()
+      .min(3, 'Full name must be at least 3 characters'),
+    location: z.string().trim().min(1, 'Area cannot be empty').optional(),
+    category: z
+      .array(categoryItem)
+      .nonempty({ message: 'At least one category is required' })
+      .max(5),
+    skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
+    experienceYears: z.coerce.number().int().min(0).optional(),
+    role: z.literal('Worker', 'Please select Worker as role'),
+    otp: z.string().length(6, 'OTP must be 6 digits').optional(),
+  })
+  .superRefine((data, ctx) => {
+    const categories = (data.category ?? [])
+      .map((c) => c.trim().toLowerCase())
+      .filter(Boolean);
+    const catDupes = new Set(categories);
+
+    // Category duplicates (case-insensitive)
+    if (catDupes.size !== categories.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
+
+    // Category validity
+    for (const c of categories) {
+      if (!validCategories.has(c)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Category ${c} is not valid`,
+        });
+      }
+    }
+
+    // 2) Normalize skills properly
+    const skills = (data.skills ?? [])
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    const skillDupes = new Set(skills);
+
+    // Skills duplicates
+    if (skillDupes.size !== skills.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['skills'],
+        message: 'Duplicate skills not allowed',
+      });
+    }
+
+    // 3) Build allowed sub-skills from selected categories
+    const allowed = new Set();
+    for (const c of categories) {
+      const subs = categoryToSubs.get(c);
+      if (subs) for (const s of subs) allowed.add(s);
+    }
+
+    // 4) Validate each skill against allowed
+    for (const s of skills) {
+      if (!allowed.has(s)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['skills'],
+          message: `Skill ${s} is not valid for selected categories`,
+        });
+      }
+    }
+  })
+  .strict();

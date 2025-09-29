@@ -2,7 +2,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { jobPostBodyUser } from '../../validator/postValidate.js';
+import { jobPostBodySchema } from '../../validator/postValidate.js';
 
 export const post = async (req, res, next) => {
   try {
@@ -23,14 +23,12 @@ export const post = async (req, res, next) => {
       throw new AppError('User not found', { status: 404 });
     }
 
-    const parsed = jobPostBodyUser.safeParse(req.body);
+    const parsed = jobPostBodySchema.safeParse(req.body);
     if (!parsed.success) {
       const first = parsed.error.issues[0];
       throw new AppError(
         `${first?.message} in ${first?.path}` || 'Invalid post data',
-        {
-          status: 422,
-        }
+        { status: 422 }
       );
     }
 
