@@ -20,7 +20,7 @@ const applicationSchema = new Schema(
       default: 'Applied',
     },
     coverNote: { type: String, trim: true, maxlength: 2000 },
-    expectedRate: { type: Number }, // optional
+    expectedRate: { type: Number },
   },
   { timestamps: true }
 );
