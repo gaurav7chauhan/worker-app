@@ -26,7 +26,7 @@ export const refreshHandler = async (req, res, next) => {
       { $set: { revoked: true, revokedAt: new Date(), reason: 'ROTATED' } }
     );
 
-    const accessToken = await generateAccessToken(decoded._id);
+    const accessToken = generateAccessToken(decoded._id);
     const refreshToken = await generateRefreshToken(
       decoded._id,
       decoded.principalType || 'User'

@@ -10,7 +10,6 @@ const refreshSessionSchema = new Schema(
     principalId: {
       type: Schema.Types.ObjectId,
       required: true,
-      index: true,
       refPath: 'principalType',
     },
     jti: { type: String, required: true, unique: true },
@@ -21,7 +20,6 @@ const refreshSessionSchema = new Schema(
     revoked: {
       type: Boolean,
       default: false,
-      index: true,
     },
     revokedAt: { type: Date },
     reason: { type: String },
