@@ -57,7 +57,3 @@ export const limitVerify = async (req, res, next) => {
       .json({ error: 'Too many attempts', retryAfterSec: seconds });
   }
 };
-
-// Apply to routes
-app.post('/otp/request', limitResend, requestOtp);
-app.post('/otp/verify', limitVerify, verifyOtp);

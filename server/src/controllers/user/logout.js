@@ -1,7 +1,8 @@
 import { AuthUser } from '../../models/authModel.js';
 import { RefreshSession } from '../../models/tokenModel.js';
 import { cookieOptions } from '../../services/cookieOptions.js';
-import { verifyRefreshToken } from '../../services/jwt.js';
+import { verifyAccessToken, verifyRefreshToken } from '../../services/jwt.js';
+import { blacklistAccessJti } from '../../services/redisToken.js';
 import { AppError } from '../../utils/apiError.js';
 
 export const logoutUser = async (req, res, next) => {
@@ -9,9 +10,9 @@ export const logoutUser = async (req, res, next) => {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
     }
-    const user = await AuthUser.findOne({ userId: req.auth._id });
+    const user = await AuthUser.findById(req.auth._id).select('role');
     if (!user) {
-      throw new AppError('User not found', { status: 404 });
+      throw new AppError(`${user.role} not found`, { status: 404 });
     }
 
     // 1) Parse access token safely
@@ -34,7 +35,14 @@ export const logoutUser = async (req, res, next) => {
       res.clearCookie('refreshToken', cookieOptions);
     }
 
-    return res.status(204).json({ message: 'Logout successfully' });
+    if (accToken) {
+      const decoded = verifyAccessToken(accToken);
+      if (decoded && decoded.jti) {
+        await blacklistAccessJti(decoded.jti, decoded.exp);
+      }
+    }
+
+    return res.status(204).end();
   } catch (error) {
     return next(error);
   }

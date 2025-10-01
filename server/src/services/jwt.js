@@ -4,7 +4,8 @@ import ms from 'ms';
 import { RefreshSession } from '../models/tokenModel.js';
 
 export const generateAccessToken = (userId) => {
-  return jwt.sign({ _id: userId }, process.env.JWT_ACCESS_SECRET, {
+  const jti = uuidv4();
+  return jwt.sign({ _id: userId, jti }, process.env.JWT_ACCESS_SECRET, {
     expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
   });
 };
@@ -68,3 +69,5 @@ export const verifyRefreshToken = async (token) => {
     return null;
   }
 };
+
+

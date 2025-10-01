@@ -14,6 +14,7 @@ import { switchRole } from './controllers/user/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/user/post.js';
 import { workerApply } from './controllers/user/application.js';
+import { logoutUser } from './controllers/user/logout.js';
 
 const app = express();
 
@@ -42,10 +43,14 @@ app.post('/auth/login', loginUser);
 // User Profile
 app.patch('/user/profile', jwtVerify, upload.single('avatar'), updateUserProfile);
 app.post('/user/role/switch/:role', jwtVerify, switchRole);
-
+app.get('/user/logout', jwtVerify, logoutUser)
 // Job Posts
 app.post('/jobs/create', jwtVerify, post);
 app.post('/jobs/apply', jwtVerify, workerApply);
+
+// OTP
+// app.post('/otp/request', limitResend, requestOtp);
+// app.post('/otp/verify', limitVerify, verifyOtp);
 
 // error handler
 app.use((err, req, res, next) => {
