@@ -19,7 +19,7 @@ const applicationSchema = new Schema(
       enum: ['Applied', 'Shortlisted', 'Hired', 'Rejected', 'Withdrawn'],
       default: 'Applied',
     },
-    coverNote: { type: String, trim: true, maxlength: 2000 },
+    coverNote: { type: String, trim: true, maxlength: 500 },
     expectedRate: { type: Number },
   },
   { timestamps: true }
