@@ -33,10 +33,13 @@ export const notificationSchema = z.object({
 });
 
 export const notifySchemaStrict = notificationSchema.superRefine((val, ctx) => {
-  //   if (val.type === 'MESSAGE_NEW') {
-  //     // if enabling later:
-  //     // if (!val.conversationId) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'conversationId required for MESSAGE_NEW', path: ['conversationId'] });
-  //   }
+  if (val.type === 'MESSAGE_NEW' && !val.conversationId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'conversationId required for MESSAGE_NEW',
+      path: ['conversationId'],
+    });
+  }
   if (val.type === 'JOB_APPLIED' && !val.jobId) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

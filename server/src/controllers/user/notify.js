@@ -3,11 +3,30 @@ import { AuthUser } from '../../models/authModel.js';
 import { Notification } from '../../models/notificationModel';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { notificationSchema } from '../../validator/notifyValid.js';
+import { notifySchemaStrict } from '../../validator/notifyValid.js';
+
+function makeDedupeKey(data) {
+  switch (data.type) {
+    case 'JOB_APPLIED':
+      return data.jobId
+        ? `JOB_APPLIED:${data.userId}:${data.jobId}`
+        : undefined;
+    case 'MESSAGE_NEW':
+      return data.conversationId
+        ? `MESSAGE_NEW:${data.userId}:conv:${data.conversationId}`
+        : undefined;
+    case 'REVIEW_REMINDER':
+      return data.jobId
+        ? `REVIEW_REMINDER:${data.userId}:${data.jobId}`
+        : undefined;
+    default:
+      return undefined;
+  }
+}
 
 export const notifyAll = async (req, res, next) => {
   try {
-    const parsed = notificationSchema.safeParse(req.body);
+    const parsed = notifySchemaStrict.safeParse(req.body);
     if (!parsed.success) {
       const first = parsed.error?.issues[0];
       throw new AppError(
@@ -41,10 +60,12 @@ export const notifyAll = async (req, res, next) => {
       }
     }
 
-    if (data.dedupeKey) {
+    const key = data.dedupeKey ?? makeDedupeKey(data);
+
+    if (key) {
       const now = new Date();
       const result = await Notification.updateOne(
-        { dedupeKey: data.dedupeKey },
+        { dedupeKey: key },
         {
           $setOnInsert: {
             userId: data.userId,
@@ -58,14 +79,12 @@ export const notifyAll = async (req, res, next) => {
         },
         { upsert: true }
       );
-      return res
-        .status(result.upsertedCount ? 201 : 200)
-        .json({
-          upserted: !!result.upsertedCount,
-          message: result.upsertedCount
-            ? 'Notification successfully sent'
-            : 'Notification already exists',
-        });
+      return res.status(result.upsertedCount ? 201 : 200).json({
+        upserted: !!result.upsertedCount,
+        message: result.upsertedCount
+          ? 'Notification successfully sent'
+          : 'Notification already exists',
+      });
     }
 
     const doc = await Notification.create(data);
