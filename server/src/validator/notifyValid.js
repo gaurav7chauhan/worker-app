@@ -1,11 +1,4 @@
-import mongoose from 'mongoose';
 import { z } from 'zod';
-
-const objectId = z
-  .string()
-  .refine((v) => mongoose.Types.ObjectId.isValid(v), {
-    message: 'Invalid ObjectId',
-  });
 
 export const notifyTypes = [
   'JOB_APPLIED',
@@ -27,24 +20,28 @@ export const notifyTypes = [
 
 const typeEnum = z.enum(notifyTypes);
 
+const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId');
+
 export const notificationSchema = z.object({
-    userId: objectId,
-    actorId: objectId,
-    type: typeEnum,
-    body: z.string().trim().min(1).max(500).optional(),
-    jobId: objectId.optional(),
-    applicationId: objectId.optional(),
-    dedupeKey: z.string().trim()
+  userId: objectId,
+  actorId: objectId,
+  type: typeEnum,
+  body: z.string().trim().min(1).max(500).optional(),
+  jobId: objectId.optional(),
+  applicationId: objectId.optional(),
+  dedupeKey: z.string().trim(),
 });
 
-
-
-// export const createNotificationSchemaStrict = createNotificationSchema.superRefine((val, ctx) => {
-//   if (val.type === 'MESSAGE_NEW') {
-//     // if enabling later:
-//     // if (!val.conversationId) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'conversationId required for MESSAGE_NEW', path: ['conversationId'] });
-//   }
-//   if (val.type === 'JOB_APPLIED' && !val.jobId) {
-//     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'jobId required for JOB_APPLIED', path: ['jobId'] });
-//   }
-// });
+export const notifySchemaStrict = notificationSchema.superRefine((val, ctx) => {
+  //   if (val.type === 'MESSAGE_NEW') {
+  //     // if enabling later:
+  //     // if (!val.conversationId) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'conversationId required for MESSAGE_NEW', path: ['conversationId'] });
+  //   }
+  if (val.type === 'JOB_APPLIED' && !val.jobId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'jobId required for JOB_APPLIED',
+      path: ['jobId'],
+    });
+  }
+});
