@@ -2,7 +2,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { jobPostBodySchema } from '../../validator/postValidate.js';
+import { jobPostBodySchema } from '../../validator/postValid.js';
 
 export const post = async (req, res, next) => {
   try {

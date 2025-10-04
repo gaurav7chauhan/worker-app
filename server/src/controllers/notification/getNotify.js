@@ -1,4 +1,4 @@
-import { Notification } from '../../models/notificationModel';
+import { Notification } from '../../models/notificationModel.js';
 import { AppError } from '../../utils/apiError.js';
 
 export const listNotifications = async (req, res, next) => {

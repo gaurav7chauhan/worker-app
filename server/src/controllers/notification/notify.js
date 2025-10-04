@@ -1,6 +1,6 @@
 import { Application } from '../../models/applicationModel.js';
 import { AuthUser } from '../../models/authModel.js';
-import { Notification } from '../../models/notificationModel';
+import { Notification } from '../../models/notificationModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { notifySchemaStrict } from '../../validator/notifyValid.js';

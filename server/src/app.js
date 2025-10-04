@@ -7,14 +7,14 @@ import {
   registerEmployer,
   registerWorker,
 } from './controllers/user/register.js';
-import { loginUser } from './controllers/user/login.js';
-import { updateUserProfile } from './controllers/user/updateProfile.js';
+import { loginUser } from './controllers/login/login.js';
+import { updateUserProfile } from './controllers/updateUser/updateProfile.js';
 import { jwtVerify } from './middlewares/jwtAuth.js';
-import { switchRole } from './controllers/user/toggleRole.js';
+import { switchRole } from './controllers/toggle/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/user/post.js';
-import { workerApply } from './controllers/user/application.js';
-import { logoutUser } from './controllers/user/logout.js';
+import { workerApply } from './controllers/userApply/application.js';
+import { logoutUser } from './controllers/logout/logout.js';
 
 const app = express();
 
@@ -47,6 +47,17 @@ app.get('/user/logout', jwtVerify, logoutUser)
 // Job Posts
 app.post('/jobs/create', jwtVerify, post);
 app.post('/jobs/apply', jwtVerify, workerApply);
+
+// Applications
+// app.post('/applications/submit', jwtVerify, submitApplication);
+// app.get('/applications/mine', jwtVerify, listMyApplications);
+// app.get('/jobs/:jobId/applications', jwtVerify, listJobApplications);
+
+// // Notifications
+// app.get('/notifications', jwtVerify, listNotifications);
+// app.patch('/notifications/:id/read', jwtVerify, markNotificationRead);
+// app.patch('/notifications/read-all', jwtVerify, markAllNotificationsRead);
+// app.post('/notifications/send', jwtVerify, notifyAll);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

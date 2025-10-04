@@ -6,7 +6,7 @@ import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
 import {
   employerUpdate,
   workerUpdate,
-} from '../../validator/updateValidate.js';
+} from '../../validator/updateValid.js';
 
 export const updateUserProfile = async (req, res, next) => {
   try {

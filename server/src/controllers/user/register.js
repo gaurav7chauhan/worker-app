@@ -4,7 +4,7 @@ import { WorkerProfile } from '../../models/workerModel.js';
 import {
   registerEmployerSchema,
   registerWorkerSchema,
-} from '../../validator/registerValidate.js';
+} from '../../validator/registerValid.js';
 import { requestOtpService } from '../../utils/otp.js';
 import { AppError } from '../../utils/apiError.js';
 import { AuthUser } from '../../models/authModel.js';
@@ -92,7 +92,7 @@ export const registerEmployer = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res
       .status(201)
-      .json({ data, accessToken, message: 'Registered successfully' });
+      .json({ data, accessToken, message: 'User Registered successfully' });
   } catch (error) {
     return next(error);
   } finally {
@@ -195,7 +195,7 @@ export const registerWorker = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res
       .status(201)
-      .json({ data, accessToken, message: 'Registered successfully' });
+      .json({ data, accessToken, message: 'User Registered successfully' });
   } catch (error) {
     return next(error);
   } finally {

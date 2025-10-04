@@ -2,7 +2,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { cookieOptions } from '../../services/cookieOptions.js';
 import { generateAccessToken, generateRefreshToken } from '../../services/jwt.js';
 import { requestOtpService } from '../../utils/otp.js';
-import { loginSchema } from '../../validator/loginValidate.js';
+import { loginSchema } from '../../validator/loginValid.js';
 
 export const loginUser = async (req, res, next) => {
   try {
