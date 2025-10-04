@@ -38,7 +38,16 @@ export const listNotifications = async (req, res, next) => {
       Notification.countDocuments({ userId, isRead: false }),
     ]);
 
-    return res.status(200).json({ page, limit, total, items, unreadCount });
+    return res
+      .status(200)
+      .json({
+        page,
+        limit,
+        total,
+        items,
+        unreadCount,
+        message: 'Notifications successfully fetched',
+      });
   } catch (error) {
     return next(error);
   }

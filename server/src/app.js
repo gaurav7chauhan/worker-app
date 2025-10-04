@@ -13,7 +13,7 @@ import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/toggle/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/user/post.js';
-import { workerApply } from './controllers/userApply/application.js';
+import { workerApply } from './controllers/userApplication/application.js';
 import { logoutUser } from './controllers/logout/logout.js';
 
 const app = express();
