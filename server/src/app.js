@@ -17,8 +17,9 @@ import { logoutUser } from './controllers/logout/logout.js';
 import { submitApplication } from './controllers/userApplication/createApp.js';
 import { listMyApplications } from './controllers/userApplication/workerApp.js';
 import { listJobApplications } from './controllers/userApplication/jobApp.js';
-import { listNotifications } from './controllers/notification/getNotify.js';
-import { notifyAll } from './controllers/notification/notify.js';
+import { listNotifications } from './controllers/notification/getNotif.js';
+import { notifyAll } from './controllers/notification/notif.js';
+import { markNotificationRead } from './controllers/notification/readSingleNotif.js';
 
 const app = express();
 
@@ -65,7 +66,7 @@ app.get('/jobs/:jobId/applications', jwtVerify, listJobApplications);
 // // Notifications
 app.get('/notifications', jwtVerify, listNotifications);
 app.post('/notifications/send', jwtVerify, notifyAll);
-// app.patch('/notifications/:id/read', jwtVerify, markNotificationRead);
+app.patch('/notifications/:id/read', jwtVerify, markNotificationRead);
 // app.patch('/notifications/read-all', jwtVerify, markAllNotificationsRead);
 
 // OTP
