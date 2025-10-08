@@ -24,17 +24,24 @@ export const markNotificationRead = async (req, res, next) => {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
-    const result = await Notification.findOneAndUpdate(
+    const updated = await Notification.findOneAndUpdate(
       { _id: req.params.id, userId: req.auth._id, isRead: false },
-      { $set: { isRead: true, readAt: new Date() } }
-    );
-    if (!result) {
-      throw new AppError('Notification not found', { status: 404 });
+      { $set: { isRead: true, readAt: new Date() } },
+      { new: true }
+    ).lean();
+    if (!updated) {
+      throw new AppError('Notification not found or already read', {
+        status: 404,
+      });
     }
 
     return res.status(200).json({
-      updated: result.modifiedCount === 1,
       message: 'Notification marked as read',
+      data: {
+        _id: updated._id,
+        isRead: updated.isRead,
+        readAt: updated.readAt,
+      },
     });
   } catch (error) {
     return next(error);
