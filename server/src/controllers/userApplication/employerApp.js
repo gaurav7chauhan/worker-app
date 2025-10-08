@@ -1,6 +1,6 @@
-import { Application } from '../../models/applicationModel';
+import { Application } from '../../models/applicationModel.js';
 import { AuthUser } from '../../models/authModel.js';
-import { EmployerProfile } from '../../models/employerModel';
+import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 
