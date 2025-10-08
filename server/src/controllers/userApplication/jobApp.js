@@ -4,7 +4,7 @@ import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const jobApplications = async (req, res, next) => {
+export const listJobApplications = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });

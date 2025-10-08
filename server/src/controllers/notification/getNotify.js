@@ -17,6 +17,9 @@ export const listNotifications = async (req, res, next) => {
     const limit = Math.min(100, parseInt(req.query.limit) || 10);
 
     const auth = await AuthUser.findById(userId).lean();
+    if (!auth) {
+      throw new AppError('User not found', { status: 404 });
+    }
     if (auth.isBlocked) {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
@@ -38,16 +41,14 @@ export const listNotifications = async (req, res, next) => {
       Notification.countDocuments({ userId, isRead: false }),
     ]);
 
-    return res
-      .status(200)
-      .json({
-        page,
-        limit,
-        total,
-        items,
-        unreadCount,
-        message: 'Notifications successfully fetched',
-      });
+    return res.status(200).json({
+      page,
+      limit,
+      total,
+      items,
+      unreadCount,
+      message: 'Notifications successfully fetched',
+    });
   } catch (error) {
     return next(error);
   }

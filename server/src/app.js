@@ -13,8 +13,12 @@ import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/toggle/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/user/post.js';
-import { workerApply } from './controllers/userApplication/application.js';
 import { logoutUser } from './controllers/logout/logout.js';
+import { submitApplication } from './controllers/userApplication/createApp.js';
+import { listMyApplications } from './controllers/userApplication/workerApp.js';
+import { listJobApplications } from './controllers/userApplication/jobApp.js';
+import { listNotifications } from './controllers/notification/getNotify.js';
+import { notifyAll } from './controllers/notification/notify.js';
 
 const app = express();
 
@@ -41,23 +45,28 @@ app.post('/auth/worker/register', registerWorker);
 app.post('/auth/login', loginUser);
 
 // User Profile
-app.patch('/user/profile', jwtVerify, upload.single('avatar'), updateUserProfile);
+app.patch(
+  '/user/profile',
+  jwtVerify,
+  upload.single('avatar'),
+  updateUserProfile
+);
 app.post('/user/role/switch/:role', jwtVerify, switchRole);
-app.get('/user/logout', jwtVerify, logoutUser)
+app.get('/user/logout', jwtVerify, logoutUser);
+
 // Job Posts
 app.post('/jobs/create', jwtVerify, post);
-app.post('/jobs/apply', jwtVerify, workerApply);
 
 // Applications
-// app.post('/applications/submit', jwtVerify, submitApplication);
-// app.get('/applications/mine', jwtVerify, listMyApplications);
-// app.get('/jobs/:jobId/applications', jwtVerify, listJobApplications);
+app.post('/applications/submit', jwtVerify, submitApplication);
+app.get('/applications/mine', jwtVerify, listMyApplications);
+app.get('/jobs/:jobId/applications', jwtVerify, listJobApplications);
 
 // // Notifications
-// app.get('/notifications', jwtVerify, listNotifications);
+app.get('/notifications', jwtVerify, listNotifications);
+app.post('/notifications/send', jwtVerify, notifyAll);
 // app.patch('/notifications/:id/read', jwtVerify, markNotificationRead);
 // app.patch('/notifications/read-all', jwtVerify, markAllNotificationsRead);
-// app.post('/notifications/send', jwtVerify, notifyAll);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

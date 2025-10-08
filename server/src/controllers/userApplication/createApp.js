@@ -5,7 +5,7 @@ import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { applicationSchema } from '../../validator/applicationValid.js';
 
-export const workerApply = async (req, res, next) => {
+export const submitApplication = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
