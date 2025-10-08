@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const mineApp = async (req, res, next) => {
+export const mineApplication = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
@@ -42,7 +42,7 @@ export const mineApp = async (req, res, next) => {
         .limit(limit)
         .lean(),
 
-      Application.countDocuments({ filter }),
+      Application.countDocuments(filter),
     ]);
 
     if (items.length === 0) {
@@ -51,15 +51,13 @@ export const mineApp = async (req, res, next) => {
         .json({ page, limit, total, items: [], message: 'No applications' });
     }
 
-    return res
-      .status(200)
-      .json({
-        page,
-        limit,
-        total,
-        items,
-        message: 'Applications fetched successfully',
-      });
+    return res.status(200).json({
+      page,
+      limit,
+      total,
+      items,
+      message: 'Applications fetched successfully',
+    });
   } catch (error) {
     return next(error);
   }

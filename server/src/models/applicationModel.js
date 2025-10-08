@@ -25,7 +25,7 @@ const applicationSchema = new Schema(
   { timestamps: true }
 );
 
-applicationSchema.index({ jobId: 1, createdAt: -1 });
+applicationSchema.index({ jobId: 1, status: 1, createdAt: -1 });
 applicationSchema.index({ workerId: 1, status: 1, createdAt: -1 });
 
 export const Application =

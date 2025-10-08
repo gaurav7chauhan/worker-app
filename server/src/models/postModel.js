@@ -84,7 +84,7 @@ const jobPostSchema = new Schema(
   { timestamps: true }
 );
 
-jobPostSchema.index({ status: 1, category: 1, createdAt: -1 });
+jobPostSchema.index({ status: 1, createdAt: -1 });
 jobPostSchema.index({ employerId: 1, createdAt: -1 });
 
 export const JobPost =
