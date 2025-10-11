@@ -35,6 +35,8 @@ const ratingSchema = new mongoose.Schema(
       maxlength: 500,
     },
     isDeleted: { type: Boolean, default: false },
+    editCount: { type: Number, default: 0, min: 0 },
+    lastEditedAt: { type: Date },
   },
   { timestamps: true }
 );

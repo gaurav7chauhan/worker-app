@@ -78,36 +78,50 @@ export const createRating = async (req, res, next) => {
 
     const targetRole = targetIsEmployer ? 'Employer' : 'Worker';
 
-    const rating = await Ratings.findOneAndUpdate(
-      {
-        setBy: auth._id,
-        targetUser: targetUser._id,
-        jobId: job._id,
-        isDeleted: { $ne: true },
-      },
-      {
-        $set: {
-          targetRole,
-          score,
-          tags: tags || [],
-          comment: comment || '',
+    const triadFilter = {
+      setBy: auth._id,
+      targetUser: targetUser._id,
+      jobId: job._id,
+      isDeleted: { $ne: true },
+    };
+
+    const existing = await Ratings.findOne(triadFilter)
+      .select('_id editCount')
+      .lean();
+
+    if (existing) {
+      if ((existing.editCount ?? 0) >= 2) {
+        throw new AppError('Edit limit reached', { status: 409 });
+      }
+
+      await Ratings.findOneAndUpdate(
+        { _id: existing._id },
+        {
+          $set: {
+            targetRole,
+            score,
+            tags: tags || [],
+            comment: comment || '',
+            lastEditedAt: new Date(),
+          },
+          $inc: { editCount: 1 },
         },
-      },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+        { new: true }
+      );
 
-    const wasCreated =
-      rating && rating.createdAt?.getTime?.() === rating.updatedAt?.getTime?.();
-    const message = wasCreated
-      ? 'Rating created successfully'
-      : 'Rating updated successfully';
-    const statusCode = wasCreated ? 201 : 200;
+      return res.status(200).json({ message: 'Rating updated successfully' });
+    } else {
+      await Ratings.findOneAndUpdate(
+        triadFilter,
+        {
+          $set: { targetRole, score, tags: tags || [], comment: comment || '' },
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
 
+      return res.status(201).json({ message: 'Rating created successfully' });
+    }
     // await updateUserRatingAggregates(targetUser._id, targetRole);
-
-    return res.status(statusCode).json({
-      message,
-    });
   } catch (err) {
     if (err && err.code === 11000) {
       return next(
