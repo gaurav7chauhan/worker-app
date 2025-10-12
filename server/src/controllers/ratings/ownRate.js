@@ -1,14 +1,14 @@
 import { AuthUser } from '../../models/authModel.js';
-import { Ratings } from '../../models/ratingsModel.js';
+import { Ratings } from '../../models/ratingsModel';
 import { AppError } from '../../utils/apiError.js';
 
-export const listUserRatings = async (req, res, next) => {
+export const getRatingSummary = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
     }
     const auth = await AuthUser.findById(req.auth._id)
-      .select('_id isBlocked role')
+      .select('_id isBlocked')
       .lean();
     if (!auth) {
       throw new AppError('User not found', { status: 404 });
@@ -18,7 +18,6 @@ export const listUserRatings = async (req, res, next) => {
     }
 
     const {
-      targetId: qTargetId,
       role,
       minScore,
       maxScore,
@@ -28,25 +27,9 @@ export const listUserRatings = async (req, res, next) => {
       sort = 'recent',
     } = req.query;
 
-    const targetId = qTargetId || String(auth._id);
-
-    const targetUser = await AuthUser.findById(targetId)
-      .select('_id isBlocked role')
-      .lean();
-    if (!targetUser) {
-      throw new AppError('Target user not found', { status: 404 });
-    }
-    if (targetUser.isBlocked) {
-      throw new AppError('Account is blocked by admin', { status: 403 });
-    }
-
-    const filter = {
-      targetUser: targetUser._id,
-      isDeleted: { $ne: true },
-    };
-
+    const filter = { setBy: auth._id };
     if (role === 'Employer' || role === 'Worker') {
-      filter.targetRole = role;
+      filter.role = role;
     }
 
     let min = minScore != null ? Number(minScore) : null;
@@ -54,13 +37,11 @@ export const listUserRatings = async (req, res, next) => {
 
     if (Number.isNaN(min)) min = null;
     if (Number.isNaN(max)) max = null;
-
     if (min != null && max != null && min > max) {
       const tmp = min;
       min = max;
       max = tmp;
     }
-
     if (min != null) {
       filter.score = { ...(filter.score || {}), $gte: min };
     }
@@ -68,10 +49,9 @@ export const listUserRatings = async (req, res, next) => {
       filter.score = { ...(filter.score || {}), $lte: max };
     }
     if (withComment === 'true') {
-      filter.comment = { $exists: true, $ne: '' };
+      filter.comment = { $exist: true, $ne: '' };
     }
 
-    // Sorting
     const sortMap = {
       recent: { createdAt: -1 },
       score_desc: { score: -1, createdAt: -1 },
@@ -85,7 +65,7 @@ export const listUserRatings = async (req, res, next) => {
 
     const [items, total] = await Promise.all([
       Ratings.find(filter)
-        .select('setBy jobId score tags comment targetRole createdAt')
+        .select('tragetUser jobId score tags comment targetRole createdAt')
         .sort(sortSpec)
         .skip(skip)
         .limit(lim)
