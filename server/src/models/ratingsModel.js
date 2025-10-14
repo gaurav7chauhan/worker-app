@@ -45,8 +45,15 @@ ratingSchema.index(
   { setBy: 1, targetUser: 1, jobId: 1 },
   { unique: true, partialFilterExpression: { isDeleted: { $ne: true } } }
 );
-ratingSchema.index({ targetUser: 1, createdAt: -1 });
-ratingSchema.index({ targetUser: 1, score: -1 });
+ratingSchema.index(
+  { targetUser: 1, createdAt: -1 },
+  { partialFilterExpression: { isDeleted: { $ne: true } } }
+);
+
+ratingSchema.index(
+  { setBy: 1, createdAt: -1 },
+  { partialFilterExpression: { isDeleted: { $ne: true } } }
+);
 
 export const Ratings =
   mongoose.models.Ratings || model('Ratings', ratingSchema);

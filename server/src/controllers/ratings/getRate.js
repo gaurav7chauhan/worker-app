@@ -1,4 +1,5 @@
 import { AuthUser } from '../../models/authModel.js';
+import { JobPost } from '../../models/postModel.js';
 import { Ratings } from '../../models/ratingsModel.js';
 import { AppError } from '../../utils/apiError.js';
 
@@ -19,6 +20,7 @@ export const listUserRatings = async (req, res, next) => {
 
     const {
       targetId: qTargetId,
+      jobId,
       role,
       minScore,
       maxScore,
@@ -44,6 +46,17 @@ export const listUserRatings = async (req, res, next) => {
       targetUser: targetUser._id,
       isDeleted: { $ne: true },
     };
+
+    // OPTIONAL fields....
+
+    if (jobId) {
+      const job = await JobPost.findOne({
+        _id: jobId,
+        status: 'Completed',
+      }).lean();
+      if (!job) throw new AppError('Job not found', { status: 404 });
+      filter.jobId = job._id;
+    }
 
     if (role === 'Employer' || role === 'Worker') {
       filter.targetRole = role;

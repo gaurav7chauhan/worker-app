@@ -1,8 +1,12 @@
+import mongoose from 'mongoose';
 import { AuthUser } from '../../models/authModel.js';
-import { Ratings } from '../../models/ratingsModel';
+import { EmployerProfile } from '../../models/employerModel.js';
+import { JobPost } from '../../models/postModel.js';
+import { Ratings } from '../../models/ratingsModel.js';
+import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const getRatingSummary = async (req, res, next) => {
+export const getSetRatings = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
@@ -10,9 +14,8 @@ export const getRatingSummary = async (req, res, next) => {
     const auth = await AuthUser.findById(req.auth._id)
       .select('_id isBlocked')
       .lean();
-    if (!auth) {
-      throw new AppError('User not found', { status: 404 });
-    }
+    if (!auth) throw new AppError('User not found', { status: 404 });
+
     if (auth.isBlocked) {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
@@ -27,9 +30,89 @@ export const getRatingSummary = async (req, res, next) => {
       sort = 'recent',
     } = req.query;
 
-    const filter = { setBy: auth._id };
+    const filter = {
+      setBy: auth._id,
+      isDeleted: { $ne: true },
+    };
+
+    // SINGLE doc fields....
+
+    const { targetUserId, jobId } = req.query;
+    if (targetUserId && !mongoose.Types.ObjectId.isValid(targetUserId)) {
+      throw new AppError('Invalid targetUserId', { status: 400 });
+    }
+    if (jobId && !mongoose.Types.ObjectId.isValid(jobId)) {
+      throw new AppError('Invalid jobId', { status: 400 });
+    }
+    if (targetUserId) {
+      const tUser = await AuthUser.findById(targetUserId).lean();
+      if (!tUser) throw new AppError('Target user not found', { status: 404 });
+      filter.targetUser = tUser._id;
+    }
+    if (jobId) {
+      const job = await JobPost.findOne({
+        _id: jobId,
+        status: 'Completed',
+      })
+        .select('category skills status')
+        .lean();
+      if (!job) throw new AppError('Job not found', { status: 404 });
+      filter.jobId = job._id;
+    }
+
+    const single = req.query.single === 'true' || (targetUserId && jobId);
+
+    if (single) {
+      const rating = await Ratings.findOne(filter)
+        .select('targetUser jobId score tags comment targetRole createdAt')
+        .lean();
+
+      if (!rating) {
+        throw new AppError('User ratings not found', { status: 404 });
+      }
+
+      const uid = String(rating.targetUser);
+      const roleTU = rating.targetRole;
+      const [profile, jobDoc] = await Promise.all([
+        roleTU === 'Employer'
+          ? EmployerProfile.findOne({ userId: uid })
+              .select('fullName avatarUrl location')
+              .lean()
+          : WorkerProfile.findOne({ userId: uid })
+              .select('fullName avatarUrl location')
+              .lean(),
+        JobPost.findById(rating.jobId).select('category skills status').lean(),
+      ]);
+
+      const data = {
+        targetUser: {
+          _id: uid,
+          name: profile?.fullName || '',
+          role: roleTU,
+          avatar: profile?.avatarUrl,
+        },
+        job: {
+          _id: String(rating.jobId),
+          category: jobDoc?.category || '',
+          skills: jobDoc?.skills || [],
+          status: jobDoc?.status || '',
+        },
+        rating: {
+          score: rating.score,
+          tags: rating.tags || [],
+          comment: rating.comment || '',
+          createdAt: rating.createdAt,
+        },
+      };
+      return res
+        .status(200)
+        .json({ message: 'Ratings fetched successfully', data });
+    }
+
+    // OPTIONAL doc fields....
+
     if (role === 'Employer' || role === 'Worker') {
-      filter.role = role;
+      filter.targetRole = role;
     }
 
     let min = minScore != null ? Number(minScore) : null;
@@ -49,7 +132,7 @@ export const getRatingSummary = async (req, res, next) => {
       filter.score = { ...(filter.score || {}), $lte: max };
     }
     if (withComment === 'true') {
-      filter.comment = { $exist: true, $ne: '' };
+      filter.comment = { $exists: true, $ne: '' };
     }
 
     const sortMap = {
@@ -63,26 +146,87 @@ export const getRatingSummary = async (req, res, next) => {
     const lim = Math.min(50, Math.max(1, Number(limit)));
     const skip = (pg - 1) * lim;
 
-    const [items, total] = await Promise.all([
-      Ratings.find(filter)
-        .select('tragetUser jobId score tags comment targetRole createdAt')
-        .sort(sortSpec)
-        .skip(skip)
-        .limit(lim)
+    const items = await Ratings.find(filter)
+      .select('targetUser jobId score tags comment targetRole createdAt')
+      .sort(sortSpec)
+      .skip(skip)
+      .limit(lim)
+      .lean();
+
+    if (items.length === 0) {
+      return res.status(200).json({ message: 'No user ratings' });
+    }
+
+    const total = await Ratings.countDocuments(filter);
+
+    const employerIds = items
+      .filter((r) => r.targetRole === 'Employer')
+      .map((r) => r.targetUser._id);
+    const workerIds = items
+      .filter((r) => r.targetRole === 'Worker')
+      .map((r) => r.targetUser._id);
+    const jobIds = [
+      ...new Set(items.map((r) => String(r.jobId?._id || r.jobId))),
+    ];
+
+    const [employer, worker, jobs] = await Promise.all([
+      EmployerProfile.find({ userId: { $in: employerIds } })
+        .select('userId fullName avatarUrl location')
         .lean(),
-      Ratings.countDocuments(filter),
+      WorkerProfile.find({ userId: { $in: workerIds } })
+        .select('userId fullName avatarUrl location')
+        .lean(),
+      jobIds.length
+        ? JobPost.find({ _id: { $in: jobIds } })
+            .select('category skills status')
+            .lean()
+        : Promise.resolve([]),
     ]);
+
+    const empMap = new Map(employer.map((p) => [String(p.userId), p]));
+    const workerMap = new Map(worker.map((p) => [String(p.userId), p]));
+    const jobMap = new Map(jobs.map((p) => [String(p._id), p]));
+
+    const decorated = items.map((r) => {
+      const uid = r.targetUser ? String(r.targetUser?._id) : null;
+      const tRole = r.targetRole;
+      const profile =
+        tRole === 'Employer' ? empMap.get(uid) : workerMap.get(uid);
+
+      const jid = r.jobId?._id ? String(r.jobId._id) : String(r.jobId);
+      const job = jobMap.get(jid);
+      return {
+        targetUser: {
+          _id: uid,
+          name: profile?.fullName || '',
+          role: tRole || '',
+          avatar: profile?.avatarUrl || '',
+        },
+        job: {
+          _id: jid,
+          category: job?.category || '',
+          skills: job?.skills || [],
+          status: job?.status || '',
+        },
+        rating: {
+          score: r.score,
+          tags: r.tags || [],
+          comment: r.comment || '',
+          createdAt: r.createdAt,
+        },
+      };
+    });
 
     return res.status(200).json({
       message: 'Ratings fetched successfully',
       data: {
-        targetId: String(targetUser._id),
-        items,
+        setBy: String(auth._id),
+        items: decorated,
         pagination: {
           page: pg,
           limit: lim,
           total,
-          hasMore: skip + items.length < total,
+          hasMore: skip + decorated.length < total,
         },
       },
     });

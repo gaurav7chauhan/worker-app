@@ -47,9 +47,7 @@ export const createRating = async (req, res, next) => {
     const job = await JobPost.findById(jobId)
       .select('_id employerId assignedWorkerId status')
       .lean();
-    if (!job) {
-      throw new AppError('Job post not found', { status: 404 });
-    }
+    if (!job) throw new AppError('Job post not found', { status: 404 });
 
     const employerId = String(job.employerId);
     const workerId = String(job.assignedWorkerId);
