@@ -1,7 +1,10 @@
+import mongoose from 'mongoose';
 import { AuthUser } from '../../models/authModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { Ratings } from '../../models/ratingsModel.js';
 import { AppError } from '../../utils/apiError.js';
+import { EmployerProfile } from '../../models/employerModel.js';
+import { WorkerProfile } from '../../models/workerModel.js';
 
 export const listUserRatings = async (req, res, next) => {
   try {
@@ -20,7 +23,6 @@ export const listUserRatings = async (req, res, next) => {
 
     const {
       targetId: qTargetId,
-      jobId,
       role,
       minScore,
       maxScore,
@@ -29,6 +31,54 @@ export const listUserRatings = async (req, res, next) => {
       limit = 20,
       sort = 'recent',
     } = req.query;
+
+    const filter = {
+      targetUser: auth._id,
+      isDeleted: { $ne: true },
+    };
+
+    const { setterId, jobId } = req.query;
+    if (setterId && !mongoose.Types.ObjectId.isValid(setterId)) {
+      throw new AppError('Invalid setterId', { status: 400 });
+    }
+    if (jobId && !mongoose.Types.ObjectId.isValid(jobId)) {
+      throw new AppError('Invalid jobId', { status: 400 });
+    }
+    if (setterId) {
+      const tUser = await AuthUser.findById(setterId).select('_id').lean();
+      if (!tUser) throw new AppError('Target user not found', { status: 404 });
+      filter.setBy = tUser._id;
+    }
+    if (jobId) {
+      const job = await JobPost.findOne({
+        _id: jobId,
+        status: 'Completed',
+      })
+        .select('category skills status')
+        .lean();
+      if (!job) throw new AppError('Job not found', { status: 404 });
+      filter.jobId = job._id;
+    }
+
+    const single = req.query.single === 'true' || (setterId && jobId);
+
+    if (single) {
+      const ratings = await Ratings.findOne(filter)
+        .select('setBy jobId score tags comment')
+        .populate({ path: 'setBy', select: 'role', options: { lean: true } });
+      if (!ratings) {
+        throw new AppError('No ratings found', { status: 404 });
+      }
+      const user =
+        ratings.setBy.role === 'Employer' ? EmployerProfile : WorkerProfile;
+      const [setter, jobDeta] = await Promise.all([
+        user
+          .findOne({ userId: ratings.setBy })
+          .select('fullName avatarUrl location')
+          .lean(),
+        JobPost.findById(rating.jobId).select('category skills status').lean(),
+      ]);
+    }
 
     const targetId = qTargetId || String(auth._id);
 
@@ -41,11 +91,6 @@ export const listUserRatings = async (req, res, next) => {
     if (targetUser.isBlocked) {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
-
-    const filter = {
-      targetUser: targetUser._id,
-      isDeleted: { $ne: true },
-    };
 
     // OPTIONAL fields....
 
