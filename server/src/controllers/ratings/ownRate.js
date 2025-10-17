@@ -95,7 +95,7 @@ export const getSetRatings = async (req, res, next) => {
           _id: String(rating.jobId),
           category: jobDoc?.category || '',
           skills: jobDoc?.skills || [],
-          status: jobDoc?.status || '',
+          status: jobDoc?.status || 'Completed',
         },
         rating: {
           score: rating.score,
@@ -206,7 +206,7 @@ export const getSetRatings = async (req, res, next) => {
           _id: jid,
           category: job?.category || '',
           skills: job?.skills || [],
-          status: job?.status || '',
+          status: job?.status || 'Completed',
         },
         rating: {
           score: r.score,
