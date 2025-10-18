@@ -104,9 +104,14 @@ export const getSetRatings = async (req, res, next) => {
           createdAt: rating.createdAt,
         },
       };
-      return res
-        .status(200)
-        .json({ message: 'Ratings fetched successfully', data });
+      return res.status(200).json({
+        message: 'Ratings fetched successfully',
+        data: {
+          setBy: String(auth._id),
+          items: [],
+          pagination: { page: pg, limit: lim, total: 0, hasMore: false },
+        },
+      });
     }
 
     // OPTIONAL doc fields....
@@ -161,13 +166,11 @@ export const getSetRatings = async (req, res, next) => {
 
     const employerIds = items
       .filter((r) => r.targetRole === 'Employer')
-      .map((r) => r.targetUser._id);
+      .map((r) => r.targetUser);
     const workerIds = items
       .filter((r) => r.targetRole === 'Worker')
-      .map((r) => r.targetUser._id);
-    const jobIds = [
-      ...new Set(items.map((r) => String(r.jobId?._id || r.jobId))),
-    ];
+      .map((r) => r.targetUser);
+    const jobIds = [...new Set(items.map((r) => String(r.jobId)))];
 
     const [employer, worker, jobs] = await Promise.all([
       EmployerProfile.find({ userId: { $in: employerIds } })
@@ -178,7 +181,7 @@ export const getSetRatings = async (req, res, next) => {
         .lean(),
       jobIds.length
         ? JobPost.find({ _id: { $in: jobIds } })
-            .select('category skills status')
+            .select('_id category skills status')
             .lean()
         : Promise.resolve([]),
     ]);
@@ -188,13 +191,13 @@ export const getSetRatings = async (req, res, next) => {
     const jobMap = new Map(jobs.map((p) => [String(p._id), p]));
 
     const decorated = items.map((r) => {
-      const uid = r.targetUser ? String(r.targetUser?._id) : null;
+      const uid = r.targetUser;
       const tRole = r.targetRole;
       const profile =
         tRole === 'Employer' ? empMap.get(uid) : workerMap.get(uid);
 
-      const jid = r.jobId?._id ? String(r.jobId._id) : String(r.jobId);
-      const job = jobMap.get(jid);
+      const jId = String(r.jobId);
+      const job = jobMap.get(jId);
       return {
         targetUser: {
           _id: uid,
@@ -203,7 +206,7 @@ export const getSetRatings = async (req, res, next) => {
           avatar: profile?.avatarUrl || '',
         },
         job: {
-          _id: jid,
+          _id: jId,
           category: job?.category || '',
           skills: job?.skills || [],
           status: job?.status || 'Completed',

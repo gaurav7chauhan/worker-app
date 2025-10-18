@@ -32,8 +32,20 @@ export const listUserRatings = async (req, res, next) => {
       sort = 'recent',
     } = req.query;
 
+    const targetUser = await AuthUser.findById(qTargetId)
+      .select('_id isBlocked role')
+      .lean();
+    if (!targetUser) {
+      throw new AppError('Target user not found', { status: 404 });
+    }
+    if (targetUser.isBlocked) {
+      throw new AppError('Account is blocked by admin', { status: 403 });
+    }
+
+    const targetId = targetUser._id || String(auth._id);
+
     const filter = {
-      targetUser: auth._id,
+      targetUser: targetId,
       isDeleted: { $ne: true },
     };
 
@@ -64,7 +76,7 @@ export const listUserRatings = async (req, res, next) => {
 
     if (single) {
       const ratings = await Ratings.findOne(filter)
-        .select('setBy jobId score tags comment')
+        .select('setBy jobId score tags comment createdAt')
         .populate({ path: 'setBy', select: 'role', options: { lean: true } });
       if (!ratings) {
         throw new AppError('No ratings found', { status: 404 });
@@ -74,34 +86,39 @@ export const listUserRatings = async (req, res, next) => {
       const [setter, jobDeta] = await Promise.all([
         user
           .findOne({ userId: ratings.setBy })
-          .select('fullName avatarUrl location')
+          .select('userId fullName avatarUrl location')
+          .populate({ path: 'userId', select: 'role' })
           .lean(),
-        JobPost.findById(rating.jobId).select('category skills status').lean(),
+        JobPost.findById(ratings.jobId).select('category skills status').lean(),
       ]);
-    }
 
-    const targetId = qTargetId || String(auth._id);
+      const data = {
+        targetUser: {
+          _id: setter.userId,
+          name: setter.fullName || '',
+          role: setter.userId?.role || '',
+          avatar: setter.avatarUrl || '',
+        },
+        job: {
+          jobId: ratings.jobId,
+          category: jobDeta.category || '',
+          skills: jobDeta.skills || [],
+          status: jobDeta.status || 'Completed',
+        },
+        rating: {
+          score: rating.score || '',
+          tags: ratings.tags || [],
+          comment: ratings.comment || '',
+          createdAt: ratings.createdAt,
+        },
+      };
 
-    const targetUser = await AuthUser.findById(targetId)
-      .select('_id isBlocked role')
-      .lean();
-    if (!targetUser) {
-      throw new AppError('Target user not found', { status: 404 });
-    }
-    if (targetUser.isBlocked) {
-      throw new AppError('Account is blocked by admin', { status: 403 });
+      return res
+        .status(200)
+        .json({ message: 'Ratings fetched successfully', data });
     }
 
     // OPTIONAL fields....
-
-    if (jobId) {
-      const job = await JobPost.findOne({
-        _id: jobId,
-        status: 'Completed',
-      }).lean();
-      if (!job) throw new AppError('Job not found', { status: 404 });
-      filter.jobId = job._id;
-    }
 
     if (role === 'Employer' || role === 'Worker') {
       filter.targetRole = role;
@@ -144,6 +161,7 @@ export const listUserRatings = async (req, res, next) => {
     const [items, total] = await Promise.all([
       Ratings.find(filter)
         .select('setBy jobId score tags comment targetRole createdAt')
+        .populate({ path: 'setBy', select: 'role' })
         .sort(sortSpec)
         .skip(skip)
         .limit(lim)
@@ -151,11 +169,71 @@ export const listUserRatings = async (req, res, next) => {
       Ratings.countDocuments(filter),
     ]);
 
+    if (items.length === 0) {
+      return res.status(200).json({ message: 'No user ratings' });
+    }
+
+    const employerIds = items
+      .filter((r) => r.setBy?.role === 'Employer')
+      .map((r) => r.setBy);
+    const workerIds = items
+      .filter((r) => r.setBy?.role === 'Worker')
+      .map((r) => r.setBy);
+    const jobIds = [...new Set(items.map((r) => String(r.jobId)))];
+
+    const [employer, worker, jobs] = await Promise.all([
+      EmployerProfile.find({ userId: { $in: employerIds } })
+        .select('userId fullName avatarUrl location')
+        .lean(),
+      WorkerProfile.find({ userId: { $in: workerIds } })
+        .select('userId fullName avatarUrl location')
+        .lean(),
+      jobIds.length
+        ? JobPost.find({ _id: { $in: jobIds } })
+            .select('_id category skills status')
+            .lean()
+        : Promise.resolve([]),
+    ]);
+
+    const empMap = new Map(employer.map((v) => [String(v.userId), v]));
+    const workerMap = new Map(worker.map((v) => [v.userId, v]));
+    const jobMap = new Map(jobs.map((v) => [v._id, v]));
+
+    const decorated = items.map((r) => {
+      const uid = r.setBy;
+      const setterRole = r.setBy?.role;
+      const profile = setterRole === 'Employer' ? empMap : workerMap;
+
+      const jId = String(r.jobId);
+      const job = jobMap.get(jId);
+
+      return {
+        setterUser: {
+          _id: uid,
+          name: profile?.fullName || '',
+          role: setterRole || '',
+          avatar: profile?.avatarUrl || '',
+        },
+        job: {
+          _id: jId,
+          category: job?.category || '',
+          skills: job?.skills || [],
+          status: job?.status || 'Completed',
+        },
+        rating: {
+          score: r.score,
+          tags: r.tags || [],
+          comment: r.comment || '',
+          createdAt: r.createdAt,
+        },
+      };
+    });
+
     return res.status(200).json({
       message: 'Ratings fetched successfully',
       data: {
         targetId: String(targetUser._id),
-        items,
+        items: decorated,
         pagination: {
           page: pg,
           limit: lim,
