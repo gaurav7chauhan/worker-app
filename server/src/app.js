@@ -22,7 +22,8 @@ import { notifyAll } from './controllers/notification/notif.js';
 import { markNotificationRead } from './controllers/notification/readSingleNotif.js';
 import { markAllNotificationsRead } from './controllers/notification/readAllNotif.js';
 import { createRating } from './controllers/ratings/setRate.js';
-import { listUserRatings } from './controllers/ratings/getRate.js';
+import { listUserRatings } from './controllers/ratings/fetchingRate.js';
+import { getOwnRatings } from './controllers/ratings/ownRate.js';
 
 const app = express();
 
@@ -74,8 +75,8 @@ app.patch('/notifications/read-all', jwtVerify, markAllNotificationsRead);
 
 // Ratings
 app.post('/ratings', jwtVerify, createRating);
-app.get('/ratings/user/:userId', jwtVerify, listUserRatings);
-// app.get('/ratings/user/:userId/summary', jwtVerify, getRatingSummary); // summary
+app.get('/ratings', jwtVerify, getOwnRatings);
+app.get('/ratings', jwtVerify, listUserRatings);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

@@ -6,7 +6,7 @@ import { Ratings } from '../../models/ratingsModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const getSetRatings = async (req, res, next) => {
+export const getOwnRatings = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
