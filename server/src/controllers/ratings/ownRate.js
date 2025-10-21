@@ -6,7 +6,7 @@ import { Ratings } from '../../models/ratingsModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const getOwnRatings = async (req, res, next) => {
+export const myGivenRatings = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
@@ -21,6 +21,8 @@ export const getOwnRatings = async (req, res, next) => {
     }
 
     const {
+      targetUserId,
+      jobId,
       role,
       minScore,
       maxScore,
@@ -37,7 +39,6 @@ export const getOwnRatings = async (req, res, next) => {
 
     // SINGLE doc fields....
 
-    const { targetUserId, jobId } = req.query;
     if (targetUserId && !mongoose.Types.ObjectId.isValid(targetUserId)) {
       throw new AppError('Invalid targetUserId', { status: 400 });
     }
@@ -45,7 +46,7 @@ export const getOwnRatings = async (req, res, next) => {
       throw new AppError('Invalid jobId', { status: 400 });
     }
     if (targetUserId) {
-      const tUser = await AuthUser.findById(targetUserId).lean();
+      const tUser = await AuthUser.findById(targetUserId).select('_id').lean();
       if (!tUser) throw new AppError('Target user not found', { status: 404 });
       filter.targetUser = tUser._id;
     }

@@ -22,7 +22,9 @@ export const listUserRatings = async (req, res, next) => {
     }
 
     const {
-      targetId: qTargetId,
+      targetId,
+      raterId,
+      jobId,
       role,
       minScore,
       maxScore,
@@ -32,34 +34,41 @@ export const listUserRatings = async (req, res, next) => {
       sort = 'recent',
     } = req.query;
 
-    const targetUser = await AuthUser.findById(qTargetId)
-      .select('_id isBlocked role')
-      .lean();
-    if (!targetUser) {
-      throw new AppError('Target user not found', { status: 404 });
+    if (targetId && !mongoose.Types.ObjectId.isValid(targetId)) {
+      throw new AppError('Invalid targetId', { status: 400 });
     }
-    if (targetUser.isBlocked) {
-      throw new AppError('Account is blocked by admin', { status: 403 });
-    }
-
-    const targetId = targetUser._id || String(auth._id);
-
-    const filter = {
-      targetUser: targetId,
-      isDeleted: { $ne: true },
-    };
-
-    const { setterId, jobId } = req.query;
-    if (setterId && !mongoose.Types.ObjectId.isValid(setterId)) {
-      throw new AppError('Invalid setterId', { status: 400 });
+    if (raterId && !mongoose.Types.ObjectId.isValid(raterId)) {
+      throw new AppError('Invalid raterId', { status: 400 });
     }
     if (jobId && !mongoose.Types.ObjectId.isValid(jobId)) {
       throw new AppError('Invalid jobId', { status: 400 });
     }
-    if (setterId) {
-      const tUser = await AuthUser.findById(setterId).select('_id').lean();
-      if (!tUser) throw new AppError('Target user not found', { status: 404 });
-      filter.setBy = tUser._id;
+
+    let tUserId = auth._id;
+
+    if (targetId) {
+      const targetAuth = await AuthUser.findById(targetId)
+        .select('_id isBlocked role')
+        .lean();
+      if (!targetAuth) {
+        throw new AppError('Target user not found', { status: 404 });
+      }
+      if (targetAuth.isBlocked) {
+        throw new AppError('Account is blocked by admin', { status: 403 });
+      }
+      tUserId = targetAuth._id;
+    }
+
+    const filter = {
+      targetUser: tUserId,
+      isDeleted: { $ne: true },
+    };
+
+    if (raterId) {
+      const raterUser = await AuthUser.findById(raterId).select('_id').lean();
+      if (!raterUser)
+        throw new AppError('Target user not found', { status: 404 });
+      filter.setBy = raterUser._id;
     }
     if (jobId) {
       const job = await JobPost.findOne({
@@ -72,7 +81,7 @@ export const listUserRatings = async (req, res, next) => {
       filter.jobId = job._id;
     }
 
-    const single = req.query.single === 'true' || (setterId && jobId);
+    const single = req.query.single === 'true' || (raterId && jobId);
 
     if (single) {
       const ratings = await Ratings.findOne(filter)
@@ -83,7 +92,7 @@ export const listUserRatings = async (req, res, next) => {
       }
       const user =
         ratings.setBy.role === 'Employer' ? EmployerProfile : WorkerProfile;
-      const [setter, jobDeta] = await Promise.all([
+      const [rater, jobData] = await Promise.all([
         user
           .findOne({ userId: ratings.setBy })
           .select('userId fullName avatarUrl location')
@@ -92,32 +101,43 @@ export const listUserRatings = async (req, res, next) => {
         JobPost.findById(ratings.jobId).select('category skills status').lean(),
       ]);
 
-      const data = {
-        targetUser: {
-          _id: setter.userId,
-          name: setter.fullName || '',
-          role: setter.userId?.role || '',
-          avatar: setter.avatarUrl || '',
+      const singleUserData = {
+        raterInfo: {
+          _id: rater.userId,
+          name: rater.fullName || '',
+          role: rater.userId?.role || '',
+          avatar: rater.avatarUrl || '',
         },
-        job: {
+        jobInfo: {
           jobId: ratings.jobId,
-          category: jobDeta.category || '',
-          skills: jobDeta.skills || [],
-          status: jobDeta.status || 'Completed',
+          category: jobData.category || '',
+          skills: jobData.skills || [],
+          status: jobData.status || 'Completed',
         },
         rating: {
-          score: rating.score || '',
+          score: ratings.score || '',
           tags: ratings.tags || [],
           comment: ratings.comment || '',
           createdAt: ratings.createdAt,
         },
       };
 
-      return res
-        .status(200)
-        .json({ message: 'Ratings fetched successfully', data });
+      return res.status(200).json({
+        message: 'Ratings fetched successfully',
+        data: {
+          targetId: String(tUserId),
+          items: [singleUserData],
+          pagination: {
+            page: 1,
+            limit: 1,
+            total: 1,
+            hasMore: false,
+          },
+        },
+      });
     }
 
+    // MORE THAN ONE R*
     // OPTIONAL fields....
 
     if (role === 'Employer' || role === 'Worker') {
@@ -200,16 +220,19 @@ export const listUserRatings = async (req, res, next) => {
     const jobMap = new Map(jobs.map((v) => [v._id, v]));
 
     const decorated = items.map((r) => {
-      const uid = r.setBy;
+      const setterId = String(r.setBy);
       const setterRole = r.setBy?.role;
-      const profile = setterRole === 'Employer' ? empMap : workerMap;
+      const profile =
+        setterRole === 'Employer'
+          ? empMap.get(setterId)
+          : workerMap.get(setterId);
 
       const jId = String(r.jobId);
       const job = jobMap.get(jId);
 
       return {
         setterUser: {
-          _id: uid,
+          _id: setterId,
           name: profile?.fullName || '',
           role: setterRole || '',
           avatar: profile?.avatarUrl || '',
@@ -232,7 +255,7 @@ export const listUserRatings = async (req, res, next) => {
     return res.status(200).json({
       message: 'Ratings fetched successfully',
       data: {
-        targetId: String(targetUser._id),
+        targetId: tUserId,
         items: decorated,
         pagination: {
           page: pg,
