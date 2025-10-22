@@ -12,7 +12,7 @@ import { updateUserProfile } from './controllers/updateUser/updateProfile.js';
 import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/toggle/toggleRole.js';
 import { upload } from './middlewares/multer.js';
-import { post } from './controllers/user/post.js';
+import { post } from './controllers/posts/createPost.js';
 import { logoutUser } from './controllers/logout/logout.js';
 import { submitApplication } from './controllers/userApplication/createApp.js';
 import { listMyApplications } from './controllers/userApplication/workerApp.js';

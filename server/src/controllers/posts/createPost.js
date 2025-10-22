@@ -68,9 +68,10 @@ export const post = async (req, res, next) => {
 
     // res.set('Location', `/api/posts/${created._id}`); // adjust base path as needed
 
-    return res
-      .status(201)
-      .json({ responseBody, message: 'User successfully created post' });
+    return res.status(201).json({
+      message: 'User successfully created post',
+      responseBody,
+    });
   } catch (error) {
     return next(error);
   }
