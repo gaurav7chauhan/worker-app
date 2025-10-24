@@ -1,14 +1,7 @@
 import mongoose, { model, Schema } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
 
-const statusType = [
-  'Open',
-  'Assigned',
-  'InProgress',
-  'SubmittedByWorker',
-  'Completed',
-  'Canceled',
-];
+const statusType = ['Open', 'Closed', 'Completed', 'Canceled'];
 
 const mediaItemSchema = new Schema(
   {
@@ -85,7 +78,7 @@ const jobPostSchema = new Schema(
 );
 
 jobPostSchema.index({ status: 1, createdAt: -1 });
-jobPostSchema.index({ employerId: 1, createdAt: -1 });
+jobPostSchema.index({ employerId: 1, _id: 1, createdAt: -1 });
 
 export const JobPost =
   mongoose.models.JobPost || model('JobPost', jobPostSchema);
