@@ -17,7 +17,7 @@ export const statusUpdate = async (req, res, next) => {
     if (auth.isBlocked) {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
-    if (auth.role != 'Employer') {
+    if (auth.role !== 'Employer') {
       throw new AppError('Only employer can change job status', {
         status: 403,
       });

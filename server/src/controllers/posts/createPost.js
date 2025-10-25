@@ -10,7 +10,7 @@ export const post = async (req, res, next) => {
       throw new AppError('Authentication required', { status: 401 });
     }
 
-    const auth = await AuthUser.findById(req.auth._id).select('isBlocked role');
+    const auth = await AuthUser.findById(req.auth._id).select('_id isBlocked role');
     if (auth.role !== 'Employer') {
       throw new AppError('Post is created by only employer', { status: 409 });
     }
@@ -20,7 +20,7 @@ export const post = async (req, res, next) => {
 
     const user = await EmployerProfile.findOne({ userId: auth._id });
     if (!user) {
-      throw new AppError('User not found', { status: 404 });
+      throw new AppError('Employer not found', { status: 404 });
     }
 
     const parsed = jobPostBodySchema.safeParse(req.body);
