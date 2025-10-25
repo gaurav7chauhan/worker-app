@@ -1,14 +1,7 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
 
-const statusType = [
-  'Open',
-  'Assigned',
-  'InProgress',
-  'SubmittedByWorker',
-  'Completed',
-  'Canceled',
-];
+const statusType = ['Open', 'Closed', 'Canceled', 'Completed'];
 const AddressSchema = z.object({
   line1: z.string().trim().max(120),
   line2: z.string().trim().max(120).optional(),
@@ -18,7 +11,10 @@ const AddressSchema = z.object({
   state: z.string().trim().max(80),
 });
 
-const HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM 24h').optional();
+const HHMM = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM 24h')
+  .optional();
 const DayPart = z.enum(['morning', 'afternoon', 'evening', 'night']).optional();
 const Term = z.enum([
   'one_time',
