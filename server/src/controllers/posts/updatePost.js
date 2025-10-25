@@ -13,7 +13,7 @@ export const statusUpdate = async (req, res, next) => {
     const auth = await AuthUser.findById(req.auth._id)
       .select('_id role isBlocked')
       .lean();
-    if (!auth) throw new AppError('User not found');
+    if (!auth) throw new AppError('User not found', { status: 404 });
     if (auth.isBlocked) {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
@@ -75,12 +75,10 @@ export const statusUpdate = async (req, res, next) => {
       { new: true, projection: 'status' }
     ).lean();
 
-    return res
-      .status(200)
-      .json({
-        message: 'Status update successfully',
-        data: { status: updated.status },
-      });
+    return res.status(200).json({
+      message: 'Status update successfully',
+      data: { status: updated.status },
+    });
   } catch (error) {
     return next(error);
   }
