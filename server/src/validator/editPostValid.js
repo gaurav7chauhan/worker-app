@@ -11,8 +11,9 @@ const categoryToSubs = new Map(
 export const editPostBodySchema = jobPostBodySchema
   .partial()
   .superRefine((v, ctx) => {
-    const from = v.schedule.timeFrom;
-    const to = v.schedule.timeTo;
+    const from = v.schedule?.timeFrom;
+    const to = v.schedule?.timeTo;
+
     if (from && to && from >= to) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -20,6 +21,7 @@ export const editPostBodySchema = jobPostBodySchema
         message: 'timeTo must be after timeFrom',
       });
     }
+
     if (v.category) {
       const dup = new Set(v.category);
       if (dup.size !== v.category.length) {
@@ -39,6 +41,7 @@ export const editPostBodySchema = jobPostBodySchema
           });
         }
       }
+
       if (v.skills) {
         const dup = new Set(v.skills);
         if (dup.size !== v.skills.length) {
