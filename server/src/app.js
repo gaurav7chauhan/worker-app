@@ -52,6 +52,12 @@ app.post('/auth/employer/register', registerEmployer);
 app.post('/auth/worker/register', registerWorker);
 app.post('/auth/login', loginUser);
 
+// Job Posts
+app.post('/jobs/create', jwtVerify, post);
+app.post('/jobs/edit/:jobId', jwtVerify, editPost);
+app.patch('/jobs/status/:jobId', jwtVerify, statusUpdate);
+app.delete('/jobs/delete/:jobId', jwtVerify, deletePost);
+
 // User Profile
 app.patch(
   '/user/profile',
@@ -59,14 +65,8 @@ app.patch(
   upload.single('avatar'),
   updateUserProfile
 );
-app.post('/user/role/switch/:role', jwtVerify, switchRole);
+app.post('/user/role/:role', jwtVerify, switchRole);
 app.get('/user/logout', jwtVerify, logoutUser);
-
-// Job Posts
-app.post('/jobs/create', jwtVerify, post);
-app.post('/jobs/edit/:jobId', jwtVerify, editPost);
-app.patch('/jobs/status/:jobId', jwtVerify, statusUpdate);
-app.delete('/jobs/delete/:jobId', jwtVerify, deletePost);
 
 // Applications
 app.post('/applications/submit', jwtVerify, submitApplication);

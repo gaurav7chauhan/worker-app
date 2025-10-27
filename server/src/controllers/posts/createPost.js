@@ -61,7 +61,6 @@ export const post = async (req, res, next) => {
       location: created.location,
       schedule: created.schedule,
       status: created.status,
-      employerAssets: created.employerAssets,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     };
