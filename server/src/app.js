@@ -24,6 +24,9 @@ import { markAllNotificationsRead } from './controllers/notification/readAllNoti
 import { createRating } from './controllers/ratings/setRate.js';
 import { listUserRatings } from './controllers/ratings/fetchingRate.js';
 import { myGivenRatings } from './controllers/ratings/ownRate.js';
+import { editPost } from './controllers/posts/editPost.js';
+import { statusUpdate } from './controllers/posts/statusUpdatePost.js';
+import { deletePost } from './controllers/posts/removePost.js';
 
 const app = express();
 
@@ -61,6 +64,9 @@ app.get('/user/logout', jwtVerify, logoutUser);
 
 // Job Posts
 app.post('/jobs/create', jwtVerify, post);
+app.post('/jobs/edit/:jobId', jwtVerify, editPost);
+app.patch('/jobs/status', jwtVerify, statusUpdate);
+app.delete('/jobs/delete/:jobId', jwtVerify, deletePost);
 
 // Applications
 app.post('/applications/submit', jwtVerify, submitApplication);

@@ -25,7 +25,8 @@ export const statusUpdate = async (req, res, next) => {
 
     const STATUS = ['Open', 'Closed', 'Canceled'];
 
-    const { jobId, status } = req.body;
+    const { jobId } = req.params;
+    const { status } = req.body;
 
     if (!jobId || !status) {
       throw new AppError('jobId and status are required', { status: 400 });
