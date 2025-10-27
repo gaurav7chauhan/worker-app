@@ -65,7 +65,7 @@ app.get('/user/logout', jwtVerify, logoutUser);
 // Job Posts
 app.post('/jobs/create', jwtVerify, post);
 app.post('/jobs/edit/:jobId', jwtVerify, editPost);
-app.patch('/jobs/status', jwtVerify, statusUpdate);
+app.patch('/jobs/status/:jobId', jwtVerify, statusUpdate);
 app.delete('/jobs/delete/:jobId', jwtVerify, deletePost);
 
 // Applications
