@@ -78,12 +78,12 @@ export const notifyAll = async (req, res, next) => {
           $set: { updatedAt: now },
         },
         { upsert: true }
-      );
+      ).lean();
       return res.status(result.upsertedCount ? 201 : 200).json({
-        upserted: !!result.upsertedCount,
         message: result.upsertedCount
           ? 'Notification successfully sent'
           : 'Notification already exists',
+        result,
       });
     }
 

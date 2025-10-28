@@ -19,7 +19,9 @@ export const submitApplication = async (req, res, next) => {
       throw new AppError('Account is blocked by admin', { status: 403 });
     }
 
-    const worker = await WorkerProfile.findOne({ userId: auth._id }).select('_id');
+    const worker = await WorkerProfile.findOne({ userId: auth._id }).select(
+      '_id'
+    );
     if (!worker) {
       throw new AppError('Worker profile not found', { status: 404 });
     }
@@ -34,7 +36,7 @@ export const submitApplication = async (req, res, next) => {
     }
 
     const { jobId, coverNote, expectedRate } = parsed.data;
-    
+
     const job = await JobPost.findById(jobId).select('_id status');
     if (!job) {
       throw new AppError('Job post not found', { status: 404 });
@@ -46,9 +48,11 @@ export const submitApplication = async (req, res, next) => {
     const dup = await Application.findOne({
       jobId: job._id,
       workerId: worker._id,
-    });
+    }).lean();
     if (dup) {
-      throw new AppError('Already applied to this job', { status:409  });
+      return res
+        .status(200)
+        .json({ message: 'Already applied to this job', _id: dup._id });
     }
 
     const created = await Application.create({
@@ -60,6 +64,7 @@ export const submitApplication = async (req, res, next) => {
     });
 
     const application = {
+      _id: created._id,
       jobId: created.jobId,
       workerId: created.workerId,
       status: created.status,

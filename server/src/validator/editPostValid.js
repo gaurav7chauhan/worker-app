@@ -1,3 +1,4 @@
+import { jobCategories } from '../../config/categoriesConfig.js';
 import { jobPostBodySchema } from './postValid.js';
 
 const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
