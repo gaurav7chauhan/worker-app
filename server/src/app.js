@@ -27,6 +27,7 @@ import { myGivenRatings } from './controllers/ratings/ownRate.js';
 import { editPost } from './controllers/posts/editPost.js';
 import { statusUpdate } from './controllers/posts/statusUpdatePost.js';
 import { deletePost } from './controllers/posts/removePost.js';
+import { deleteRating } from './controllers/ratings/removeRate.js';
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.patch('/notifications/read-all', jwtVerify, markAllNotificationsRead);
 app.post('/ratings', jwtVerify, createRating);
 app.get('/ratings/outgoing', jwtVerify, myGivenRatings);
 app.get('/ratings/incoming', jwtVerify, listUserRatings);
+app.delete('/ratings/:ratingId', jwtVerify, deleteRating);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

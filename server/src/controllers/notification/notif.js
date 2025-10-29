@@ -60,8 +60,8 @@ export const notifyAll = async (req, res, next) => {
       }
     }
 
-    const key = data.dedupeKey ?? makeDedupeKey(data);
-
+    const keyRaw = data.dedupeKey ?? makeDedupeKey(data);
+    const key = typeof keyRaw === 'string' ? keyRaw.trim() : keyRaw;
     if (key) {
       const now = new Date();
       const result = await Notification.updateOne(
@@ -78,7 +78,7 @@ export const notifyAll = async (req, res, next) => {
           $set: { updatedAt: now },
         },
         { upsert: true }
-      ).lean();
+      );
       return res.status(result.upsertedCount ? 201 : 200).json({
         message: result.upsertedCount
           ? 'Notification successfully sent'

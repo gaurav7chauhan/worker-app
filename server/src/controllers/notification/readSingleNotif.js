@@ -10,6 +10,9 @@ export const markNotificationRead = async (req, res, next) => {
     }
 
     const { id } = req.params;
+    if (!id) {
+      throw new AppError('Id is required', { status: 400 });
+    }
     if (!mongoose.isValidObjectId(id)) {
       throw new AppError('Invalid notification id', { status: 400 });
     }
@@ -25,7 +28,7 @@ export const markNotificationRead = async (req, res, next) => {
     }
 
     const updated = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: req.auth._id, isRead: false },
+      { _id: req.params?.id, userId: req.auth._id, isRead: false },
       { $set: { isRead: true, readAt: new Date() } },
       { new: true }
     ).lean();
