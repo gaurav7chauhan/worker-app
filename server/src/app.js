@@ -7,13 +7,13 @@ import {
   registerEmployer,
   registerWorker,
 } from './controllers/user/register.js';
-import { loginUser } from './controllers/login/login.js';
+import { loginUser } from './controllers/user/login.js';
 import { updateUserProfile } from './controllers/updateUser/updateProfile.js';
 import { jwtVerify } from './middlewares/jwtAuth.js';
 import { switchRole } from './controllers/toggle/toggleRole.js';
 import { upload } from './middlewares/multer.js';
 import { post } from './controllers/posts/createPost.js';
-import { logoutUser } from './controllers/logout/logout.js';
+import { logoutUser } from './controllers/user/logout.js';
 import { submitApplication } from './controllers/userApplication/createApp.js';
 import { listMyApplications } from './controllers/userApplication/workerApp.js';
 import { listJobApplications } from './controllers/userApplication/jobApp.js';
@@ -28,6 +28,7 @@ import { editPost } from './controllers/posts/editPost.js';
 import { statusUpdate } from './controllers/posts/statusUpdatePost.js';
 import { deletePost } from './controllers/posts/removePost.js';
 import { deleteRating } from './controllers/ratings/removeRate.js';
+import { getUserProfile } from './controllers/user/getUser.js';
 
 const app = express();
 
@@ -49,8 +50,8 @@ app.use(express.static('public'));
 // app.set('trust proxy', true);
 
 // Authentication & Registration
-app.post('/auth/employer/register', registerEmployer);
-app.post('/auth/worker/register', registerWorker);
+app.post('/auth/employer', registerEmployer);
+app.post('/auth/worker', registerWorker);
 app.post('/auth/login', loginUser);
 
 // Job Posts
@@ -60,6 +61,7 @@ app.patch('/jobs/status/:jobId', jwtVerify, statusUpdate);
 app.delete('/jobs/delete/:jobId', jwtVerify, deletePost);
 
 // User Profile
+app.get('/users/me', getUserProfile);
 app.patch(
   '/user/profile',
   jwtVerify,
