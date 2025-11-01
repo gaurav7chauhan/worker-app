@@ -36,9 +36,9 @@ export const post = async (req, res, next) => {
       Object.entries(parsed.data).filter(([_, val]) => val !== undefined)
     );
 
-    if (cleaned.location) {
-      cleaned.location = Object.fromEntries(
-        Object.entries(cleaned.location).filter(([_, val]) => val !== undefined)
+    if (cleaned.address) {
+      cleaned.address = Object.fromEntries(
+        Object.entries(cleaned.address).filter(([_, val]) => val !== undefined)
       );
     }
 
@@ -58,7 +58,7 @@ export const post = async (req, res, next) => {
       skills: created.skills,
       description: created.description,
       budgetAmount: created.budgetAmount,
-      location: created.location,
+      address: created.address,
       schedule: created.schedule,
       status: created.status,
       createdAt: created.createdAt,

@@ -6,6 +6,7 @@ const categoryItem = z
   .trim()
   .toLowerCase()
   .min(1, { message: 'Category cannot be empty or spaces' });
+  
 const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
 const categoryToSubs = new Map(
   jobCategories.map((c) => [
@@ -22,6 +23,14 @@ const emailStr = z
 
 const passwordStr = z.string().min(8, 'Password must be at least 8 chars');
 
+const geoPointSchema = z.object({
+  type: z.literal('Point'),
+  coordinates: z.tuple([
+    z.number().min(-180).max(180), // lng
+    z.number().min(-90).max(90), // lat
+  ]),
+});
+
 export const registerEmployerSchema = z.object({
   email: emailStr,
   password: passwordStr,
@@ -29,7 +38,8 @@ export const registerEmployerSchema = z.object({
     .string({ required_error: 'Full name is required' })
     .trim()
     .min(3, 'Full name must be at least 3 characters'),
-  location: z.string().trim().min(1, 'Area cannot be empty').optional(),
+  address: z.string().trim().min(1, 'Area cannot be empty').optional(),
+  location: geoPointSchema.optional(),
   role: z.literal('Employer', 'Please select Employer as role'),
   otp: z.string().length(6, 'OTP must be 6 digits').optional(),
 });
@@ -42,7 +52,8 @@ export const registerWorkerSchema = z
       .string({ required_error: 'Full name is required' })
       .trim()
       .min(3, 'Full name must be at least 3 characters'),
-    location: z.string().trim().min(1, 'Area cannot be empty').optional(),
+    address: z.string().trim().min(1, 'Area cannot be empty').optional(),
+    location: geoPointSchema.optional(),
     category: z
       .array(categoryItem)
       .nonempty({ message: 'At least one category is required' })

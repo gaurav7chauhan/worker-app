@@ -22,7 +22,7 @@ const categoryToSubs = new Map(
 const baseProfileUpdate = z
   .object({
     fullName: z.string().trim().min(1).max(80).optional(),
-    location: AddressSchema.partial().optional(),
+    address: AddressSchema.partial().optional(),
     bio: z.string().trim().max(500).optional(),
     avatarUrl: z.string().url().optional(),
     coverUrl: z.string().url().optional(),

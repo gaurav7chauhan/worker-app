@@ -22,7 +22,7 @@ export const registerEmployer = async (req, res, next) => {
       throw new AppError(payload.error.issues[0].message, { status: 400 });
     }
 
-    const { email, password, fullName, area, role } = payload.data;
+    const { email, password, fullName, address, role, location } = payload.data;
 
     let data;
     let id;
@@ -55,13 +55,13 @@ export const registerEmployer = async (req, res, next) => {
       );
 
       // Create EmployerProfile
-      const areaClean = area?.trim();
+      const userAddress = address?.trim();
       const [user] = await EmployerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
-            ...(areaClean ? { area: areaClean } : {}),
+            ...(userAddress ? { address: userAddress } : {}),
           },
         ],
         { session }
@@ -73,7 +73,7 @@ export const registerEmployer = async (req, res, next) => {
         fullName,
         email,
         role,
-        area,
+        address,
       };
 
       id = data.auth_id;
@@ -116,6 +116,7 @@ export const registerWorker = async (req, res, next) => {
       email,
       password,
       fullName,
+      address,
       location,
       category,
       skills,
@@ -152,7 +153,37 @@ export const registerWorker = async (req, res, next) => {
       );
 
       // Create WorkerProfile
-      const areaClean = location?.trim();
+      const userAddress = address?.trim();
+
+      let geoLocation;
+      if (location) {
+        if (location.type !== 'Point' || !Array.isArray(location.coordinates)) {
+          throw Object.assign(
+            new Error(
+              'Invalid location: must be GeoJSON Point with coordinates [lng, lat]'
+            ),
+            { status: 400 }
+          );
+        }
+
+        let [lng, lat] = location.coordinates.map(Number);
+        if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+          throw Object.assign(
+            new Error('Invalid location: lng/lat must be numbers'),
+            { status: 400 }
+          );
+        }
+
+        if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+          throw Object.assign(
+            new Error('Invalid location: lng in [-180,180], lat in [-90,90]'),
+            { status: 400 }
+          );
+        }
+
+        geoLocation = { type: 'Point', coordinates: [lng, lat] };
+      }
+
       const [user] = await WorkerProfile.create(
         [
           {
@@ -160,8 +191,9 @@ export const registerWorker = async (req, res, next) => {
             fullName,
             category,
             ...(skills !== undefined ? { skills } : {}),
-            ...(areaClean ? { location: areaClean } : {}),
+            ...(userAddress ? { address: userAddress } : {}),
             ...(experienceYears !== undefined ? { experienceYears } : {}),
+            ...(geoLocation ? { location: geoLocation } : {}),
           },
         ],
         { session }
@@ -175,7 +207,8 @@ export const registerWorker = async (req, res, next) => {
         role,
         category,
         skills,
-        location,
+        address: userAddress ?? null,
+        location: geoLocation ?? null,
         experienceYears,
       };
 

@@ -1,11 +1,13 @@
 import mongoose, { Schema, model } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
+import { pointSchema } from './common/geoPoint.js';
 
 const workerProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
     fullName: { type: String, required: true, trim: true },
-    location: { type: addressSchema, default: null },
+    address: { type: addressSchema, default: null },
+    location: { type: pointSchema },
     category: { type: [String], default: [] },
     skills: { type: [String], default: [] },
     experienceYears: { type: Number, default: 0, min: 0 },
@@ -19,8 +21,10 @@ const workerProfileSchema = new Schema(
   { timestamps: true }
 );
 
-workerProfileSchema.index({ location: 1, skills: 1, ratingAvg: -1 });
+workerProfileSchema.index({ address: 1, skills: 1, ratingAvg: -1 });
 workerProfileSchema.index({ userId: 1 }, { unique: true });
+
+workerProfileSchema.index({ location: '2dsphere' });
 
 export const WorkerProfile =
   mongoose.models.WorkerProfile || model('WorkerProfile', workerProfileSchema);

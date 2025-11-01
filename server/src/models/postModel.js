@@ -1,5 +1,6 @@
 import mongoose, { model, Schema } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
+import { pointSchema } from './common/geoPoint.js';
 
 const statusType = ['Open', 'Closed', 'Completed', 'Canceled'];
 
@@ -62,11 +63,12 @@ const jobPostSchema = new Schema(
     skills: { type: [String], default: undefined },
     description: { type: String, trim: true },
     budgetAmount: { type: Number, required: true },
-    location: { type: addressSchema },
-    schedule: { scheduleSchema },
+    address: { type: addressSchema },
+    location: { type: pointSchema },
+    schedule: { type: scheduleSchema },
     status: { type: String, enum: statusType, default: 'Open' },
     employerAssets: { type: [mediaItemSchema], default: [] },
-
+    // worker
     assignedWorkerId: { type: Schema.Types.ObjectId, ref: 'WorkerProfile' },
     completionProofs: { type: [mediaItemSchema], default: [] },
     submittedAt: { type: Date },
@@ -77,8 +79,17 @@ const jobPostSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for common filters/sorts
 jobPostSchema.index({ status: 1, createdAt: -1 });
 jobPostSchema.index({ employerId: 1, _id: 1, createdAt: -1 });
+
+// Keep category/skills/budget separate unless you truly need this compound
+jobPostSchema.index({ category: 1 });
+jobPostSchema.index({ skills: 1 });
+jobPostSchema.index({ budgetAmount: 1 });
+
+// Critical: geospatial index
+jobPostSchema.index({ location: '2dsphere' });
 
 export const JobPost =
   mongoose.models.JobPost || model('JobPost', jobPostSchema);

@@ -60,7 +60,7 @@ export const jobPostBodySchema = z
     skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
     description: z.string().trim().max(5000).optional(),
     budgetAmount: z.coerce.number().positive('Budget must be > 0'),
-    location: AddressSchema.partial().optional(),
+    address: AddressSchema.partial().optional(),
     schedule: Schedule.optional(),
     status: z.enum(statusType).optional(),
   })
