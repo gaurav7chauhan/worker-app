@@ -14,6 +14,33 @@ import {
   generateRefreshToken,
 } from '../../services/jwt.js';
 
+function parseLocation(location) {
+  if (!location || typeof location !== 'object') {
+    throw new AppError('Invalid location: missing object', { status: 400 });
+  }
+
+  if (location.type !== 'Point' || !Array.isArray(location.coordinates)) {
+    throw new AppError(
+      'Invalid location: must be GeoJSON Point with coordinates [lng, lat]',
+      { status: 400 }
+    );
+  }
+
+  let [lng, lat] = location.coordinates.map(Number);
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+    throw new AppError('Invalid location: lng/lat must be numbers', {
+      status: 400,
+    });
+  }
+
+  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+    throw new AppError('Invalid location: lng in [-180,180], lat in [-90,90]', {
+      status: 400,
+    });
+  }
+  return { lng, lat };
+}
+
 export const registerEmployer = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
@@ -55,13 +82,21 @@ export const registerEmployer = async (req, res, next) => {
       );
 
       // Create EmployerProfile
-      const userAddress = address?.trim();
+      const userAddress = address?.trim() || null;
+
+      let geoLocation = null;
+      if (location) {
+        const { lng, lat } = parseLocation(location);
+        geoLocation = { type: 'Point', coordinates: [lng, lat] };
+      }
+
       const [user] = await EmployerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
             ...(userAddress ? { address: userAddress } : {}),
+            ...(geoLocation ? { location: geoLocation } : {}),
           },
         ],
         { session }
@@ -73,7 +108,8 @@ export const registerEmployer = async (req, res, next) => {
         fullName,
         email,
         role,
-        address,
+        address: userAddress,
+        location: geoLocation,
       };
 
       id = data.auth_id;
@@ -153,34 +189,11 @@ export const registerWorker = async (req, res, next) => {
       );
 
       // Create WorkerProfile
-      const userAddress = address?.trim();
+      const userAddress = address?.trim() || null;
 
-      let geoLocation;
+      let geoLocation = null;
       if (location) {
-        if (location.type !== 'Point' || !Array.isArray(location.coordinates)) {
-          throw Object.assign(
-            new Error(
-              'Invalid location: must be GeoJSON Point with coordinates [lng, lat]'
-            ),
-            { status: 400 }
-          );
-        }
-
-        let [lng, lat] = location.coordinates.map(Number);
-        if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
-          throw Object.assign(
-            new Error('Invalid location: lng/lat must be numbers'),
-            { status: 400 }
-          );
-        }
-
-        if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
-          throw Object.assign(
-            new Error('Invalid location: lng in [-180,180], lat in [-90,90]'),
-            { status: 400 }
-          );
-        }
-
+        const { lng, lat } = parseLocation(location);
         geoLocation = { type: 'Point', coordinates: [lng, lat] };
       }
 
@@ -207,8 +220,8 @@ export const registerWorker = async (req, res, next) => {
         role,
         category,
         skills,
-        address: userAddress ?? null,
-        location: geoLocation ?? null,
+        address: userAddress,
+        location: geoLocation,
         experienceYears,
       };
 

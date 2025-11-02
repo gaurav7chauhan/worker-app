@@ -3,17 +3,12 @@ import { EmployerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
-import {
-  employerUpdate,
-  workerUpdate,
-} from '../../validator/updateValid.js';
+import { employerUpdate, workerUpdate } from '../../validator/updateValid.js';
 
 export const updateUserProfile = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
-      throw new AppError('Authentication required', {
-        status: 401,
-      });
+      throw new AppError('Authentication required', { status: 401 });
     }
 
     const authUser = await AuthUser.findById(req.auth._id).select(
