@@ -4,6 +4,7 @@ import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { editPostBodySchema } from '../../validator/editPostValid.js';
+import { parseLocation } from '../user/register.js';
 
 export const editPost = async (req, res, next) => {
   try {
@@ -41,7 +42,7 @@ export const editPost = async (req, res, next) => {
       _id: jobId,
       employerId: employerProfile._id,
     })
-      .select('_id location status')
+      .select('_id address status')
       .lean();
 
     if (!job) {
@@ -65,13 +66,15 @@ export const editPost = async (req, res, next) => {
       );
     }
 
+    const newData = parsed.data;
+
     const cleaned = Object.fromEntries(
       Object.entries(parsed.data).filter(([_, val]) => val !== undefined)
     );
 
-    if (cleaned.location) {
-      cleaned.location = Object.fromEntries(
-        Object.entries(cleaned.location).filter(([_, val]) => val !== undefined)
+    if (cleaned.address) {
+      cleaned.address = Object.fromEntries(
+        Object.entries(cleaned.address).filter(([_, val]) => val !== undefined)
       );
     }
 
@@ -79,20 +82,25 @@ export const editPost = async (req, res, next) => {
       cleaned,
       'location'
     );
-    let newLocation = job.location;
+    const addressSent = Object.prototype.hasOwnProperty.call(
+      cleaned,
+      'address'
+    );
 
     if (locationSent) {
-      if (cleaned.location === null) {
-        throw new AppError('Location cannot be cleared', { status: 422 });
-      } else if (cleaned.location && typeof cleaned.location === 'object') {
-        newLocation = { ...job.location, ...cleaned.location };
-      }
+      const { lng, lat } = parseLocation(cleaned.location);
+      newData.location = { type: 'Point', coordinates: [lng, lat] };
     }
 
-    const newData = parsed.data;
+    let newAddress = job.address;
 
-    if (locationSent) {
-      newData.location = newLocation;
+    if (addressSent) {
+      if (cleaned.address === null) {
+        throw new AppError('address cannot be cleared', { status: 422 });
+      } else if (cleaned.address && typeof cleaned.address === 'object') {
+        newAddress = { ...job.address, ...cleaned.address };
+        newData.address = newAddress;
+      }
     }
 
     const updated = await JobPost.findByIdAndUpdate(

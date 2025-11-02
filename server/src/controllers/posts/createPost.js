@@ -3,6 +3,7 @@ import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { jobPostBodySchema } from '../../validator/postValid.js';
+import { parseLocation } from '../user/register.js';
 
 export const post = async (req, res, next) => {
   try {
@@ -44,48 +45,10 @@ export const post = async (req, res, next) => {
       );
     }
 
-    const ptLocation = cleaned.location;
-
     let geoLocation = null;
-    if (ptLocation) {
-      if (typeof ptLocation !== 'object') {
-        throw new AppError('Invalid location: missing object', { status: 400 });
-      }
 
-      if (
-        ptLocation.type !== 'Point' ||
-        !Array.isArray(ptLocation.coordinates)
-      ) {
-        throw new AppError(
-          'Invalid location: must be GeoJSON Point with coordinates [lng, lat]',
-          { status: 400 }
-        );
-      }
-
-      if (ptLocation.coordinates.length !== 2) {
-        throw new AppError(
-          'Invalid location: coordinates must be exactly [lng, lat]',
-          { status: 400 }
-        );
-      }
-
-      const [lngRaw, latRaw] = ptLocation.coordinates;
-      const lng = Number(lngRaw);
-      const lat = Number(latRaw);
-
-      if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
-        throw new AppError('Invalid location: lng/lat must be numbers', {
-          status: 400,
-        });
-      }
-
-      if (lng > 180 || lng < -180 || lat > 90 || lat < -90) {
-        throw new AppError(
-          'Invalid location: lng in [-180,180], lat in [-90,90]',
-          { status: 400 }
-        );
-      }
-
+    if (cleaned.location) {
+      const [lng, lat] = parseLocation(cleaned.location);
       geoLocation = { type: 'Point', coordinates: [lng, lat] };
     }
 

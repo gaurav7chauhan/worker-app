@@ -14,7 +14,7 @@ import {
   generateRefreshToken,
 } from '../../services/jwt.js';
 
-function parseLocation(location) {
+export function parseLocation(location) {
   if (!location || typeof location !== 'object') {
     throw new AppError('Invalid location: missing object', { status: 400 });
   }
