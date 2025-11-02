@@ -10,7 +10,9 @@ export const post = async (req, res, next) => {
       throw new AppError('Authentication required', { status: 401 });
     }
 
-    const auth = await AuthUser.findById(req.auth._id).select('_id isBlocked role');
+    const auth = await AuthUser.findById(req.auth._id).select(
+      '_id isBlocked role'
+    );
     if (auth.role !== 'Employer') {
       throw new AppError('Post is created by only employer', { status: 409 });
     }
@@ -42,9 +44,55 @@ export const post = async (req, res, next) => {
       );
     }
 
+    const ptLocation = cleaned.location;
+
+    let geoLocation = null;
+    if (ptLocation) {
+      if (typeof ptLocation !== 'object') {
+        throw new AppError('Invalid location: missing object', { status: 400 });
+      }
+
+      if (
+        ptLocation.type !== 'Point' ||
+        !Array.isArray(ptLocation.coordinates)
+      ) {
+        throw new AppError(
+          'Invalid location: must be GeoJSON Point with coordinates [lng, lat]',
+          { status: 400 }
+        );
+      }
+
+      if (ptLocation.coordinates.length !== 2) {
+        throw new AppError(
+          'Invalid location: coordinates must be exactly [lng, lat]',
+          { status: 400 }
+        );
+      }
+
+      const [lngRaw, latRaw] = ptLocation.coordinates;
+      const lng = Number(lngRaw);
+      const lat = Number(latRaw);
+
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+        throw new AppError('Invalid location: lng/lat must be numbers', {
+          status: 400,
+        });
+      }
+
+      if (lng > 180 || lng < -180 || lat > 90 || lat < -90) {
+        throw new AppError(
+          'Invalid location: lng in [-180,180], lat in [-90,90]',
+          { status: 400 }
+        );
+      }
+
+      geoLocation = { type: 'Point', coordinates: [lng, lat] };
+    }
+
     const created = await JobPost.create({
       employerId: user._id,
       ...cleaned,
+      location: geoLocation,
     });
 
     if (!created) {
@@ -59,6 +107,7 @@ export const post = async (req, res, next) => {
       description: created.description,
       budgetAmount: created.budgetAmount,
       address: created.address,
+      location: geoLocation,
       schedule: created.schedule,
       status: created.status,
       createdAt: created.createdAt,

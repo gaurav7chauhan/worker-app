@@ -23,7 +23,7 @@ const emailStr = z
 
 const passwordStr = z.string().min(8, 'Password must be at least 8 chars');
 
-const geoPointSchema = z.object({
+export const geoPointSchema = z.object({
   type: z.literal('Point'),
   coordinates: z.tuple([
     z.number().min(-180).max(180), // lng

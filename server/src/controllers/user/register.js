@@ -26,7 +26,18 @@ function parseLocation(location) {
     );
   }
 
-  let [lng, lat] = location.coordinates.map(Number);
+  if (location.coordinates.length !== 2) {
+    throw new AppError(
+      'Invalid location: coordinates must be exactly [lng, lat]',
+      { status: 400 }
+    );
+  }
+
+  const [lngRaw, latRaw] = location.coordinates;
+
+  const lng = Number(lngRaw);
+  const lat = Number(latRaw);
+
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
     throw new AppError('Invalid location: lng/lat must be numbers', {
       status: 400,

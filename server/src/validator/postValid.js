@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
+import { geoPointSchema } from './registerValid.js';
 
 const statusType = ['Open', 'Closed', 'Canceled', 'Completed'];
 const AddressSchema = z.object({
@@ -61,6 +62,7 @@ export const jobPostBodySchema = z
     description: z.string().trim().max(5000).optional(),
     budgetAmount: z.coerce.number().positive('Budget must be > 0'),
     address: AddressSchema.partial().optional(),
+    location: geoPointSchema.optional(),
     schedule: Schedule.optional(),
     status: z.enum(statusType).optional(),
   })
