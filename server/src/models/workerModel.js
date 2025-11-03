@@ -1,6 +1,6 @@
 import mongoose, { Schema, model } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
-import { pointSchema } from './common/geoPoint.js';
+import { pointSchema } from '../common/geoPoint.js';
 
 const workerProfileSchema = new Schema(
   {

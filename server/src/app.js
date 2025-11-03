@@ -25,7 +25,7 @@ import { createRating } from './controllers/ratings/setRate.js';
 import { listUserRatings } from './controllers/ratings/fetchingRate.js';
 import { myGivenRatings } from './controllers/ratings/ownRate.js';
 import { editPost } from './controllers/posts/editPost.js';
-import { statusUpdate } from './controllers/posts/statusUpdatePost.js';
+import { statusUpdate } from './controllers/posts/statusUpdate.js';
 import { deletePost } from './controllers/posts/removePost.js';
 import { deleteRating } from './controllers/ratings/removeRate.js';
 import { getUserProfile } from './controllers/user/getUser.js';

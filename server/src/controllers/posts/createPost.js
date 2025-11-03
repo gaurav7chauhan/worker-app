@@ -1,9 +1,9 @@
+import { parseLocation } from '../../common/mainLocation.js';
 import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { jobPostBodySchema } from '../../validator/postValid.js';
-import { parseLocation } from '../user/register.js';
 
 export const post = async (req, res, next) => {
   try {

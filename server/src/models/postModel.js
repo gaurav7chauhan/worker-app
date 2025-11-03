@@ -1,6 +1,6 @@
 import mongoose, { model, Schema } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
-import { pointSchema } from './common/geoPoint.js';
+import { pointSchema } from '../common/geoPoint.js';
 
 const statusType = ['Open', 'Closed', 'Completed', 'Canceled'];
 

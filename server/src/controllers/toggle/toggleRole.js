@@ -25,13 +25,13 @@ export const switchRole = async (req, res, next) => {
       targetRole === 'Employer' ? EmployerProfile : WorkerProfile;
 
     const sourceUser = await Source.findOne({ userId: authUser._id })
-      .select('fullName area languages avatarUrl')
+      .select('fullName address languages avatarUrl')
       .lean();
 
     const seed = {
       userId: authUser._id,
       fullName: sourceUser?.fullName || '',
-      area: sourceUser?.area || null,
+      address: sourceUser?.address || null,
       languages:
         sourceUser?.languages && sourceUser.languages.length
           ? sourceUser.languages
@@ -46,7 +46,6 @@ export const switchRole = async (req, res, next) => {
         { $setOnInsert: seed },
         { new: true, upsert: true }
       )
-      // .select('fullName area languages avatarUrl userId')
       .lean();
 
     if (authUser.role !== targetRole) {
