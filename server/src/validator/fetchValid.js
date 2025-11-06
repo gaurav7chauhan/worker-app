@@ -1,17 +1,23 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
+import { pointSchema } from '../common/geoPoint.js';
 
 // Helpers
 const objectId = z
   .string()
   .regex(/^[a-fA-F0-9]{24}$/, 'Invalid ObjectId')
   .optional(); // 24-hex string id
+
 const statusEnum = z
   .enum(['Open', 'Closed', 'Completed', 'Canceled'])
   .optional();
 
 // Optional simple arrays
-const lcString = z.string().trim().min(1).transform(s => s.toLowerCase());
+const lcString = z
+  .string()
+  .trim()
+  .min(1)
+  .transform((s) => s.toLowerCase());
 const strArrLc = z.array(lcString);
 
 // Pagination and sorting
@@ -31,6 +37,13 @@ const subcategories = new Map(
     new Set(c.subcategories.map((s) => s.toLowerCase())),
   ])
 );
+
+// Extras
+const ratingNumber = z.coerce.number().min(0).max(5).optional();
+const payTypeEnum = z.enum(['Fixed', 'Hourly', 'Weekly']).optional();
+const shiftEnum = z
+  .enum(['morning', 'afternoon', 'evening', 'night'])
+  .optional();
 
 // Final filter schema
 export const jobFilterSchema = z
@@ -52,16 +65,33 @@ export const jobFilterSchema = z
     // Optional city/state level filters if you expose them; omit full address/point geometry for simple filters
     city: z.string().trim().optional(),
     state: z.string().trim().optional(),
-    country: z.string().trim().optional(),
+
+    // Ratings
+    avgRatingsMin: ratingNumber,
+    avgRatingsMax: ratingNumber,
+
+    // Compensation
+    payType: payTypeEnum,
+    experienceYears: z.enum(z.coerce.number([1, 2, 3, 4, 5])),
+    shift: shiftEnum,
+
+    // nearest job
+    location: pointSchema.optional(),
 
     // Include pagination/sort after filters
     ...pagination.shape,
   })
-  .refine((d) => !(d.budgetMin && d.budgetMax) || d.budgetMin <= d.budgetMax, {
-    message: 'budgetMin must be <= budgetMax',
-    path: ['budgetMin'],
-  })
   .superRefine((data, ctx) => {
+    // for min max budget....
+    if (data.budgetMax && data.budgetMin && data.budgetMax < data.budgetMin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['budgetMin'],
+        message: 'budgetMin must be <= budgetMax',
+      });
+    }
+
+    // checking presence....
     const categories = data.category ?? [];
     const catDupes = new Set(categories);
 
