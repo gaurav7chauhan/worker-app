@@ -8,10 +8,6 @@ const objectId = z
   .regex(/^[a-fA-F0-9]{24}$/, 'Invalid ObjectId')
   .optional(); // 24-hex string id
 
-const statusEnum = z
-  .enum(['Open', 'Closed', 'Completed', 'Canceled'])
-  .optional();
-
 // Optional simple arrays
 const lcString = z
   .string()
@@ -39,105 +35,105 @@ const subcategories = new Map(
 );
 
 // Extras
+const experienceYears = z.coerce.number().enum([1, 2, 3, 4, 5]);
 const ratingNumber = z.coerce.number().min(0).max(5).optional();
-const payTypeEnum = z.enum(['Fixed', 'Hourly', 'Weekly']).optional();
+const payTypeEnum = z.enum(['Fixed', 'Hourly']).optional();
 const shiftEnum = z
   .enum(['morning', 'afternoon', 'evening', 'night'])
   .optional();
 
 // Final filter schema
-export const jobFilterSchema = z
+const base = z
   .object({
     // Who/what to match
-    fullName: z.string().trim().min(1).optional(), // text search on poster/worker name
-    employerId: objectId, // filter by employer
-    assignedWorkerId: objectId, // filter by assigned worker
-
-    // Attributes
     category: strArrLc.optional(),
     skills: strArrLc.optional(),
-    status: statusEnum,
-
-    // Budget range (use min/max for querying)
-    budgetMin: z.coerce.number().min(0).optional(),
-    budgetMax: z.coerce.number().min(0).optional(),
-
-    // Optional city/state level filters if you expose them; omit full address/point geometry for simple filters
-    city: z.string().trim().optional(),
-    state: z.string().trim().optional(),
-
-    // Ratings
-    avgRatingsMin: ratingNumber,
-    avgRatingsMax: ratingNumber,
-
-    // Compensation
-    payType: payTypeEnum,
-    experienceYears: z.enum(z.coerce.number([1, 2, 3, 4, 5])),
-    shift: shiftEnum,
-
-    // nearest job
     location: pointSchema.optional(),
-
+    minDistanceKm: z.coerce.number().min(0).optional(),
+    maxDistanceKm: z.coerce.number().positive().optional(),
+    avgRatingMin: z.coerce.number().min(0).max(5).optional(),
+    avgRatingMax: z.coerce.number().min(0).max(5).optional(),
+    ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after growth..
     // Include pagination/sort after filters
     ...pagination.shape,
   })
-  .superRefine((data, ctx) => {
-    // for min max budget....
-    if (data.budgetMax && data.budgetMin && data.budgetMax < data.budgetMin) {
+  .superRefine((d, ctx) => {
+    if ((d.minDistanceKm != null || d.maxDistanceKm != null) && !d.location) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        path: ['location'],
+        message: 'location is required when using distance filters',
+      });
+    }
+    if (
+      d.minDistanceKm != null &&
+      d.maxDistanceKm != null &&
+      d.minDistanceKm > d.maxDistanceKm
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['minDistanceKm'],
+        message: 'minDistanceKm must be <= maxDistanceKm',
+      });
+    }
+    if (
+      d.avgRatingMin != null &&
+      d.avgRatingMax != null &&
+      d.avgRatingMin > d.avgRatingMax
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['avgRatingMin'],
+        message: 'avgRatingMin must be <= avgRatingMax',
+      });
+    }
+  })
+  .strict();
+
+// for filtering job.......
+export const jobFilterSchema = base
+  .extend({
+    status: z.enum(['Open', 'Closed', 'Completed', 'Canceled']).optional(),
+    budgetMin: z.coerce.number().min(0).optional(),
+    budgetMax: z.coerce.number().min(0).optional(),
+    payType: z.enum(['Fixed', 'Hourly']).optional(),
+    city: z.string().trim().optional(),
+    state: z.string().trim().optional(),
+    createdWithinDays: z.coerce.number().int().min(1).max(365).optional(),
+  })
+  .superRefine((d, ctx) => {
+    if (
+      d.budgetMin != null &&
+      d.budgetMax != null &&
+      d.budgetMin > d.budgetMax
+    ) {
+      ctx.addIssue({
+        code: 'custom',
         path: ['budgetMin'],
         message: 'budgetMin must be <= budgetMax',
       });
     }
+  });
 
-    // checking presence....
-    const categories = data.category ?? [];
-    const catDupes = new Set(categories);
-
-    if (categories.length !== catDupes.size) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['category'],
-        message: 'Duplicate categories not allowed',
-      });
-    }
-
-    for (const c of categories) {
-      if (!validCategories.has(c)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['category'],
-          message: `Category ${c} is not valid`,
-        });
-      }
-    }
-
-    const skills = data.skills ?? [];
-    const allowed = new Set();
-
-    for (const c of categories) {
-      const subs = subcategories.get(c);
-      if (subs) for (const s of subs) allowed.add(s);
-    }
-
-    const skillDupes = new Set(skills);
-    if (skillDupes.size !== skills.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['skills'],
-        message: 'Duplicate skills not allowed',
-      });
-    }
-
-    for (const s of skills) {
-      if (!allowed.has(s)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['skills'],
-          message: `Skill ${s} is not valid for selected categories`,
-        });
-      }
-    }
+// for filtering worker......
+export const workerFilterSchema = base
+  .extend({
+    openForWork: z.coerce.boolean().optional(),
+    experienceYearsMin: z.coerce.number().int().min(0).optional(),
+    experienceYearsMax: z.coerce.number().int().min(0).optional(),
+    languages: strArrLc.optional(),
+    lastActiveWithinDays: z.coerce.number().int().min(1).max(365).optional(),
   })
-  .strict();
+  .superRefine((d, ctx) => {
+    if (
+      d.experienceYearsMin != null &&
+      d.experienceYearsMax != null &&
+      d.experienceYearsMin > d.experienceYearsMax
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['experienceYearsMin'],
+        message: 'experienceYearsMin must be <= experienceYearsMax',
+      });
+    }
+  });

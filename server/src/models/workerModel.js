@@ -6,6 +6,7 @@ const workerProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
     fullName: { type: String, required: true, trim: true },
+    status: { type: Boolean, default: true },
     address: { type: addressSchema, default: null },
     location: { type: pointSchema },
     category: { type: [String], default: [] },
@@ -17,6 +18,7 @@ const workerProfileSchema = new Schema(
     languages: { type: [String], default: ['hindi'] },
     ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0, min: 0 },
+    lastActiveAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
