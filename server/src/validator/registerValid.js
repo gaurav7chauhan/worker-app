@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
+import { geoPointSchema } from '../common/geoPoint.js';
 
 const categoryItem = z
   .string()
@@ -22,14 +23,6 @@ const emailStr = z
   .email({ message: 'Invalid email' });
 
 const passwordStr = z.string().min(8, 'Password must be at least 8 chars');
-
-export const geoPointSchema = z.object({
-  type: z.literal('Point'),
-  coordinates: z.tuple([
-    z.number().min(-180).max(180), // lng
-    z.number().min(-90).max(90), // lat
-  ]),
-});
 
 export const registerEmployerSchema = z.object({
   email: emailStr,

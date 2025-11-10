@@ -1,13 +1,8 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
-import { pointSchema } from '../common/geoPoint.js';
+import { geoPointSchema } from '../common/geoPoint.js';
 
 // Helpers
-const objectId = z
-  .string()
-  .regex(/^[a-fA-F0-9]{24}$/, 'Invalid ObjectId')
-  .optional(); // 24-hex string id
-
 // Optional simple arrays
 const lcString = z
   .string()
@@ -34,33 +29,68 @@ const subcategories = new Map(
   ])
 );
 
-// Extras
-const experienceYears = z.coerce.number().enum([1, 2, 3, 4, 5]);
-const ratingNumber = z.coerce.number().min(0).max(5).optional();
-const payTypeEnum = z.enum(['Fixed', 'Hourly']).optional();
-const shiftEnum = z
-  .enum(['morning', 'afternoon', 'evening', 'night'])
-  .optional();
-
 // Final filter schema
 const base = z
   .object({
     // Who/what to match
     category: strArrLc.optional(),
     skills: strArrLc.optional(),
-    location: pointSchema.optional(),
+    location: geoPointSchema.optional(),
     minDistanceKm: z.coerce.number().min(0).optional(),
     maxDistanceKm: z.coerce.number().positive().optional(),
     avgRatingMin: z.coerce.number().min(0).max(5).optional(),
     avgRatingMax: z.coerce.number().min(0).max(5).optional(),
-    ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after growth..
+    ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after app growth..
     // Include pagination/sort after filters
     ...pagination.shape,
   })
   .superRefine((d, ctx) => {
+    const categories = d.category ?? [];
+    const catDupes = new Set(categories);
+    if (catDupes.size !== categories.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['category'],
+        message: 'Duplicate categories not allowed',
+      });
+    }
+    for (const c of categories) {
+      if (!validCategories.has(c)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['category'],
+          message: `Category ${c} is not valid`,
+        });
+      }
+    }
+
+    const skills = d.skills ?? [];
+    const skillDupes = new Set(skills);
+    const allowed = new Set();
+    if (skillDupes.size !== skills.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['skills'],
+        message: 'Duplicate skills not allowed',
+      });
+    }
+    for (const c of categories) {
+      const subs = subcategories.get(c);
+      if (subs) for (const s of subs) allowed.add(s);
+    }
+    for (const s of skills) {
+      if (!allowed.has(s)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['skills'],
+          message: `Skill ${s} is not valid for selected categories`,
+        });
+      }
+    }
+
     if ((d.minDistanceKm != null || d.maxDistanceKm != null) && !d.location) {
       ctx.addIssue({
-        code: 'custom',
+        code: z.ZodIssueCode.custom,
         path: ['location'],
         message: 'location is required when using distance filters',
       });
@@ -71,7 +101,18 @@ const base = z
       d.minDistanceKm > d.maxDistanceKm
     ) {
       ctx.addIssue({
-        code: 'custom',
+        code: z.ZodIssueCode.custom,
+        path: ['minDistanceKm'],
+        message: 'minDistanceKm must be <= maxDistanceKm',
+      });
+    }
+    if (
+      d.minDistanceKm != null &&
+      d.maxDistanceKm != null &&
+      d.minDistanceKm > d.maxDistanceKm
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         path: ['minDistanceKm'],
         message: 'minDistanceKm must be <= maxDistanceKm',
       });
@@ -82,7 +123,7 @@ const base = z
       d.avgRatingMin > d.avgRatingMax
     ) {
       ctx.addIssue({
-        code: 'custom',
+        code: z.ZodIssueCode.custom,
         path: ['avgRatingMin'],
         message: 'avgRatingMin must be <= avgRatingMax',
       });
@@ -108,7 +149,7 @@ export const jobFilterSchema = base
       d.budgetMin > d.budgetMax
     ) {
       ctx.addIssue({
-        code: 'custom',
+        code: z.ZodIssueCode.custom,
         path: ['budgetMin'],
         message: 'budgetMin must be <= budgetMax',
       });
@@ -131,7 +172,7 @@ export const workerFilterSchema = base
       d.experienceYearsMin > d.experienceYearsMax
     ) {
       ctx.addIssue({
-        code: 'custom',
+        code: z.ZodIssueCode.custom,
         path: ['experienceYearsMin'],
         message: 'experienceYearsMin must be <= experienceYearsMax',
       });

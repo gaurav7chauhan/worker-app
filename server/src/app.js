@@ -29,6 +29,8 @@ import { statusUpdate } from './controllers/posts/statusUpdate.js';
 import { deletePost } from './controllers/posts/removePost.js';
 import { deleteRating } from './controllers/ratings/removeRate.js';
 import { getUserProfile } from './controllers/user/getUser.js';
+import { requireActiveUser } from './middlewares/authReq.js';
+import { filterJobs } from './controllers/fetching/fetchJobs.js';
 
 const app = express();
 
@@ -87,6 +89,9 @@ app.post('/ratings', jwtVerify, createRating);
 app.get('/ratings/outgoing', jwtVerify, myGivenRatings);
 app.get('/ratings/incoming', jwtVerify, listUserRatings);
 app.delete('/ratings/:ratingId', jwtVerify, deleteRating);
+
+// fetch
+app.get('/jobs', jwtVerify, requireActiveUser, filterJobs );
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);
