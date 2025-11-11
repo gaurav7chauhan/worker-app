@@ -20,13 +20,11 @@ export const filterJobs = async (req, res, next) => {
       Object.entries(parsed.data).filter(([_, v]) => v !== undefined)
     );
 
-    const filter = {
-      ...cleaned,
-    };
+    const filter = {};
 
     if (cleaned.location) {
       if (!cleaned.minDistanceKm && !cleaned.maxDistanceKm) {
-        const DEFAULT_RADIUS = 10; // in kilometers
+        const DEFAULT_RADIUS = 10; // kilometers
         filter.location = {
           $near: {
             $geometry: cleaned.location,
@@ -43,6 +41,13 @@ export const filterJobs = async (req, res, next) => {
         }
         filter.location = { $near: geoQuery };
       }
+    }
+
+    if (cleaned.budgetMin != null || cleaned.budgetMax != null) {
+      const range = {};
+      if (cleaned.budgetMin != null) range.$gte = cleaned.budgetMin;
+      if (cleaned.budgetMax != null) range.$lte = cleaned.budgetMax;
+      filter.budgetAmount = range;
     }
   } catch (e) {
     return next(e);

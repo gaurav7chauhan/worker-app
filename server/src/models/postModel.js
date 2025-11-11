@@ -66,6 +66,11 @@ const jobPostSchema = new Schema(
     address: { type: addressSchema },
     location: { type: pointSchema },
     schedule: { type: scheduleSchema },
+    payType: {
+      type: String,
+      enum: ['hourly', 'weekly', 'monthly'],
+      required: true,
+    },
     status: { type: String, enum: statusType, default: 'Open' },
     employerAssets: { type: [mediaItemSchema], default: [] },
     // worker

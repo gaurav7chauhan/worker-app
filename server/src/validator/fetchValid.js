@@ -38,9 +38,6 @@ const base = z
     location: geoPointSchema.optional(),
     minDistanceKm: z.coerce.number().min(0).optional(),
     maxDistanceKm: z.coerce.number().positive().optional(),
-    avgRatingMin: z.coerce.number().min(0).max(5).optional(),
-    avgRatingMax: z.coerce.number().min(0).max(5).optional(),
-    ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after app growth..
     // Include pagination/sort after filters
     ...pagination.shape,
   })
@@ -117,17 +114,6 @@ const base = z
         message: 'minDistanceKm must be <= maxDistanceKm',
       });
     }
-    if (
-      d.avgRatingMin != null &&
-      d.avgRatingMax != null &&
-      d.avgRatingMin > d.avgRatingMax
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['avgRatingMin'],
-        message: 'avgRatingMin must be <= avgRatingMax',
-      });
-    }
   })
   .strict();
 
@@ -137,10 +123,10 @@ export const jobFilterSchema = base
     status: z.enum(['Open', 'Closed', 'Completed', 'Canceled']).optional(),
     budgetMin: z.coerce.number().min(0).optional(),
     budgetMax: z.coerce.number().min(0).optional(),
-    payType: z.enum(['Fixed', 'Hourly']).optional(),
+    payType: z.enum(['hourly', 'weekly', 'monthly']).optional(),
     city: z.string().trim().optional(),
     state: z.string().trim().optional(),
-    createdWithinDays: z.coerce.number().int().min(1).max(365).optional(),
+    recent: z.coerce.boolean().optional(),
   })
   .superRefine((d, ctx) => {
     if (
@@ -159,10 +145,13 @@ export const jobFilterSchema = base
 // for filtering worker......
 export const workerFilterSchema = base
   .extend({
+    languages: strArrLc.optional(),
     openForWork: z.coerce.boolean().optional(),
     experienceYearsMin: z.coerce.number().int().min(0).optional(),
     experienceYearsMax: z.coerce.number().int().min(0).optional(),
-    languages: strArrLc.optional(),
+    avgRatingMin: z.coerce.number().min(0).max(5).optional(),
+    avgRatingMax: z.coerce.number().min(0).max(5).optional(),
+    ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after app growth..
     lastActiveWithinDays: z.coerce.number().int().min(1).max(365).optional(),
   })
   .superRefine((d, ctx) => {
@@ -175,6 +164,17 @@ export const workerFilterSchema = base
         code: z.ZodIssueCode.custom,
         path: ['experienceYearsMin'],
         message: 'experienceYearsMin must be <= experienceYearsMax',
+      });
+    }
+    if (
+      d.avgRatingMin != null &&
+      d.avgRatingMax != null &&
+      d.avgRatingMin > d.avgRatingMax
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['avgRatingMin'],
+        message: 'avgRatingMin must be <= avgRatingMax',
       });
     }
   });
