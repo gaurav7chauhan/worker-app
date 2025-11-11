@@ -14,7 +14,7 @@ const strArrLc = z.array(lcString);
 // Pagination and sorting
 const pagination = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
   sort: z.string().trim().default('-createdAt'), // e.g., "-createdAt,name"
   fields: z.string().trim().optional(), // projection: "title,category,budgetAmount"
 });
@@ -123,10 +123,10 @@ export const jobFilterSchema = base
     status: z.enum(['Open', 'Closed', 'Completed', 'Canceled']).optional(),
     budgetMin: z.coerce.number().min(0).optional(),
     budgetMax: z.coerce.number().min(0).optional(),
-    payType: z.enum(['hourly', 'weekly', 'monthly']).optional(),
-    city: z.string().trim().optional(),
-    state: z.string().trim().optional(),
-    recent: z.coerce.boolean().optional(),
+    payType: z.enum(['hourly', 'weekly', 'monthly']).lowercase().optional(),
+    city: z.string().trim().lowercase().optional(),
+    state: z.string().trim().lowercase().optional(),
+    recent: z.coerce.boolean().default(false),
   })
   .superRefine((d, ctx) => {
     if (
