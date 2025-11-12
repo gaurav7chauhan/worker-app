@@ -1,13 +1,9 @@
-import { AuthUser } from '../../models/authModel.js';
-import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { jobFilterSchema } from '../../validator/fetchValid.js';
 
 export const filterJobs = async (req, res, next) => {
   try {
-    const { _id, role } = req.authUser;
-
     const parsed = jobFilterSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -22,8 +18,9 @@ export const filterJobs = async (req, res, next) => {
     );
 
     const filter = {};
+    // $in = any-of (logical OR over values)
     if (cleaned.category?.length) filter.category = { $in: cleaned.category };
-    // skills: if you want must-have all skills (AND)
+    // $all = must-have-all (logical AND over values)
     if (cleaned.skills?.length) filter.skills = { $all: cleaned.skills };
     // direct fields
     if (cleaned.city) filter.city = cleaned.city;
@@ -31,7 +28,7 @@ export const filterJobs = async (req, res, next) => {
     if (cleaned.status) filter.status = cleaned.status;
     if (cleaned.payType) filter.payType = cleaned.payType;
 
-    // geo
+    // geo...
     if (cleaned.location) {
       if (!cleaned.minDistanceKm && !cleaned.maxDistanceKm) {
         const DEFAULT_RADIUS = 10; // kilometers
@@ -53,7 +50,7 @@ export const filterJobs = async (req, res, next) => {
       }
     }
 
-    // budget
+    // budget...
     if (cleaned.budgetMin != null || cleaned.budgetMax != null) {
       const range = {};
       if (cleaned.budgetMin != null) range.$gte = cleaned.budgetMin;
@@ -61,14 +58,10 @@ export const filterJobs = async (req, res, next) => {
       filter.budgetAmount = range;
     }
 
-    let descending;
-    if (cleaned.recent === true) {
-      descending = Number(-1);
-    }
-
+    // sorting...
     // let s = "-createdAt,name"
     const parseSort = (s) => {
-      (s || '')
+      return (s || '')
         .split(',')
         .filter(Boolean)
         .reduce((acc, key) => {
@@ -80,13 +73,11 @@ export const filterJobs = async (req, res, next) => {
         }, {});
     };
 
-    let sortStr = cleaned.sort;
-    if (!sortStr.trim() && cleaned.recent === true) {
+    let sortStr = typeof cleaned.sort === 'string' ? cleaned.sort : '';
+    if (!sortStr || (!sortStr.trim() && cleaned.recent === true)) {
       sortStr = '-createdAt';
     }
-
     const sort = parseSort(sortStr || '-createdAt');
-
     const fields = cleaned.fields
       ? cleaned.fields
           .split(',')
@@ -109,6 +100,24 @@ export const filterJobs = async (req, res, next) => {
 
       JobPost.countDocuments(filter),
     ]);
+
+    if (items.length === 0) {
+      return res
+        .status(200)
+        .json({ message: `There is no matching Job's for you.` });
+    }
+
+    const totalPages = Math.ceil(total / limit);
+
+    return res.status(200).json({
+      message: 'Jobs successfully fetched',
+      items,
+      total: total,
+      page: page,
+      limit: limit,
+      skip: skip,
+      totalPages: totalPages,
+    });
   } catch (e) {
     return next(e);
   }
