@@ -30,7 +30,7 @@ import { deletePost } from './controllers/posts/removePost.js';
 import { deleteRating } from './controllers/ratings/removeRate.js';
 import { getUserProfile } from './controllers/user/getUser.js';
 import { requireActiveUser } from './middlewares/authReq.js';
-import { filterJobs } from './controllers/fetching/fetchJobs.js';
+import { filterJobs } from './controllers/fetching/fetchingJobs.js';
 
 const app = express();
 

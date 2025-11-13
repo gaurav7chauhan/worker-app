@@ -92,11 +92,12 @@ export const filterJobs = async (req, res, next) => {
 
     const [items, total] = await Promise.all([
       JobPost.find(filter)
-        .select(`employerId ${fields}`)
+        .select(`employerId ${fields} -reviewWindowEnd`)
         .populate({ path: 'employerId', select: 'fullName' })
         .sort(sort)
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
 
       JobPost.countDocuments(filter),
     ]);
