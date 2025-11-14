@@ -1,8 +1,4 @@
-import mongoose from 'mongoose';
-import { WorkerProfile } from '../../models/workerModel.js';
-import { AppError } from '../../utils/apiError.js';
-
-export const fetchingWorker = async (req, res, next) => {
+export const singleWorker = async (req, res, next) => {
   try {
     const { workerId } = req.params;
     if (!workerId) {
@@ -19,13 +15,11 @@ export const fetchingWorker = async (req, res, next) => {
       throw new AppError('Worker profile not found', { status: 404 });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: 'Worker fetched successfully',
-        worker: doc,
-      });
+    return res.status(200).json({
+      success: true,
+      message: 'Worker fetched successfully',
+      worker: doc,
+    });
   } catch (e) {
     if (e?.name === 'CasteError') {
       return next(new AppError('Invalid workerId', { status: 400 }));

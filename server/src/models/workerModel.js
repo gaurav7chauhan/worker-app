@@ -6,7 +6,7 @@ const workerProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
     fullName: { type: String, required: true, trim: true },
-    status: { type: Boolean, default: true },
+    openForWork: { type: Boolean, default: true },
     address: { type: addressSchema, default: null },
     location: { type: pointSchema },
     category: { type: [String], default: [] },

@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
 import { geoPointSchema } from '../common/geoPoint.js';
 
-// Helpers
 // Optional simple arrays
 const lcString = z
   .string()
@@ -120,7 +119,7 @@ const base = z
 // for filtering job.......
 export const jobFilterSchema = base
   .extend({
-    status: z.enum(['Open', 'Closed', 'Completed', 'Canceled']).optional(),
+    status: z.enum(['Open', 'Closed', 'InProcess', 'Completed', 'Canceled']).optional(),
     budgetMin: z.coerce.number().min(0).optional(),
     budgetMax: z.coerce.number().min(0).optional(),
     payType: z.enum(['hourly', 'weekly', 'monthly']).lowercase().optional(),
