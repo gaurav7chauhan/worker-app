@@ -21,13 +21,12 @@ export const filterJobs = async (req, res, next) => {
     // $in = any-of (logical OR over values)
     if (cleaned.category?.length) filter.category = { $in: cleaned.category };
     // $all = must-have-all (logical AND over values)
-    if (cleaned.skills?.length) filter.skills = { $all: cleaned.skills };
+    if (cleaned.skills?.length) filter.skills = { $in: cleaned.skills };
     // direct fields
     if (cleaned.city) filter.city = cleaned.city;
     if (cleaned.state) filter.state = cleaned.state;
     if (cleaned.status) filter.status = cleaned.status;
     if (cleaned.payType) filter.payType = cleaned.payType;
-
     // geo...
     if (cleaned.location) {
       if (!cleaned.minDistanceKm && !cleaned.maxDistanceKm) {
@@ -49,7 +48,6 @@ export const filterJobs = async (req, res, next) => {
         filter.location = { $near: geoQuery };
       }
     }
-
     // budget...
     if (cleaned.budgetMin != null || cleaned.budgetMax != null) {
       const range = {};
@@ -84,10 +82,10 @@ export const filterJobs = async (req, res, next) => {
           .map((s) => s.trim())
           .filter(Boolean)
           .join(' ')
-      : 'category skills description budgetAmount city state payType';
+      : 'category skills description budgetAmount city state';
 
     const page = cleaned.page ?? 1;
-    const limit = cleaned.limit ?? 10;
+    const limit = cleaned.limit ?? 5;
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([

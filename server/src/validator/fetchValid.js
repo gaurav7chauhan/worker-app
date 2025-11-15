@@ -13,7 +13,7 @@ const strArrLc = z.array(lcString);
 // Pagination and sorting
 const pagination = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  limit: z.coerce.number().int().min(1).max(10).default(5),
   sort: z.string().trim().default('-createdAt'), // e.g., "-createdAt,name"
   fields: z.string().trim().optional(), // projection: "title,category,budgetAmount"
 });
@@ -119,7 +119,9 @@ const base = z
 // for filtering job.......
 export const jobFilterSchema = base
   .extend({
-    status: z.enum(['Open', 'Closed', 'InProcess', 'Completed', 'Canceled']).optional(),
+    status: z
+      .enum(['Open', 'Closed', 'InProcess', 'Completed', 'Canceled'])
+      .optional(),
     budgetMin: z.coerce.number().min(0).optional(),
     budgetMax: z.coerce.number().min(0).optional(),
     payType: z.enum(['hourly', 'weekly', 'monthly']).lowercase().optional(),
@@ -139,7 +141,8 @@ export const jobFilterSchema = base
         message: 'budgetMin must be <= budgetMax',
       });
     }
-  });
+  })
+  .strict();
 
 // for filtering worker......
 export const workerFilterSchema = base
@@ -147,33 +150,8 @@ export const workerFilterSchema = base
     languages: strArrLc.optional(),
     openForWork: z.coerce.boolean().optional(),
     experienceYearsMin: z.coerce.number().int().min(0).optional(),
-    experienceYearsMax: z.coerce.number().int().min(0).optional(),
     avgRatingMin: z.coerce.number().min(0).max(5).optional(),
-    avgRatingMax: z.coerce.number().min(0).max(5).optional(),
     ratingCountMin: z.coerce.number().int().min(0).optional(), // make it default 5 after app growth..
-    lastActiveWithinDays: z.coerce.number().int().min(1).max(365).optional(),
+    minLastActiveWithinDays: z.coerce.number().int().min(1).max(365).optional(),
   })
-  .superRefine((d, ctx) => {
-    if (
-      d.experienceYearsMin != null &&
-      d.experienceYearsMax != null &&
-      d.experienceYearsMin > d.experienceYearsMax
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['experienceYearsMin'],
-        message: 'experienceYearsMin must be <= experienceYearsMax',
-      });
-    }
-    if (
-      d.avgRatingMin != null &&
-      d.avgRatingMax != null &&
-      d.avgRatingMin > d.avgRatingMax
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['avgRatingMin'],
-        message: 'avgRatingMin must be <= avgRatingMax',
-      });
-    }
-  });
+  .strict();
