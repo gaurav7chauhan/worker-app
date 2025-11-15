@@ -45,7 +45,7 @@ export const filterWorkers = async (req, res, next) => {
       filter.lastActiveAt = { $gte: cutoff };
     }
     if (cleaned.location) {
-      if (!cleaned.minDistanceKm == null && !cleaned.maxDistanceKm == null) {
+      if (cleaned.minDistanceKm == null && cleaned.maxDistanceKm == null) {
         const DEFAULT_RADIUS = 10; // km
         filter.location = {
           $near: {
