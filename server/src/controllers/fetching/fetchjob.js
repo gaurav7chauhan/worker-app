@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { AppError } from '../../utils/apiError.js';
 import { JobPost } from '../../models/postModel.js';
 
-export const singleJob = async (req, res, next) => {
+export const getJob = async (req, res, next) => {
   try {
     const { jobId } = req.params;
     if (!jobId || !mongoose.Types.ObjectId.isValid(jobId)) {

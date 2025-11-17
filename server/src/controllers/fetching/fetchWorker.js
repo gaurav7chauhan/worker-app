@@ -1,4 +1,8 @@
-export const singleWorker = async (req, res, next) => {
+import mongoose from 'mongoose';
+import { AppError } from '../../utils/apiError.js';
+import { WorkerProfile } from '../../models/workerModel.js';
+
+export const getWorker = async (req, res, next) => {
   try {
     const { workerId } = req.params;
     if (!workerId) {
@@ -12,16 +16,20 @@ export const singleWorker = async (req, res, next) => {
       .select('-location')
       .lean();
     if (!doc) {
-      throw new AppError('Worker profile not found', { status: 404 });
+      return res.status(404).json({
+        success: false,
+        message: 'Worker Profile not found',
+        doc,
+      });
     }
-
+    
     return res.status(200).json({
       success: true,
       message: 'Worker fetched successfully',
       worker: doc,
     });
   } catch (e) {
-    if (e?.name === 'CasteError') {
+    if (e?.name === 'CastError') {
       return next(new AppError('Invalid workerId', { status: 400 }));
     }
     return next(e);

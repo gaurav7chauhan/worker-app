@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { workerFilterSchema } from '../../validator/fetchValid.js';

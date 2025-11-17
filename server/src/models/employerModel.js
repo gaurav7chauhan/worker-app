@@ -5,7 +5,7 @@ import { pointSchema } from '../common/geoPoint.js';
 const employerProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
-    fullName: { type: String, required: true, trim: true },
+    fullName: { type: String, required: true, trim: true, min: 3 },
     address: { type: addressSchema, trim: true, default: null },
     location: { type: pointSchema },
     bio: { type: String, default: '', maxlength: 500, trim: true },

@@ -6,9 +6,11 @@ import { geoPointSchema } from '../common/geoPoint.js';
 const lcString = z
   .string()
   .trim()
-  .min(1)
+  .min(3, { message: 'String must be at least 3 characters' })
   .transform((s) => s.toLowerCase());
 const strArrLc = z.array(lcString);
+
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 // Pagination and sorting
 const pagination = z.object({
@@ -41,6 +43,7 @@ const base = z
     ...pagination.shape,
   })
   .superRefine((d, ctx) => {
+    //  categories
     const categories = d.category ?? [];
     const catDupes = new Set(categories);
     if (catDupes.size !== categories.length) {
@@ -60,6 +63,7 @@ const base = z
       }
     }
 
+    // skills
     const skills = d.skills ?? [];
     const skillDupes = new Set(skills);
     const allowed = new Set();
@@ -84,6 +88,7 @@ const base = z
       }
     }
 
+    // distance
     if ((d.minDistanceKm != null || d.maxDistanceKm != null) && !d.location) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -155,3 +160,25 @@ export const workerFilterSchema = base
     minLastActiveWithinDays: z.coerce.number().int().min(1).max(365).optional(),
   })
   .strict();
+
+export const employerFilterSchema = z
+  .object({
+    fullName: lcString.optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(10).default(5),
+    sort: z.enum(['-createdAt', 'createdAt']).trim().default('-createdAt'),
+  })
+  .superRefine((data, ctx) => {
+    const hasId = data.employerId;
+    const hasName = data.fullName;
+    if (Boolean(hasId) === Boolean(hasName)) {
+      // either both present or both absent
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide exactly one of employerId or fullName',
+        path: ['employerId'], // you can also point to ['fullName'] or both
+      });
+    }
+  })
+  .strict();
+
