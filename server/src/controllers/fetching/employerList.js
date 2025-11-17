@@ -16,7 +16,7 @@ export const listEmployers = async (req, res, next) => {
     const filter = {};
     if (data.fullName) {
       const escaped = data.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      filter.fullName = new RegExp(`^${escaped}`); // starts-with, case-insensitive
+      filter.fullName = new RegExp(`^${escaped}`); // starts-with, case-insensitive - 'i'
     }
 
     const sort =
