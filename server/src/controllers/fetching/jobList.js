@@ -110,12 +110,12 @@ export const listJobs = async (req, res, next) => {
 
     return res.status(200).json({
       message: 'Jobs successfully fetched',
-      items,
-      total: total,
-      page: page,
-      limit: limit,
-      skip: skip,
-      totalPages: totalPages,
+      jobs: items,
+      total,
+      page,
+      limit,
+      skip,
+      totalPages,
     });
   } catch (e) {
     return next(e);

@@ -105,18 +105,20 @@ export const listWorkers = async (req, res, next) => {
     ]);
 
     if (items.length === 0) {
-      return res.status(200).json({ message: 'Worker fetched successfully' });
+      return res
+        .status(200)
+        .json({ message: `There is no matching Worker's for you.` });
     }
     const totalPages = Math.ceil(total / limit);
 
     return res.status(200).json({
       message: 'Worker fetched successfully',
       workers: items,
-      total: total,
-      page: page,
-      limit: limit,
-      skip: skip,
-      totalPages: totalPages,
+      total,
+      page,
+      limit,
+      skip,
+      totalPages,
     });
   } catch (e) {
     return next(e);
