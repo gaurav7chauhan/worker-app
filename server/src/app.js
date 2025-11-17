@@ -30,7 +30,12 @@ import { deletePost } from './controllers/posts/removePost.js';
 import { deleteRating } from './controllers/ratings/removeRate.js';
 import { getUserProfile } from './controllers/user/getUser.js';
 import { requireActiveUser } from './middlewares/authReq.js';
-import { filterJobs } from './controllers/fetching/fetchingJobs.js';
+import { listJobs } from './controllers/fetching/jobList.js';
+import { listWorkers } from './controllers/fetching/workerList.js';
+import { listEmployers } from './controllers/fetching/employerList.js';
+import { getEmployer } from './controllers/fetching/fetchEmployer.js';
+import { getWorker } from './controllers/fetching/fetchWorker.js';
+import { getJob } from './controllers/fetching/fetchjob.js';
 
 const app = express();
 
@@ -91,7 +96,14 @@ app.get('/ratings/incoming', jwtVerify, listUserRatings);
 app.delete('/ratings/:ratingId', jwtVerify, deleteRating);
 
 // fetch
-app.get('/jobs', jwtVerify, requireActiveUser, filterJobs );
+app.get('/jobs', jwtVerify, requireActiveUser, listJobs);
+app.get('/jobs', jwtVerify, requireActiveUser, getJob);
+
+app.get('/jobs', jwtVerify, requireActiveUser, listWorkers);
+app.get('/jobs', jwtVerify, requireActiveUser, getWorker);
+
+app.get('/jobs', jwtVerify, requireActiveUser, listEmployers);
+app.get('/jobs', jwtVerify, requireActiveUser, getEmployer);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

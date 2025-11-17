@@ -2,7 +2,7 @@ import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { jobFilterSchema } from '../../validator/fetchValid.js';
 
-export const filterJobs = async (req, res, next) => {
+export const listJobs = async (req, res, next) => {
   try {
     const parsed = jobFilterSchema.safeParse(req.body);
 

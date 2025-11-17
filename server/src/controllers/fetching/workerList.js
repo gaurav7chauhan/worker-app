@@ -2,7 +2,7 @@ import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { workerFilterSchema } from '../../validator/fetchValid.js';
 
-export const filterWorkers = async (req, res, next) => {
+export const listWorkers = async (req, res, next) => {
   try {
     const parsed = workerFilterSchema.safeParse(req.body);
     if (!parsed.success) {
