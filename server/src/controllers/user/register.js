@@ -82,8 +82,8 @@ export const registerEmployer = async (req, res, next) => {
         fullName,
         email,
         role,
-        address: userAddress,
-        location: geoLocation,
+        address: userAddress ?? '',
+        location: geoLocation ?? '',
       };
 
       id = data.auth_id;
@@ -102,7 +102,7 @@ export const registerEmployer = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res
       .status(201)
-      .json({ data, accessToken, message: 'User Registered successfully' });
+      .json({ message: 'User Registered successfully', data, accessToken });
   } catch (error) {
     return next(error);
   } finally {

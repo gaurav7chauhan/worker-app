@@ -1,4 +1,4 @@
-import { EmployerProfile } from '../../models/employerModel';
+import { EmployerProfile } from '../../models/employerModel.js';
 import { employerFilterSchema } from '../../validator/fetchValid.js';
 
 export const listEmployers = async (req, res, next) => {

@@ -129,7 +129,11 @@ export const jobFilterSchema = base
       .optional(),
     budgetMin: z.coerce.number().min(0).optional(),
     budgetMax: z.coerce.number().min(0).optional(),
-    payType: z.enum(['hourly', 'weekly', 'monthly']).lowercase().optional(),
+    payType: z.coerce
+      .string()
+      .transform((s) => s.trim().toLowerCase())
+      .pipe(z.enum(['hourly', 'weekly', 'monthly']))
+      .optional(),
     city: z.string().trim().lowercase().optional(),
     state: z.string().trim().lowercase().optional(),
     recent: z.coerce.boolean().default(false),
@@ -166,7 +170,7 @@ export const employerFilterSchema = z
     fullName: lcString.optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(10).default(5),
-    sort: z.enum(['-createdAt', 'createdAt']).trim().default('-createdAt'),
+    sort: z.enum(['-createdAt', 'createdAt']).default('-createdAt'),
   })
   .superRefine((data, ctx) => {
     const hasId = data.employerId;
@@ -181,4 +185,3 @@ export const employerFilterSchema = z
     }
   })
   .strict();
-

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { jobCategories } from '../../config/categoriesConfig.js';
-import { geoPointSchema } from './registerValid.js';
+import { geoPointSchema } from '../common/geoPoint.js';
 
 const statusType = ['Open', 'Closed', 'Canceled', 'Completed'];
 const AddressSchema = z.object({

@@ -97,13 +97,13 @@ app.delete('/ratings/:ratingId', jwtVerify, deleteRating);
 
 // fetch
 app.get('/jobs', jwtVerify, requireActiveUser, listJobs);
-app.get('/jobs', jwtVerify, requireActiveUser, getJob);
+app.get('/jobs/:jobId', jwtVerify, requireActiveUser, getJob);
 
-app.get('/jobs', jwtVerify, requireActiveUser, listWorkers);
-app.get('/jobs', jwtVerify, requireActiveUser, getWorker);
+app.get('/workers', jwtVerify, requireActiveUser, listWorkers);
+app.get('/workers/:workerId', jwtVerify, requireActiveUser, getWorker);
 
-app.get('/jobs', jwtVerify, requireActiveUser, listEmployers);
-app.get('/jobs', jwtVerify, requireActiveUser, getEmployer);
+app.get('/employers', jwtVerify, requireActiveUser, listEmployers);
+app.get('/employers/:employerId', jwtVerify, requireActiveUser, getEmployer);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

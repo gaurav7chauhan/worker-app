@@ -1,4 +1,5 @@
 import { Schema } from 'mongoose';
+import z from 'zod';
 
 export const pointSchema = new Schema(
   {
