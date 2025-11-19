@@ -76,14 +76,18 @@ export const registerEmployer = async (req, res, next) => {
         { session }
       );
 
+      if (address != null) {
+        data.address = address;
+      }
+      if (geoLocation != null) {
+        data.geoLocation = geoLocation;
+      }
       data = {
         auth_id: authDoc._id,
         user_id: user._id,
         fullName,
         email,
         role,
-        address: userAddress ?? '',
-        location: geoLocation ?? '',
       };
 
       id = data.auth_id;
@@ -186,17 +190,27 @@ export const registerWorker = async (req, res, next) => {
         { session }
       );
 
+      if (address != null) {
+        data.address = address;
+      }
+      if (geoLocation != null) {
+        data.geoLocation = geoLocation;
+      }
+      if (category != null) {
+        data.category = category;
+      }
+      if (skills != null) {
+        data.skills = skills;
+      }
+      if (experienceYears != null) {
+        data.experienceYears = experienceYears;
+      }
       data = {
         auth_id: authDoc._id,
         user_id: user._id,
         fullName,
         email,
         role,
-        category,
-        skills,
-        address: userAddress,
-        location: geoLocation,
-        experienceYears,
       };
 
       id = data.auth_id;
@@ -215,7 +229,7 @@ export const registerWorker = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOptions);
     return res
       .status(201)
-      .json({ data, accessToken, message: 'User Registered successfully' });
+      .json({ message: 'User Registered successfully', data, accessToken });
   } catch (error) {
     return next(error);
   } finally {
