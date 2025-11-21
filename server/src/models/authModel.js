@@ -12,7 +12,7 @@ const authUserSchema = new Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ['Employer', 'Worker'],
+      enum: ['Employer', 'Worker', 'Admin'],
       required: true,
     },
     isBlocked: { type: Boolean, default: false },
