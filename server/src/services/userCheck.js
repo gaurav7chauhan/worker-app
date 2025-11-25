@@ -6,9 +6,7 @@ export const userValidation = async (req) => {
     throw new AppError('Authentication required', { status: 401 });
   }
 
-  const authUser = await AuthUser.findById(req.auth._id).select(
-    '_id role'
-  );
+  const authUser = await AuthUser.findById(req.auth._id).lean();
 
   if (!authUser) throw new AppError('User not found', { status: 404 });
 
