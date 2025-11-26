@@ -1,6 +1,12 @@
 // Zod schema
 import { z } from 'zod';
 
+// Pagination and sorting
+const pagination = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(20).default(5),
+});
+
 export const complaintZod = z.object({
   targetUserId: z.string(), // or appropriate ObjectId check utility
   reqUserId: z.string(),
@@ -22,3 +28,8 @@ export const complaintZod = z.object({
     .optional(),
   // status and adminComments can use defaults
 });
+
+export const filterComplaintZod = z.object({
+  status: z.enum(['open', 'resolved', 'rejected']).optional(),
+  ...pagination.shape,
+})
