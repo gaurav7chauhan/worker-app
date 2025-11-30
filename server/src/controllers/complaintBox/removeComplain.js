@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { AppError } from '../../utils/apiError';
-import { ReqComplaint } from '../../models/complaintSchema';
+import { AppError } from '../../utils/apiError.js';
+import { ReqComplaint } from '../../models/complaintSchema.js';
 
 export const deleteComplaint = async (req, res, next) => {
   try {
