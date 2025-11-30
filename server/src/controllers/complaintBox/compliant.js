@@ -5,7 +5,7 @@ import { ReqComplaint } from '../../models/complaintSchema.js';
 
 export const raiseComplaint = async (req, res, next) => {
   try {
-    const currentUser = req.authUser;
+    const currentUser = req.authUser?._id;
 
     const parsed = complaintZod.safeParse(req.body);
     if (!parsed.success) {
