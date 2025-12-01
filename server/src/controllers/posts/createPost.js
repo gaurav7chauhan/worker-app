@@ -3,6 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
+import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
 import { jobPostBodySchema } from '../../validator/postValid.js';
 
 export const post = async (req, res, next) => {
@@ -38,6 +39,42 @@ export const post = async (req, res, next) => {
     const cleaned = Object.fromEntries(
       Object.entries(parsed.data).filter(([_, val]) => val !== undefined)
     );
+
+    let employerAssets = [];
+    if (cleaned.employerAssets) {
+      if (req.files && req.files.length > 0) {
+        if (req.files.length > 5) {
+          throw new AppError('Maximum 5 employer assets allowed.', {
+            status: 400,
+          });
+        }
+        for (const file of req.files) {
+          const media = await uploadOnCloudinary(
+            file.path,
+            'image',
+            file.mimetype,      //'image/jpeg' ya 'image/png'
+            {
+              folder: 'jobs/employer-assets',
+              public_id: `job_${auth._id}_${Date.now()}`,
+            }
+          );
+          if (!media) {
+            throw new AppError('Images did not meet upload policy', {
+              status: 422,
+            });
+          }
+          if (!media.secure_url) {
+            throw new AppError('Cloud upload returned no URL', { status: 502 });
+          }
+          employerAssets.push({
+            url: media.secure_url,
+            type: 'image',
+            meta: `width:${media.width},height:${media.height},mime:${media.resource_type},size:${media.bytes}`,
+          });
+        }
+        cleaned.employerAssets = employerAssets;
+      }
+    }
 
     if (cleaned.address) {
       cleaned.address = Object.fromEntries(

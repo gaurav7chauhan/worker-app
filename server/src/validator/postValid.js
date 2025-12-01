@@ -65,6 +65,16 @@ export const jobPostBodySchema = z
     location: geoPointSchema.optional(),
     schedule: Schedule.optional(),
     status: z.enum(statusType).optional(),
+    employerAssets: z
+      .array(
+        z.object({
+          url: z.string().url(),
+          type: z.enum(['image']),
+          caption: z.string().trim().max(200).optional(),
+        })
+      )
+      .max(5, 'Maximum 5 images allowed')
+      .optional(),
   })
   .superRefine((data, ctx) => {
     const categories = data.category ?? [];

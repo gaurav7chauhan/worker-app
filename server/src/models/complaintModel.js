@@ -1,24 +1,5 @@
 import mongoose, { Schema, model } from 'mongoose';
-
-const mediaItemSchema = new Schema(
-  {
-    url: { type: String, trim: true },
-    type: {
-      type: String,
-      enum: ['photo', 'video'],
-      required: true,
-      index: true,
-    },
-    meta: {
-      width: Number,
-      height: Number,
-      durationSec: Number, // for video: easy to enforce <= 10
-      mime: String,
-      size: Number,
-    },
-  },
-  { _id: false }
-);
+import { mediaItemSchema } from './mediaItemSchema.js';
 
 const complaintSchema = Schema(
   {

@@ -1,28 +1,9 @@
 import mongoose, { model, Schema } from 'mongoose';
 import { addressSchema } from './addressSchema.js';
 import { pointSchema } from '../common/geoPoint.js';
+import { mediaItemSchema } from './mediaItemSchema.js';
 
 const statusType = ['Open', 'Closed', 'Completed', 'Canceled'];
-
-const mediaItemSchema = new Schema(
-  {
-    url: { type: String, trim: true },
-    type: {
-      type: String,
-      enum: ['photo', 'video'],
-      required: true,
-      index: true,
-    },
-    meta: {
-      width: Number,
-      height: Number,
-      durationSec: Number, // for video: easy to enforce <= 10
-      mime: String,
-      size: Number,
-    },
-  },
-  { _id: false }
-);
 
 const scheduleSchema = new mongoose.Schema(
   {
@@ -66,7 +47,11 @@ const jobPostSchema = new Schema(
     address: { type: addressSchema },
     location: { type: pointSchema },
     schedule: { type: scheduleSchema },
-    payType: { type: String, enum: ['hourly', 'weekly', 'monthly'], lowercase: true },
+    payType: {
+      type: String,
+      enum: ['hourly', 'weekly', 'monthly'],
+      lowercase: true,
+    },
     city: { type: String, trim: true, lowercase: true },
     state: { type: String, trim: true, lowercase: true },
     status: { type: String, enum: statusType, default: 'Open' },
