@@ -52,7 +52,7 @@ export const post = async (req, res, next) => {
           const media = await uploadOnCloudinary(
             file.path,
             'image',
-            file.mimetype,      //'image/jpeg' ya 'image/png'
+            file.mimetype, //'image/jpeg' ya 'image/png'
             {
               folder: 'jobs/employer-assets',
               public_id: `job_${auth._id}_${Date.now()}`,
@@ -100,8 +100,6 @@ export const post = async (req, res, next) => {
     }
 
     const responseBody = {
-      _id: created._id,
-      employerId: created.employerId,
       category: created.category,
       skills: created.skills,
       description: created.description,
@@ -112,6 +110,7 @@ export const post = async (req, res, next) => {
       status: created.status,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
+      employerAssets: created.employerAssets,
     };
 
     // res.set('Location', `/api/posts/${created._id}`); // adjust base path as needed
