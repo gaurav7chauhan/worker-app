@@ -3,38 +3,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import crypto from 'crypto';
 import { upload } from './middlewares/multer.js';
-import {
-  createRating,
-  deletePost,
-  deleteRating,
-  editPost,
-  getEmployer,
-  getJob,
-  getUserProfile,
-  getWorker,
-  jwtVerify,
-  listEmployers,
-  listJobApplications,
-  listJobs,
-  listMyApplications,
-  listNotifications,
-  listUserRatings,
-  listWorkers,
-  loginUser,
-  logoutUser,
-  markAllNotificationsRead,
-  markNotificationRead,
-  myGivenRatings,
-  notifyAll,
-  post,
-  registerEmployer,
-  registerWorker,
-  requireActiveUser,
-  statusUpdate,
-  submitApplication,
-  switchRole,
-  updateUserProfile,
-} from './singleImport.js';
+import { jwtVerify } from './singleImport.js';
+import authRoutes from './routes/auth_routes.js';
 
 const app = express();
 
@@ -44,14 +14,13 @@ app.use(
     credentials: true,
   })
 );
-
 app.use(express.json());
-
 app.use(cookieParser());
-
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.static('public'));
+
+// mounting api's
+app.use('/auth', authRoutes);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);
