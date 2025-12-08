@@ -4,7 +4,7 @@ import { WorkerProfile } from '../../models/workerModel.js';
 import {
   registerEmployerSchema,
   registerWorkerSchema,
-} from '../../validator/registerValid.js';
+} from '../../validator/register_valid.js';
 import { requestOtpService } from '../../utils/otp.js';
 import { AppError } from '../../utils/apiError.js';
 import { AuthUser } from '../../models/authModel.js';

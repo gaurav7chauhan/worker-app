@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { Notification } from '../../models/notificationModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const markNotificationRead = async (req, res, next) => {
+export const notificationRead = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });

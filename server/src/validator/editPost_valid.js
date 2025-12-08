@@ -1,5 +1,5 @@
 import { jobCategories } from '../../config/categoriesConfig.js';
-import { jobPostBodySchema } from './postValid.js';
+import { jobPostBodySchema } from './post_valid.js';
 
 const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
 const categoryToSubs = new Map(

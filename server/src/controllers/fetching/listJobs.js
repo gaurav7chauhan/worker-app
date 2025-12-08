@@ -1,6 +1,6 @@
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { jobFilterSchema } from '../../validator/fetchValid.js';
+import { jobFilterSchema } from '../../validator/fetch_valid.js';
 
 export const listJobs = async (req, res, next) => {
   try {

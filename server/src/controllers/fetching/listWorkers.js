@@ -1,6 +1,6 @@
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { workerFilterSchema } from '../../validator/fetchValid.js';
+import { workerFilterSchema } from '../../validator/fetch_valid.js';
 
 export const listWorkers = async (req, res, next) => {
   try {

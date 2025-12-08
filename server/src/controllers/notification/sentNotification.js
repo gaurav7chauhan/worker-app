@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { Notification } from '../../models/notificationModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { notifySchemaStrict } from '../../validator/notifyValid.js';
+import { notifySchemaStrict } from '../../validator/notify_valid.js';
 
 function makeDedupeKey(data) {
   switch (data.type) {
@@ -24,7 +24,7 @@ function makeDedupeKey(data) {
   }
 }
 
-export const notifyAll = async (req, res, next) => {
+export const sentNotification = async (req, res, next) => {
   try {
     const parsed = notifySchemaStrict.safeParse(req.body);
     if (!parsed.success) {

@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const listMyApplications = async (req, res, next) => {
+export const listWorkerApplication = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });

@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { editPostBodySchema } from '../../validator/editPostValid.js';
+import { editPostBodySchema } from '../../validator/editPost_valid.js';
 import { parseLocation } from '../../common/mainLocation.js';
 
 export const editPost = async (req, res, next) => {

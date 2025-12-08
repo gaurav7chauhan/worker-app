@@ -2,9 +2,9 @@ import { AuthUser } from '../../models/authModel.js';
 import { cookieOptions } from '../../services/cookieOptions.js';
 import { generateAccessToken, generateRefreshToken } from '../../services/jwt.js';
 import { requestOtpService } from '../../utils/otp.js';
-import { loginSchema } from '../../validator/loginValid.js';
+import { loginSchema } from '../../validator/login_valid.js';
 
-export const loginUser = async (req, res, next) => {
+export const login = async (req, res, next) => {
   try {
     const result = loginSchema.safeParse(req.body);
     if (!result.success) {

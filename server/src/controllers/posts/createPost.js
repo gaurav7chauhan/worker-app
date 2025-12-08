@@ -4,9 +4,9 @@ import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { uploadOnCloudinary } from '../../utils/cloudinaryConfig.js';
-import { jobPostBodySchema } from '../../validator/postValid.js';
+import { jobPostBodySchema } from '../../validator/post_valid.js';
 
-export const post = async (req, res, next) => {
+export const createPost = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });

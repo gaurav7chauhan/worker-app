@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { applicationSchema } from '../../validator/applicationValid.js';
+import { applicationSchema } from '../../validator/application_valid.js';
 
 export const submitApplication = async (req, res, next) => {
   try {

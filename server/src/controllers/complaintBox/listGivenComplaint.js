@@ -1,8 +1,8 @@
-import { ReqComplaint } from '../../models/complaintSchema';
+import { ReqComplaint } from '../../models/complaintSchema.js';
 import { AppError } from '../../utils/apiError.js';
 import { filterComplaintZod } from '../../validator/compValid.js';
 
-export const listComplaintsAgainstMe = async (req, res, next) => {
+export const listGivenComplaint = async (req, res, next) => {
   try {
     const authId = req.authUser?._id;
     const parsed = filterComplaintZod.safeParse(req.query);
@@ -15,17 +15,14 @@ export const listComplaintsAgainstMe = async (req, res, next) => {
 
     const { limit, page, status } = parsed.data;
 
-    const filters = { targetUserId: authId };
+    const filters = { reqUserId: authId };
     if (status) {
       filters.status = status;
     }
 
     const [items, totalDoc] = await Promise.all([
       ReqComplaint.find(filters)
-        .populate({
-          path: 'reqUserId',
-          select: 'fullName email role',
-        })
+        .populate({ path: 'targetUserId', select: 'fullName email role' })
         .limit(limit)
         .skip((page - 1) * limit)
         .lean(),
@@ -34,13 +31,15 @@ export const listComplaintsAgainstMe = async (req, res, next) => {
     ]);
 
     if (totalDoc === 0) {
-      return res.status(200).json({
-        message: 'No complaints found.',
-        limit,
-        page,
-        total: 0,
-        totalPages: 0,
-      });
+      return res
+        .status(200)
+        .json({
+          message: 'No complaints found.',
+          limit,
+          page,
+          total: 0,
+          totalPages: 0,
+        });
     }
 
     return res.status(200).json({

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { notifyTypes } from '../validator/notifyValid.js';
+import { notifyTypes } from '../validator/notify_valid.js';
 
 const notificationSchema = new Schema(
   {

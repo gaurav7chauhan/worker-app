@@ -2,9 +2,9 @@ import { AuthUser } from '../../models/authModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { Ratings } from '../../models/ratingsModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { rateBodySchema } from '../../validator/rateValid.js';
+import { rateBodySchema } from '../../validator/rating_valid.js';
 
-export const createRating = async (req, res, next) => {
+export const setRating = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });

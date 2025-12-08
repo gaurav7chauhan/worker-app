@@ -5,7 +5,7 @@ import { verifyAccessToken, verifyRefreshToken } from '../../services/jwt.js';
 import { blacklistAccessJti } from '../../services/redisToken.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const logoutUser = async (req, res, next) => {
+export const logout = async (req, res, next) => {
   try {
     if (!req.auth?._id) {
       throw new AppError('Authentication required', { status: 401 });
