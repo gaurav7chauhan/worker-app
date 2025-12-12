@@ -9,11 +9,11 @@ export const notificationRead = async (req, res, next) => {
       throw new AppError('Authentication required', { status: 401 });
     }
 
-    const { id } = req.params;
-    if (!id) {
+    const { notificationId } = req.params;
+    if (!notificationId) {
       throw new AppError('Id is required', { status: 400 });
     }
-    if (!mongoose.isValidObjectId(id)) {
+    if (!mongoose.isValidObjectId(notificationId)) {
       throw new AppError('Invalid notification id', { status: 400 });
     }
 
@@ -28,7 +28,7 @@ export const notificationRead = async (req, res, next) => {
     }
 
     const updated = await Notification.findOneAndUpdate(
-      { _id: req.params?.id, userId: req.auth._id, isRead: false },
+      { _id: notificationId, userId: req.auth._id, isRead: false },
       { $set: { isRead: true, readAt: new Date() } },
       { new: true }
     ).lean();

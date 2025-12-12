@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, registerEmployer, registerWorker } from '../singleImport';
+import { login, registerEmployer, registerWorker } from '../singleImport.js';
 
 const router = Router();
 

@@ -4,7 +4,7 @@ import { workerFilterSchema } from '../../validator/fetch_valid.js';
 
 export const listWorkers = async (req, res, next) => {
   try {
-    const parsed = workerFilterSchema.safeParse(req.body);
+    const parsed = workerFilterSchema.safeParse(req.query);
     if (!parsed.success) {
       const first = parsed.error.issues[0];
       throw new AppError(first?.message || 'Invalid input data.', {

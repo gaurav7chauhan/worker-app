@@ -4,7 +4,7 @@ import { jobFilterSchema } from '../../validator/fetch_valid.js';
 
 export const listJobs = async (req, res, next) => {
   try {
-    const parsed = jobFilterSchema.safeParse(req.body);
+    const parsed = jobFilterSchema.safeParse(req.query);
 
     if (!parsed.success) {
       const first = parsed.error.issues[0];

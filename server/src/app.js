@@ -5,6 +5,12 @@ import crypto from 'crypto';
 import { upload } from './middlewares/multer.js';
 import { jwtVerify } from './singleImport.js';
 import authRoutes from './routes/auth_routes.js';
+import applicationRoutes from './routes/applications_routes.js';
+import fetchRoutes from './routes/fetch_routes.js';
+import postRoutes from './routes/post_routes.js';
+import notificationRoutes from './routes/notifications_routes.js';
+import ratingRoutes from './routes/notifications_routes.js';
+import authRoutes from './routes/users_routes.js';
 
 const app = express();
 
@@ -20,7 +26,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // mounting api's
-app.use('/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/application', applicationRoutes);
+app.use('/api/v1', fetchRoutes);
+app.use('/api/v1/post', postRoutes);
+app.use('/api/v1/notification', notificationRoutes);
+app.use('/api/v1/ratings', ratingRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);
