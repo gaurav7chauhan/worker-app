@@ -1,55 +1,49 @@
+import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { Notification } from '../../models/notificationModel.js';
-import { AppError } from '../../utils/apiError.js';
 
-export const listNotifications = async (req, res, next) => {
-  try {
-    if (!req.auth?._id) {
-      throw new AppError('Authentication required', { status: 401 });
-    }
-    const userId = req.auth._id;
-    const isRead =
-      req.query.isRead === 'true'
-        ? true
-        : req.query.isRead === 'false'
-        ? false
-        : undefined;
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit) || 10);
+export const listNotifications = asyncHandler(async (req, res) => {
+  // authenticated user (set by requireActiveUser middleware)
+  const { _id: userId } = req.authUser;
 
-    const auth = await AuthUser.findById(userId).lean();
-    if (!auth) {
-      throw new AppError('User not found', { status: 404 });
-    }
-    if (auth.isBlocked) {
-      throw new AppError('Account is blocked by admin', { status: 403 });
-    }
+  // parse isRead query safely
+  const isRead =
+    req.query.isRead === 'true'
+      ? true
+      : req.query.isRead === 'false'
+      ? false
+      : undefined;
 
-    const filter = { userId };
+  // pagination
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, parseInt(req.query.limit) || 10);
 
-    if (typeof isRead === 'boolean') filter.isRead = isRead;
-    if (req.query.type) filter.type = req.query.type;
+  // build filter
+  const filter = { userId };
+  if (typeof isRead === 'boolean') filter.isRead = isRead;
+  if (req.query.type) filter.type = req.query.type;
 
-    const [items, total, unreadCount] = await Promise.all([
-      (
-        await Notification.find(filter)
-      )
-        .sort({ createdAt: -1, _id: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean(),
-      Notification.countDocuments(filter),
-      Notification.countDocuments({ userId, isRead: false }),
-    ]);
+  // run queries in parallel
+  const itemsQuery = Notification.find(filter)
+    .sort({ createdAt: -1, _id: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
 
-    return res.status(200).json({
-      page,
-      limit,
-      total,
-      items,
-      unreadCount,
-      message: 'Notifications successfully fetched',
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
+  const totalQuery = Notification.countDocuments(filter);
+  const unreadQuery = Notification.countDocuments({ userId, isRead: false });
+
+  const [items, total, unreadCount] = await Promise.all([
+    itemsQuery,
+    totalQuery,
+    unreadQuery,
+  ]);
+
+  return res.status(200).json({
+    page,
+    limit,
+    total,
+    unreadCount,
+    items,
+    message: 'Notifications successfully fetched',
+  });
+});

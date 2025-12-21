@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { jwtVerify } from '../middlewares/jwtVerify.js';
+import { requireActiveUser } from '../middlewares/authMiddleware.js';
 import {
   listJobApplications,
   listWorkerApplication,
@@ -7,8 +9,9 @@ import {
 
 const router = Router();
 
-router.post('/', submitApplication);
-router.get('/employer', listJobApplications);
-router.get('/worker', listWorkerApplication);
+// protected routes
+router.post('/', jwtVerify, requireActiveUser, submitApplication);
+router.get('/employer', jwtVerify, requireActiveUser, listJobApplications);
+router.get('/worker', jwtVerify, requireActiveUser, listWorkerApplication);
 
 export default router;

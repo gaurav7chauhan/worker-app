@@ -5,43 +5,44 @@ import {
   registerEmployerSchema,
   registerWorkerSchema,
 } from '../../validator/register_valid.js';
-import { requestOtpService } from '../../utils/otp.js';
+import { requestOtpService } from '../../services/otp.js';
 import { AppError } from '../../utils/apiError.js';
 import { AuthUser } from '../../models/authModel.js';
-import { cookieOptions } from '../../services/cookieOptions.js';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from '../../services/jwt.js';
+import { cookieOptions } from '../../utils/cookieOptions.js';
+import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
 import { parseLocation } from '../../common/mainLocation.js';
+import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
-export const registerEmployer = async (req, res, next) => {
+export const registerEmployer = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
+
   try {
+    // Validate request body
     const payload = registerEmployerSchema.safeParse(req.body);
     if (!payload.success) {
-      throw new AppError(payload.error.issues[0].message, { status: 400 });
+      const first = payload.error?.issues[0];
+      throw new AppError(first.message, { status: 400 });
     }
 
     const { email, password, fullName, address, role, location } = payload.data;
 
-    let data;
-    let id;
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const ip = req.ip;
+    let userId;
 
-    // session started
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+
+    // Transaction start
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
-
       if (exists) {
         throw new AppError('User already exists. Please login', {
           status: 409,
         });
       }
 
-      // Create AuthUser
-      const setExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      // Create auth user
+      const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
       const [authDoc] = await AuthUser.create(
         [
           {
@@ -49,13 +50,13 @@ export const registerEmployer = async (req, res, next) => {
             password,
             role,
             emailVerified: false,
-            verificationExpires: setExpiration,
+            verificationExpires,
           },
         ],
         { session }
       );
 
-      // Create EmployerProfile
+      // Prepare optional fields
       const userAddress = address?.trim() || null;
 
       let geoLocation = null;
@@ -64,35 +65,23 @@ export const registerEmployer = async (req, res, next) => {
         geoLocation = { type: 'Point', coordinates: [lng, lat] };
       }
 
-      const [user] = await EmployerProfile.create(
+      // Create employer profile
+      const [profile] = await EmployerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
-            ...(userAddress ? { address: userAddress } : {}),
-            ...(geoLocation ? { location: geoLocation } : {}),
+            ...(userAddress && { address: userAddress }),
+            ...(geoLocation && { location: geoLocation }),
           },
         ],
         { session }
       );
 
-      if (address != null) {
-        data.address = address;
-      }
-      if (geoLocation != null) {
-        data.geoLocation = geoLocation;
-      }
-      data = {
-        auth_id: authDoc._id,
-        user_id: user._id,
-        fullName,
-        email,
-        role,
-      };
-
-      id = data.auth_id;
+      userId = authDoc._id;
     });
 
+    // OTP flow (kept for future use)
     // Important: send OTP after the transaction is committed
     // const response = await requestOtpService(String(id), email, 'register');
 
@@ -101,29 +90,39 @@ export const registerEmployer = async (req, res, next) => {
     //     ? 'Registered; OTP resent. Please verify.'
     //     : 'Registered; OTP sent. Please verify.',
     // });
-    const accessToken = generateAccessToken(id);
-    const refreshToken = await generateRefreshToken(id, 'User', ip, userAgent);
+
+    const accessToken = generateAccessToken(userId);
+    const refreshToken = await generateRefreshToken(
+      userId,
+      'User',
+      ip,
+      userAgent
+    );
+
     res.cookie('refreshToken', refreshToken, cookieOptions);
-    return res
-      .status(201)
-      .json({ message: 'User Registered successfully', data, accessToken });
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Employer registered successfully',
+      token: accessToken,
+      userId,
+    });
   } catch (error) {
     return next(error);
   } finally {
     await session.endSession();
   }
-};
+});
 
-export const registerWorker = async (req, res, next) => {
+export const registerWorker = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
-  try {
-    const payload = registerWorkerSchema.safeParse(req.body);
 
+  try {
+    // Validate request body
+    const payload = registerWorkerSchema.safeParse(req.body);
     if (!payload.success) {
       const first = payload.error?.issues[0];
-      return res
-        .status(400)
-        .json({ message: `${first?.message} in ${first?.path}` });
+      throw new AppError(first.message, { status: 400 });
     }
 
     const {
@@ -138,21 +137,23 @@ export const registerWorker = async (req, res, next) => {
       role,
     } = payload.data;
 
-    let data;
-    let id;
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const ip = req.ip;
+    let userId;
 
-    // session started
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+
+    // Transaction start
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
-
       if (exists) {
-        throw Object.assign(new Error('User already exists'), { status: 409 });
+        throw new AppError('User already exists. Please login', {
+          status: 409,
+        });
       }
 
-      const setExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+      // Create auth user
       const [authDoc] = await AuthUser.create(
         [
           {
@@ -160,13 +161,12 @@ export const registerWorker = async (req, res, next) => {
             password,
             role,
             emailVerified: false,
-            verificationExpires: setExpiration,
+            verificationExpires,
           },
         ],
         { session }
       );
 
-      // Create WorkerProfile
       const userAddress = address?.trim() || null;
 
       let geoLocation = null;
@@ -175,47 +175,27 @@ export const registerWorker = async (req, res, next) => {
         geoLocation = { type: 'Point', coordinates: [lng, lat] };
       }
 
-      const [user] = await WorkerProfile.create(
+      // Create worker profile
+      await WorkerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
             category,
-            ...(skills !== undefined ? { skills } : {}),
-            ...(userAddress ? { address: userAddress } : {}),
-            ...(experienceYears !== undefined ? { experienceYears } : {}),
-            ...(geoLocation ? { location: geoLocation } : {}),
+            ...(skills !== undefined && { skills }),
+            ...(experienceYears !== undefined && { experienceYears }),
+            ...(userAddress && { address: userAddress }),
+            ...(geoLocation && { location: geoLocation }),
           },
         ],
         { session }
       );
 
-      if (address != null) {
-        data.address = address;
-      }
-      if (geoLocation != null) {
-        data.geoLocation = geoLocation;
-      }
-      if (category != null) {
-        data.category = category;
-      }
-      if (skills != null) {
-        data.skills = skills;
-      }
-      if (experienceYears != null) {
-        data.experienceYears = experienceYears;
-      }
-      data = {
-        auth_id: authDoc._id,
-        user_id: user._id,
-        fullName,
-        email,
-        role,
-      };
-
-      id = data.auth_id;
+      userId = authDoc._id;
     });
 
+    // OTP flow (kept for future use)
+    // Important: send OTP after the transaction is committed
     // const response = await requestOtpService(String(id), email, 'register');
 
     // return res.status(201).json({
@@ -223,16 +203,26 @@ export const registerWorker = async (req, res, next) => {
     //     ? 'Registered; OTP resent. Please verify.'
     //     : 'Registered; OTP sent. Please verify.',
     // });
-    const accessToken = generateAccessToken(id);
-    const refreshToken = await generateRefreshToken(id, 'User', ip, userAgent);
+
+    const accessToken = generateAccessToken(userId);
+    const refreshToken = await generateRefreshToken(
+      userId,
+      'User',
+      ip,
+      userAgent
+    );
 
     res.cookie('refreshToken', refreshToken, cookieOptions);
-    return res
-      .status(201)
-      .json({ message: 'User Registered successfully', data, accessToken });
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Worker registered successfully',
+      token: accessToken,
+      userId,
+    });
   } catch (error) {
     return next(error);
   } finally {
     await session.endSession();
   }
-};
+});

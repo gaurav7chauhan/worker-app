@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import { OtpToken } from '../models/otpModel.js';
-import { sendOtp } from '../services/mail/mailer.js';
-import { redis } from '../../config/rateLimiterConfig.js';
+import { sendOtp } from './mail/sendOtp.js';
+import { redis } from '../config/rateLimiterConfig.js';
 import { AuthUser } from '../models/authModel.js';
-import { AppError } from './apiError.js';
+import { AppError } from '../utils/apiError.js';
 
 const OTP_TTL_SECONDS = 5 * 60; // 5min
 const redisKey = (userId, purpose, email) => {

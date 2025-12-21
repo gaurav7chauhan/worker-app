@@ -1,16 +1,17 @@
 import { Router } from 'express';
+import { jwtVerify } from '../middlewares/jwtVerify.js';
+import { requireActiveUser } from '../middlewares/authMiddleware.js';
 import {
-  allNotificationsRead,
-  listNotifications,
-  notificationRead,
-  sentNotification,
-} from '../singleImport';
+  listJobApplications,
+  listWorkerApplication,
+  submitApplication,
+} from '../singleImport.js';
 
 const router = Router();
 
-router.get('/', listNotifications);
-router.post('/send', sentNotification);
-router.patch('/readAll', allNotificationsRead);
-router.patch('/:notificationId/read', notificationRead);
+// protected routes
+router.post('/', jwtVerify, requireActiveUser, submitApplication);
+router.get('/employer', jwtVerify, requireActiveUser, listJobApplications);
+router.get('/worker', jwtVerify, requireActiveUser, listWorkerApplication);
 
 export default router;

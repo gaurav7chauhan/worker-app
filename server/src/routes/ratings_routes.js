@@ -1,16 +1,19 @@
 import { Router } from 'express';
 import {
   deleteRating,
+  jwtVerify,
   listUserRatings,
   myGivenRatings,
+  requireActiveUser,
   setRating,
 } from '../singleImport.js';
 
 const router = Router();
 
-router.post('/add', setRating);
-router.get('/given', myGivenRatings);
-router.get('/', listUserRatings);
-router.delete('/:ratingId', deleteRating);
+// protected routes
+router.post('/add', jwtVerify, requireActiveUser, setRating);
+router.get('/given', jwtVerify, requireActiveUser, myGivenRatings);
+router.get('/', jwtVerify, requireActiveUser, listUserRatings);
+router.delete('/:ratingId', jwtVerify, requireActiveUser, deleteRating);
 
 export default router;

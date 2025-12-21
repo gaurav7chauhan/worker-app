@@ -1,10 +1,23 @@
 import { Router } from 'express';
-import { login, registerEmployer, registerWorker } from '../singleImport.js';
+import { jwtVerify } from '../middlewares/jwtVerify.js';
+import { requireActiveUser } from '../middlewares/authMiddleware.js';
+import {
+  getProfile,
+  login,
+  logout,
+  registerEmployer,
+  registerWorker,
+} from '../singleImport.js';
 
 const router = Router();
 
-router.post('/employer', registerEmployer);
-router.post('/worker', registerWorker);
+// public routes
+router.post('/register/employer', registerEmployer);
+router.post('/register/worker', registerWorker);
 router.post('/login', login);
+
+// protected routes
+router.post('/logout', jwtVerify, requireActiveUser, logout);
+router.get('/', jwtVerify, requireActiveUser, getProfile);
 
 export default router;

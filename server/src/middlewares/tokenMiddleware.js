@@ -9,6 +9,7 @@ import {
 
 export const refreshHandler = async (req, res, next) => {
   try {
+    // token extraction & verification
     const token = req.cookies?.refreshToken;
     if (!token) {
       throw new AppError('Missing refresh token', { status: 401 });
@@ -21,20 +22,25 @@ export const refreshHandler = async (req, res, next) => {
 
     const { decoded, session } = verified;
 
+    // session rotation
     await RefreshSession.updateOne(
       { _id: session._id },
       { $set: { revoked: true, revokedAt: new Date(), reason: 'ROTATED' } }
     );
 
+    // token generation
     const accessToken = generateAccessToken(decoded._id);
     const refreshToken = await generateRefreshToken(
       decoded._id,
       decoded.principalType || 'User'
     );
 
+    // response
     res.cookie('refreshToken', refreshToken, cookieOptions);
-
-    return res.status(200).json({ accessToken, message: 'Token refreshed' });
+    return res.status(200).json({
+      accessToken,
+      message: 'Token refreshed',
+    });
   } catch (error) {
     next(error);
   }

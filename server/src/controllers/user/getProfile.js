@@ -1,32 +1,29 @@
-import { AuthUser } from '../../models/authModel.js';
+import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const getProfile = async (req, res, next) => {
-  try {
-    if (!req.auth?._id) {
-      throw new AppError('Authentication required', { status: 401 });
-    }
+export const getProfile = asyncHandler(async (req, res) => {
+  // authenticated user (from requireActiveUser)
+  const authUser = req.authUser;
 
-    const auth = await AuthUser.findById(req.auth._id).select('isBlocked role');
-    if (!auth) throw new AppError('User not found', { status: 404 });
-    if (auth.isBlocked) {
-      throw new AppError('Account is blocked by admin', { status: 403 });
-    }
+  // 3️⃣ Decide profile model based on role
+  const ProfileModel =
+    authUser.role === 'Employer' ? EmployerProfile : WorkerProfile;
 
-    const targetRole =
-      auth.role === 'Employer' ? EmployerProfile : WorkerProfile;
+  // 4️⃣ Fetch profile linked to auth user
+  const userProfile = await ProfileModel.findOne({
+    userId: authUser._id,
+  });
 
-    const userProfile = await targetRole.findOne({ userId: auth._id });
-    if (!userProfile) {
-      throw new AppError('User profile not found', { status: 404 });
-    }
-
-    return res
-      .status(200)
-      .json({ userProfile, message: 'Profile successfully fetched' });
-  } catch (error) {
-    return next(error);
+  if (!userProfile) {
+    throw new AppError('User profile not found', { status: 404 });
   }
-};
+
+  // 5️⃣ Success response
+  return res.status(200).json({
+    success: true,
+    message: 'Profile successfully fetched',
+    userProfile,
+  });
+});

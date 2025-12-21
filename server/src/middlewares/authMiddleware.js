@@ -1,4 +1,4 @@
-import { userValidation } from "../services/userCheck.js";
+import { userValidation } from "../services/authService.js";
 
 export const requireActiveUser = async (req, res, next) => {
   try {

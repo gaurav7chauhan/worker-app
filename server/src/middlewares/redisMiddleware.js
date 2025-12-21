@@ -1,31 +1,32 @@
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { redis } from '../../config/rateLimiterConfig';
 
+// rate limiter configs
 const rlResend = new RateLimiterRedis({
   storeClient: redis,
   keyPrefix: 'rl:resend',
-  points: 1, // 1 request
-  duration: 30, // per 30s
-  blockDuration: 60, // block for 60s on exceed
+  points: 1,
+  duration: 30,
+  blockDuration: 60,
 });
 
 const rlVerify = new RateLimiterRedis({
   storeClient: redis,
   keyPrefix: 'rl:verify',
-  points: 5, // 5 attempts
-  duration: 60, // per 60s
-  blockDuration: 300, // block for 5 min
+  points: 5,
+  duration: 60,
+  blockDuration: 300,
 });
 
-// Middlewares
-
+// resend limiter
 export const limitResend = async (req, res, next) => {
   const who =
     (req.body.userId || req.body.email || 'anon') +
     ':' +
     (req.body.purpose || 'na');
-    
+
   const key = `${req.ip}:${who}`;
+
   try {
     const resConsume = await rlResend.consume(key);
     res.set('X-RateLimit-Remaining', String(resConsume.remainingPoints));
@@ -39,12 +40,15 @@ export const limitResend = async (req, res, next) => {
   }
 };
 
+// verify limiter
 export const limitVerify = async (req, res, next) => {
   const who =
     (req.body.userId || req.body.email || 'anon') +
     ':' +
     (req.body.purpose || 'na');
+
   const key = `${req.ip}:${who}`;
+
   try {
     const resConsume = await rlVerify.consume(key);
     res.set('X-RateLimit-Remaining', String(resConsume.remainingPoints));

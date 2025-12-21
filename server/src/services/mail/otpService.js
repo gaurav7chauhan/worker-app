@@ -1,4 +1,4 @@
-import { transporter } from './transporter.js';
+import { transporter } from './transportService.js';
 
 export const sendOtp = async (email, otp) => {
   const minutes = 5;
