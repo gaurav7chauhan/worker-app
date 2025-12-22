@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 
+// Configure Cloudinary once at startup
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -15,12 +16,14 @@ export const uploadOnCloudinary = async (
 ) => {
   if (!localFilePath || !fileType) return null;
 
-  // Strict MIME allow-list
+  // Allowed MIME types
   const IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
   const VIDEO_MIME = new Set(['video/mp4', 'video/webm']);
+
   const isImage = fileType === 'image';
   const isVideo = fileType === 'video';
 
+  // Reject invalid MIME and cleanup temp file
   if (
     (isImage && !IMAGE_MIME.has(mime)) ||
     (isVideo && !VIDEO_MIME.has(mime))
@@ -32,6 +35,7 @@ export const uploadOnCloudinary = async (
   }
 
   try {
+    // Upload to Cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: isImage ? 'image' : 'video',
       folder: opts?.folder,
@@ -39,7 +43,8 @@ export const uploadOnCloudinary = async (
       overwrite: true,
     });
 
-    if (isVideo && response?.duration && response.duration > 15) {
+    // Enforce video duration limit
+    if (isVideo && response?.duration > 15) {
       await cloudinary.uploader.destroy(response.public_id, {
         resource_type: 'video',
         invalidate: true,
@@ -48,9 +53,10 @@ export const uploadOnCloudinary = async (
     }
 
     return response;
-  } catch (error) {
+  } catch {
     return null;
   } finally {
+    // Always remove local temp file
     try {
       await fs.unlink(localFilePath);
     } catch {}
