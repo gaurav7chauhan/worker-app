@@ -5,15 +5,12 @@ import {
   registerEmployerSchema,
   registerWorkerSchema,
 } from '../../validator/register_valid.js';
-import { requestOtpService } from '../../services/otp.js';
 import { AppError } from '../../utils/apiError.js';
 import { AuthUser } from '../../models/authModel.js';
-import { cookieOptions } from '../../utils/cookieOptions.js';
-import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
 import { parseLocation } from '../../common/mainLocation.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
-export const registerEmployer = asyncHandler(async (req, res) => {
+export const registerEmployer = asyncHandler(async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -81,31 +78,11 @@ export const registerEmployer = asyncHandler(async (req, res) => {
       userId = authDoc._id;
     });
 
-    // OTP flow (kept for future use)
-    // Important: send OTP after the transaction is committed
-    // const response = await requestOtpService(String(id), email, 'register');
-
-    // return res.status(201).json({
-    //   message: response.resent
-    //     ? 'Registered; OTP resent. Please verify.'
-    //     : 'Registered; OTP sent. Please verify.',
-    // });
-
-    const accessToken = generateAccessToken(userId);
-    const refreshToken = await generateRefreshToken(
-      userId,
-      'User',
-      ip,
-      userAgent
-    );
-
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-
     return res.status(201).json({
-      status: 'success',
-      message: 'Employer registered successfully',
-      token: accessToken,
+      status: 'pending',
+      message: 'Registered successfully. Please verify email.',
       userId,
+      email,
     });
   } catch (error) {
     return next(error);
@@ -114,7 +91,7 @@ export const registerEmployer = asyncHandler(async (req, res) => {
   }
 });
 
-export const registerWorker = asyncHandler(async (req, res) => {
+export const registerWorker = asyncHandler(async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -194,31 +171,11 @@ export const registerWorker = asyncHandler(async (req, res) => {
       userId = authDoc._id;
     });
 
-    // OTP flow (kept for future use)
-    // Important: send OTP after the transaction is committed
-    // const response = await requestOtpService(String(id), email, 'register');
-
-    // return res.status(201).json({
-    //   message: response.resent
-    //     ? 'Registered; OTP resent. Please verify.'
-    //     : 'Registered; OTP sent. Please verify.',
-    // });
-
-    const accessToken = generateAccessToken(userId);
-    const refreshToken = await generateRefreshToken(
-      userId,
-      'User',
-      ip,
-      userAgent
-    );
-
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-
     return res.status(201).json({
-      status: 'success',
-      message: 'Worker registered successfully',
-      token: accessToken,
+      status: 'pending',
+      message: 'Registered successfully. Please verify email.',
       userId,
+      email,
     });
   } catch (error) {
     return next(error);

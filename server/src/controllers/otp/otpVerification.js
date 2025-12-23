@@ -1,5 +1,5 @@
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
-import { verifyOtpService } from '../../utils/otp.js';
+import { verifyOtpService } from '../../services/otpAuthService.js';
 
 export const verifyOtp = asyncHandler(async (req, res) => {
   const { userId, email, purpose, code } = req.body;
@@ -12,7 +12,10 @@ export const verifyOtp = asyncHandler(async (req, res) => {
     }
     return res.status(400).json({ error: 'Invalid or expired OTP' });
   }
-  return res.status(200).json({ message: 'Email verified' });
+   return res.status(200).json({
+    status: 'success',
+    message: 'Email verified successfully',
+  });
 });
 
 

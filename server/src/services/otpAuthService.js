@@ -10,6 +10,7 @@ const redisKey = (userId, purpose, email) => {
   return `otp:${userId}:${purpose}:${email}`;
 };
 
+// request OTP
 export const requestOtpService = async (userId, email, purpose) => {
   if (!userId || !email || !purpose) {
     throw new AppError('Missing required params', {
@@ -17,6 +18,20 @@ export const requestOtpService = async (userId, email, purpose) => {
     });
   }
   const key = redisKey(userId, purpose, email);
+
+  // 🔐 Resend cooldown (30s)
+  const resendKey = `otp:resend:${userId}:${purpose}`;
+  const canResend = await redis.set(resendKey, '1', {
+    NX: true,
+    EX: 30,
+  });
+
+  // If user clicks resend too fast, silently ignore
+  //   canResend === "OK"   // true (truthy) Key did NOT exist
+  //   canResend === null   // false (falsy) Key already exists
+  if (!canResend) {
+    return { resent: true };
+  }
 
   // If OTP exists in Redis, resend same code (no DB writes)
   let existing;
@@ -93,10 +108,13 @@ export const requestOtpService = async (userId, email, purpose) => {
   return { resent: false };
 };
 
+// Verify OTP
 export const verifyOtpService = async (userId, email, purpose, code) => {
   if (!userId || !email || !purpose || !code) {
     throw new AppError('Missing required params', { status: 400 });
   }
+
+  // Find valid, unexpired OTP
   let token = await OtpToken.findOne({
     userId,
     purpose,
@@ -109,13 +127,13 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
     return { ok: false, reason: 'invalid_or_expired' };
   }
 
-  // Hard cap attempts at the token level
+  //  Prevent brute force
   if (token.attempts >= 5) {
     await OtpToken.deleteOne({ _id: token._id });
     return { ok: false, reason: 'too_many_attempts' };
   }
 
-  // Compare code
+  // Compare hashed OTP
   let match = false;
   match = await bcrypt.compare(String(code), token.codeHash);
 
@@ -127,7 +145,7 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
   // Consume OTP first
   await OtpToken.updateOne({ _id: token._id }, { $set: { consumed: true } });
 
-  // Mark user verified
+  //  Mark email verified after register/login OTP
   switch (purpose) {
     case 'register':
       await AuthUser.findByIdAndUpdate(userId, {

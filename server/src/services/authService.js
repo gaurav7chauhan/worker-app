@@ -10,6 +10,10 @@ export const userValidation = async (req) => {
 
   if (!authUser) throw new AppError('User not found', { status: 404 });
 
+  if (!authUser.emailVerified) {
+    throw new AppError('Email not verified', { status: 403 });
+  }
+
   if (authUser.isBlocked) {
     throw new AppError('Account is blocked by admin', { status: 403 });
   }

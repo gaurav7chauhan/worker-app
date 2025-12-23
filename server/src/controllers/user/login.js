@@ -1,7 +1,6 @@
 import { AuthUser } from '../../models/authModel.js';
 import { cookieOptions } from '../../utils/cookieOptions.js';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
-import { requestOtpService } from '../../services/otp.js';
 import { loginSchema } from '../../validator/login_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
@@ -46,14 +45,12 @@ export const login = asyncHandler(async (req, res) => {
   const userAgent = req.headers['user-agent'] || 'unknown';
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
 
-  // OTP flow (kept for future use)
-  // const response = await requestOtpService(String(foundUser._id), email, 'login');
-
-  // return res.status(201).json({
-  //   message: response.resent
-  //     ? 'Login; OTP resent. Please verify.'
-  //     : 'Login; OTP sent. Please verify.',
-  // });
+  if (!foundUser.emailVerified) {
+    return res.status(403).json({
+      status: 'fail',
+      message: 'Email not verified. Please verify first.',
+    });
+  }
 
   // Generate tokens
   const accessToken = generateAccessToken(foundUser._id);

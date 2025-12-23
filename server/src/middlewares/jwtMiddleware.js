@@ -21,7 +21,7 @@ export const jwtVerify = async (req, res, next) => {
     }
 
     // attach auth user
-    req.auth = { _id: decoded._id };
+    req.auth = { _id: decoded._id, jti: decoded.jti };
     return next();
   } catch (e) {
     return next(new AppError('Unauthorized token', { status: 401 }));
