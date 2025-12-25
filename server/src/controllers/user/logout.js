@@ -1,7 +1,7 @@
 import { RefreshSession } from '../../models/tokenModel.js';
-import { cookieOptions } from '../../utils/cookieOptions.js';
-import { verifyAccessToken, verifyRefreshToken } from '../../utils/jwt.js';
-import { blacklistAccessJti } from '../../services/redisToken.js';
+import { cookieOptions } from '../../config/cookieOptions.js';
+import { verifyAccessToken, verifyRefreshToken } from '../../services/tokenService.js';
+import { blacklistAccessJti } from '../../services/JtiService.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
 export const logout = asyncHandler(async (req, res) => {

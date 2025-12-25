@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { requestRegisterOtp } from '../controllers/user/requestOTP';
-import { verifyOtp } from '../controllers/otp/otpVerification';
+import { requestRegisterOtp } from '../controllers/otp/requestOTP.js';
+import { verifyOtp } from '../controllers/otp/otpVerification.js';
 
 const router = Router();
 

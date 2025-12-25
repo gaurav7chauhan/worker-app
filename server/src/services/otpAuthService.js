@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { OtpToken } from '../models/otpModel.js';
-import { sendOtp } from './mail/sendOtp.js';
+import { sendOtp } from './mail/otpService.js';
 import { redis } from '../config/rateLimiterConfig.js';
 import { AuthUser } from '../models/authModel.js';
 import { AppError } from '../utils/apiError.js';

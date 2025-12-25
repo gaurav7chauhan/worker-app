@@ -242,4 +242,3 @@ export const listUserRatings = asyncHandler(async (req, res) => {
     },
   });
 });
-F;

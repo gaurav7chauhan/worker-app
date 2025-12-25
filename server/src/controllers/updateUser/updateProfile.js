@@ -1,8 +1,7 @@
-import { AuthUser } from '../../models/authModel.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { uploadOnCloudinary } from '../../services/cloudinaryConfig.js';
+import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
 import { employerUpdate, workerUpdate } from '../../validator/update_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 

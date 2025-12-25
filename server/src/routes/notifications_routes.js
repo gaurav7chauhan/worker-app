@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { jwtVerify } from '../middlewares/jwtVerify.js';
+import { jwtVerify } from '../middlewares/jwtMiddleware.js';
 import { requireActiveUser } from '../middlewares/authMiddleware.js';
 import {
   listJobApplications,

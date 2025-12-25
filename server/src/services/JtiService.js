@@ -1,4 +1,4 @@
-import { redis } from "../../config/rateLimiterConfig.js";
+import { redis } from "../config/rateLimiterConfig.js";
 
 // blacklist.ts
 export const blacklistAccessJti = async (jti, exp) => {

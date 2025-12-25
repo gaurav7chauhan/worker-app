@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { languages as allowedLangs } from '../../config/languageConfig.js';
-import { jobCategories } from '../../config/categoriesConfig.js';
+import { languages as allowedLangs } from '../common/language.js';
+import { jobCategories } from '../common/categories.js';
 
 const AddressSchema = z.object({
   line1: z.string().trim().max(120),

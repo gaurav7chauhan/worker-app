@@ -1,11 +1,11 @@
 import { RefreshSession } from '../models/tokenModel.js';
 import { AppError } from '../utils/apiError.js';
-import { cookieOptions } from '../services/cookieOptions.js';
+import { cookieOptions } from '../config/cookieOptions.js';
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
-} from '../services/jwt.js';
+} from '../services/tokenService.js';
 
 export const refreshHandler = async (req, res, next) => {
   try {

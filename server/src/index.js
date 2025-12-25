@@ -1,7 +1,7 @@
 import { connectDB } from './database/dbConnection.js';
-import { ensureRedis } from '../config/rateLimiterConfig.js';
 import app from './app.js';
 import dotenv from 'dotenv';
+import { ensureRedis } from './config/rateLimiterConfig.js';
 
 dotenv.config({ path: './.env' });
 

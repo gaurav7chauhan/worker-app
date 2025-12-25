@@ -2,7 +2,7 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { AppError } from '../../utils/apiError.js';
 import { JobPost } from '../../models/postModel.js';
 import { Application } from '../../models/applicationModel.js';
-import { WorkerProfile } from '../../models/workerProfileModel.js';
+import { WorkerProfile } from '../../models/workerModel.js';
 import { applicationSchema } from '../../validator/application_valid.js';
 
 export const submitApplication = asyncHandler(async (req, res) => {

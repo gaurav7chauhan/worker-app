@@ -2,7 +2,7 @@ import { parseLocation } from '../../common/mainLocation.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { uploadOnCloudinary } from '../../services/cloudinaryConfig.js';
+import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
 import { jobPostBodySchema } from '../../validator/post_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 

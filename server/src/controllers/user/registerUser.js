@@ -84,8 +84,6 @@ export const registerEmployer = asyncHandler(async (req, res, next) => {
       userId,
       email,
     });
-  } catch (error) {
-    return next(error);
   } finally {
     await session.endSession();
   }
@@ -177,8 +175,6 @@ export const registerWorker = asyncHandler(async (req, res, next) => {
       userId,
       email,
     });
-  } catch (error) {
-    return next(error);
   } finally {
     await session.endSession();
   }

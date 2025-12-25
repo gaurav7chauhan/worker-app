@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { jobCategories } from '../../config/categoriesConfig.js';
+import { jobCategories } from '../common/categories.js';
 import { geoPointSchema } from '../common/geoPoint.js';
 
 // Optional simple arrays

@@ -1,8 +1,8 @@
-import { AuthUser } from '../../models/authModel.js';
-import { cookieOptions } from '../../utils/cookieOptions.js';
-import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
+import { cookieOptions } from '../../config/cookieOptions.js';
+import { generateAccessToken, generateRefreshToken } from '../../services/tokenService.js';
 import { loginSchema } from '../../validator/login_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
+import { AuthUser } from '../../models/authModel.js';
 
 export const login = asyncHandler(async (req, res) => {
   // Validate request body

@@ -1,5 +1,5 @@
-import { verifyAccessToken } from '../utils/jwt.js';
-import { isAccessJtiBlacklisted } from '../services/redisToken.js';
+import { verifyAccessToken } from '../services/tokenService.js';
+import { isAccessJtiBlacklisted } from '../services/JtiService.js';
 import { AppError } from '../utils/apiError.js';
 
 export const jwtVerify = async (req, res, next) => {
