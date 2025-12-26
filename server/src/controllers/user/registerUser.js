@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { EmployerProfile } from '../../models/employerModel.js';
+import { EmployerProfile, WorkerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import {
   registerEmployerSchema,
@@ -7,28 +7,22 @@ import {
 } from '../../validator/register_valid.js';
 import { AppError } from '../../utils/apiError.js';
 import { AuthUser } from '../../models/authModel.js';
-import { parseLocation } from '../../common/mainLocation.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
-export const registerEmployer = asyncHandler(async (req, res, next) => {
+// EMPLOYER
+export const registerEmployer = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
-    // Validate request body
     const payload = registerEmployerSchema.safeParse(req.body);
     if (!payload.success) {
-      const first = payload.error?.issues[0];
+      const first = payload.error.issues[0];
       throw new AppError(first.message, { status: 400 });
     }
 
-    const { email, password, fullName, address, role, location } = payload.data;
-
+    const { email, password, role, fullName } = payload.data;
     let userId;
 
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
-
-    // Transaction start
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
       if (exists) {
@@ -37,7 +31,6 @@ export const registerEmployer = asyncHandler(async (req, res, next) => {
         });
       }
 
-      // Create auth user
       const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       const [authDoc] = await AuthUser.create(
@@ -53,23 +46,11 @@ export const registerEmployer = asyncHandler(async (req, res, next) => {
         { session }
       );
 
-      // Prepare optional fields
-      const userAddress = address?.trim() || null;
-
-      let geoLocation = null;
-      if (location) {
-        const { lng, lat } = parseLocation(location);
-        geoLocation = { type: 'Point', coordinates: [lng, lat] };
-      }
-
-      // Create employer profile
-      const [profile] = await EmployerProfile.create(
+      await EmployerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
-            ...(userAddress && { address: userAddress }),
-            ...(geoLocation && { location: geoLocation }),
           },
         ],
         { session }
@@ -80,7 +61,7 @@ export const registerEmployer = asyncHandler(async (req, res, next) => {
 
     return res.status(201).json({
       status: 'pending',
-      message: 'Registered successfully. Please verify email.',
+      message: `Welcome ${fullName}! Please verify your email.`,
       userId,
       email,
     });
@@ -89,35 +70,20 @@ export const registerEmployer = asyncHandler(async (req, res, next) => {
   }
 });
 
-export const registerWorker = asyncHandler(async (req, res, next) => {
+// WORKER
+export const registerWorker = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
-    // Validate request body
     const payload = registerWorkerSchema.safeParse(req.body);
     if (!payload.success) {
-      const first = payload.error?.issues[0];
+      const first = payload.error.issues[0];
       throw new AppError(first.message, { status: 400 });
     }
 
-    const {
-      email,
-      password,
-      fullName,
-      address,
-      location,
-      category,
-      skills,
-      experienceYears,
-      role,
-    } = payload.data;
-
+    const { email, password, role, fullName } = payload.data;
     let userId;
 
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
-
-    // Transaction start
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
       if (exists) {
@@ -128,7 +94,6 @@ export const registerWorker = asyncHandler(async (req, res, next) => {
 
       const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      // Create auth user
       const [authDoc] = await AuthUser.create(
         [
           {
@@ -142,25 +107,11 @@ export const registerWorker = asyncHandler(async (req, res, next) => {
         { session }
       );
 
-      const userAddress = address?.trim() || null;
-
-      let geoLocation = null;
-      if (location) {
-        const { lng, lat } = parseLocation(location);
-        geoLocation = { type: 'Point', coordinates: [lng, lat] };
-      }
-
-      // Create worker profile
       await WorkerProfile.create(
         [
           {
             userId: authDoc._id,
             fullName,
-            category,
-            ...(skills !== undefined && { skills }),
-            ...(experienceYears !== undefined && { experienceYears }),
-            ...(userAddress && { address: userAddress }),
-            ...(geoLocation && { location: geoLocation }),
           },
         ],
         { session }
@@ -171,7 +122,7 @@ export const registerWorker = asyncHandler(async (req, res, next) => {
 
     return res.status(201).json({
       status: 'pending',
-      message: 'Registered successfully. Please verify email.',
+      message: `Welcome ${fullName}! Please verify your email.`,
       userId,
       email,
     });

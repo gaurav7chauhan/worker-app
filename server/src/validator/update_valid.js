@@ -25,7 +25,6 @@ const baseProfileUpdate = z
     address: AddressSchema.partial().optional(),
     bio: z.string().trim().max(500).optional(),
     avatarUrl: z.string().url().optional(),
-    coverUrl: z.string().url().optional(),
     languages: z
       .array(z.string().trim().toLowerCase()) // normalize case first [6]
       .max(5)
