@@ -1,15 +1,19 @@
 import { RefreshSession } from '../../models/tokenModel.js';
 import { cookieOptions } from '../../config/cookieOptions.js';
-import { verifyAccessToken, verifyRefreshToken } from '../../services/tokenService.js';
+import {
+  verifyAccessToken,
+  verifyRefreshToken,
+} from '../../services/tokenService.js';
 import { blacklistAccessJti } from '../../services/JtiService.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
 export const logout = asyncHandler(async (req, res) => {
   // 1️⃣ Extract access token
-  const authz = req.headers.authorization || '';
-  const parts = authz.split(' ');
-  const accessToken =
-    parts.length === 2 && parts[0] === 'Bearer' ? parts[1] : null;
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) {
+    return next(new AppError('Missing access token', { status: 401 }));
+  }
+  const accessToken = auth.split(' ')[1];
 
   // 2️⃣ Revoke refresh token session
   const refreshToken = req.cookies?.refreshToken;
