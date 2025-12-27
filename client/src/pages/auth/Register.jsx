@@ -1,177 +1,279 @@
-import React, { useState } from "react";
-import { useLocation, Navigate, useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
+// import React, { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import Input from "../../components/ui/Input";
+// import Button from "../../components/ui/Button";
+
+// const Register = () => {
+//   const [formData, setFormData] = useState({
+//     fullName: "",
+//     email: "",
+//     password: "",
+//     role: "worker",
+//   });
+//   const [errors, setErrors] = useState({});
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const navigate = useNavigate();
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//     if (errors[name]) {
+//       setErrors((prev) => ({ ...prev, [name]: "" }));
+//     }
+//   };
+
+//   const validate = () => {
+//     const newErrors = {};
+//     if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
+//     if (!formData.email.trim()) newErrors.email = "Email is required";
+//     else if (!/\S+@\S+\.\S+/.test(formData.email))
+//       newErrors.email = "Invalid email format";
+//     if (!formData.password) newErrors.password = "Password is required";
+//     else if (formData.password.length < 8)
+//       newErrors.password = "Password must be at least 8 characters";
+
+//     setErrors(newErrors);
+//     return Object.keys(newErrors).length === 0;
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!validate()) return;
+
+//     setIsSubmitting(true);
+//     try {
+//       console.log("Form submitted:", formData);
+//       navigate("/otp", {
+//         state: { role: formData.role, email: formData.email },
+//       });
+//     } catch (error) {
+//       console.error("Registration failed:", error);
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-12">
+//       <div className="w-full max-w-2xl">
+//         {/* Header */}
+//         <div className="text-center mb-10">
+//           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-black mb-6">
+//             <svg
+//               className="w-10 h-10 text-white"
+//               fill="none"
+//               stroke="currentColor"
+//               viewBox="0 0 24 24"
+//             >
+//               <path
+//                 strokeLinecap="round"
+//                 strokeLinejoin="round"
+//                 strokeWidth={2}
+//                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+//               />
+//             </svg>
+//           </div>
+//           <h1 className="text-4xl font-bold text-gray-900 mb-3">
+//             Create Account
+//           </h1>
+//           <p className="text-lg text-gray-600">
+//             Start your journey with us today
+//           </p>
+//         </div>
+
+//         {/* Form Card */}
+//         <div className="bg-white rounded-3xl shadow-2xl p-10 md:p-12">
+//           <form onSubmit={handleSubmit} className="space-y-7">
+//             {/* Full Name */}
+//             <Input
+//               label="Full Name"
+//               type="text"
+//               name="fullName"
+//               value={formData.fullName}
+//               onChange={handleChange}
+//               placeholder="Enter your full name"
+//               error={errors.fullName}
+//               required
+//               fullWidth
+//             />
+
+//             {/* Email */}
+//             <Input
+//               label="Email Address"
+//               type="email"
+//               name="email"
+//               value={formData.email}
+//               onChange={handleChange}
+//               placeholder="your.email@example.com"
+//               error={errors.email}
+//               required
+//               fullWidth
+//               leftIcon={
+//                 <svg
+//                   className="w-5 h-5"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     strokeLinecap="round"
+//                     strokeLinejoin="round"
+//                     strokeWidth={2}
+//                     d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+//                   />
+//                 </svg>
+//               }
+//             />
+
+//             {/* Password */}
+//             <Input
+//               label="Password"
+//               type="password"
+//               name="password"
+//               value={formData.password}
+//               onChange={handleChange}
+//               placeholder="Create a strong password"
+//               error={errors.password}
+//               helperText={
+//                 !errors.password ? "Must be at least 8 characters" : ""
+//               }
+//               required
+//               fullWidth
+//             />
+
+//             {/* Role Selection Section */}
+//             <div className="pt-4">
+//               <label className="block text-base font-semibold text-gray-900 mb-4">
+//                 I want to join as
+//               </label>
+//               <div className="grid grid-cols-2 gap-4">
+//                 <label
+//                   className={`role-card-large ${
+//                     formData.role === "worker"
+//                       ? "ring-2 ring-black bg-gray-50 border-black"
+//                       : ""
+//                   }`}
+//                 >
+//                   <input
+//                     type="radio"
+//                     name="role"
+//                     value="worker"
+//                     checked={formData.role === "worker"}
+//                     onChange={handleChange}
+//                     className="sr-only"
+//                   />
+//                   <div className="text-center p-2">
+//                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-3">
+//                       <svg
+//                         className="w-8 h-8 text-gray-700"
+//                         fill="none"
+//                         stroke="currentColor"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <path
+//                           strokeLinecap="round"
+//                           strokeLinejoin="round"
+//                           strokeWidth={2}
+//                           d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+//                         />
+//                       </svg>
+//                     </div>
+//                     <p className="font-semibold text-lg text-gray-900">Worker</p>
+//                     <p className="text-sm text-gray-500 mt-1">
+//                       Find opportunities
+//                     </p>
+//                   </div>
+//                 </label>
+
+//                 <label
+//                   className={`role-card-large ${
+//                     formData.role === "employer"
+//                       ? "ring-2 ring-black bg-gray-50 border-black"
+//                       : ""
+//                   }`}
+//                 >
+//                   <input
+//                     type="radio"
+//                     name="role"
+//                     value="employer"
+//                     checked={formData.role === "employer"}
+//                     onChange={handleChange}
+//                     className="sr-only"
+//                   />
+//                   <div className="text-center p-2">
+//                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-3">
+//                       <svg
+//                         className="w-8 h-8 text-gray-700"
+//                         fill="none"
+//                         stroke="currentColor"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <path
+//                           strokeLinecap="round"
+//                           strokeLinejoin="round"
+//                           strokeWidth={2}
+//                           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+//                         />
+//                       </svg>
+//                     </div>
+//                     <p className="font-semibold text-lg text-gray-900">
+//                       Employer
+//                     </p>
+//                     <p className="text-sm text-gray-500 mt-1">
+//                       Hire talent
+//                     </p>
+//                   </div>
+//                 </label>
+//               </div>
+//             </div>
+
+//             {/* Submit Button */}
+//             <div className="pt-4">
+//               <Button type="submit" fullWidth loading={isSubmitting}>
+//                 Create Account & Verify
+//               </Button>
+//             </div>
+//           </form>
+
+//           {/* Footer */}
+//           <div className="mt-8 text-center pt-6 border-t border-gray-200">
+//             <p className="text-base text-gray-600">
+//               Already have an account?{" "}
+//               <a
+//                 href="/login"
+//                 className="font-semibold text-black hover:underline"
+//               >
+//                 Sign in here
+//               </a>
+//             </p>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Register;
+
+// SECOND - MINE CODE
+
+import React from "react";
+import { useState } from "react";
+import Input from "../../components/ui/Input.jsx";
 
 const Register = () => {
-  const location = useLocation();
-  const role = location.state?.role || sessionStorage.getItem("selectedRole");
-  const [focusedField, setFocusedField] = useState(null);
-  const navigate = useNavigate();
-
-  if (!role) {
-    return <Navigate to="/select-role" replace />;
-  }
-
-  const isSubmitting = false; // Placeholder for submission state
-  const handleSelect = () => {
-    navigate("/otp", { state: { role } });
-  };
-
+  const [fullName, setFullName] = useState("fullName");
+  const [email, setEmail] = useState("email");
+  const [password, setPassword] = useState(null);
+  const [role, setRole] = useState();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Header Section */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-black mb-4">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-gray-600">
-            Join as{" "}
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-black text-white capitalize">
-              {role}
-            </span>
-          </p>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <form className="space-y-5">
-            {/* Full Name Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                onFocus={() => setFocusedField("name")}
-                onBlur={() => setFocusedField(null)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
-                  focusedField === "name"
-                    ? "border-black bg-gray-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              />
-            </div>
-
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField(null)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
-                  focusedField === "email"
-                    ? "border-black bg-gray-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                onFocus={() => setFocusedField("password")}
-                onBlur={() => setFocusedField(null)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
-                  focusedField === "password"
-                    ? "border-black bg-gray-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              />
-              <p className="mt-1.5 text-xs text-gray-500">
-                Must be at least 8 characters
-              </p>
-            </div>
-
-            {/* Role-Specific Fields */}
-            {role === "worker" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Skills
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., Plumbing, Electrical, Driver"
-                  onFocus={() => setFocusedField("skills")}
-                  onBlur={() => setFocusedField(null)}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
-                    focusedField === "skills"
-                      ? "border-black bg-gray-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                />
-                <p className="mt-1.5 text-xs text-gray-500">
-                  Separate multiple skills with commas
-                </p>
-              </div>
-            )}
-
-            {role === "employer" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Your Company Ltd."
-                  onFocus={() => setFocusedField("company")}
-                  onBlur={() => setFocusedField(null)}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
-                    focusedField === "company"
-                      ? "border-black bg-gray-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                />
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              fullWidth
-              loading={isSubmitting}
-              onClick={handleSelect}
-            >
-              Register & Verify OTP
-            </Button>
-          </form>
-
-          {/* Footer Links */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <a
-                href="/login"
-                className="font-semibold text-black hover:underline"
-              >
-                Sign in
-              </a>
-            </p>
-          </div>
-        </div>
+    <div>
+      <h1>Register</h1>
+      <div>
+        <form action="">
+          <label htmlFor="fullName"></label>
+          <Input label="fullName" type="text" value={fullName} />
+        </form>
       </div>
     </div>
   );

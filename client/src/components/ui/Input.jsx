@@ -9,8 +9,6 @@ const Input = forwardRef(
       name,
       value,
       onChange,
-      onBlur,
-      onFocus,
       placeholder,
       error,
       helperText,
@@ -18,77 +16,28 @@ const Input = forwardRef(
       disabled = false,
       leftIcon,
       rightIcon,
-      size = "md",
       fullWidth = false,
       className = "",
-      inputClassName = "",
-      rows = 4,
-      maxLength,
-      showCharCount = false,
       ...rest
     },
     ref
   ) => {
-    const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleFocus = (e) => {
-      setIsFocused(true);
-      onFocus && onFocus(e);
-    };
-
-    const handleBlur = (e) => {
-      setIsFocused(false);
-      onBlur && onBlur(e);
-    };
-
-    // Base input styles
-    const baseInputStyles =
-      "w-full transition-all duration-200 outline-none bg-white";
-
-    // Size styles
-    const sizes = {
-      sm: "px-3 py-2 text-sm",
-      md: "px-4 py-3 text-base",
-      lg: "px-5 py-4 text-lg",
-    };
-
-    // Border and focus styles
-    const borderStyles = error
-      ? "border-2 border-red-500 focus:border-red-600"
-      : isFocused
-      ? "border-2 border-black bg-gray-50"
-      : "border-2 border-gray-200 hover:border-gray-300";
-
-    // Icon padding adjustments
-    const iconPadding = leftIcon
-      ? "pl-11"
-      : rightIcon && type !== "password"
-      ? "pr-11"
-      : "";
-
-    // Combine input styles
-    const inputStyles = `
-    ${baseInputStyles}
-    ${sizes[size]}
-    ${borderStyles}
-    ${iconPadding}
-    ${disabled ? "bg-gray-100 cursor-not-allowed opacity-60" : ""}
-    ${type === "textarea" ? "rounded-xl resize-none" : "rounded-xl"}
-    ${inputClassName}
-  `
+    // Simplified styles using CSS classes
+    const inputClasses = `
+      input-field
+      ${leftIcon ? "pl-11" : ""}
+      ${rightIcon && type !== "password" ? "pr-11" : ""}
+      ${type === "password" ? "pr-11" : ""}
+      ${error ? "border-red-500 focus:border-red-600" : ""}
+      ${disabled ? "input-disabled" : ""}
+    `
       .trim()
       .replace(/\s+/g, " ");
 
-    // Container styles
-    const containerStyles = `${fullWidth ? "w-full" : ""} ${className}`;
-
-    // Render input or textarea
-    const InputElement = type === "textarea" ? "textarea" : "input";
-
     return (
-      <div className={containerStyles}>
-        {/* Label */}
+      <div className={`${fullWidth ? "w-full" : ""} ${className}`}>
         {label && (
           <label
             htmlFor={name}
@@ -99,17 +48,14 @@ const Input = forwardRef(
           </label>
         )}
 
-        {/* Input Container */}
         <div className="relative">
-          {/* Left Icon */}
           {leftIcon && (
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
               {leftIcon}
             </div>
           )}
 
-          {/* Input Field */}
-          <InputElement
+          <input
             ref={ref}
             type={
               type === "password" ? (showPassword ? "text" : "password") : type
@@ -118,32 +64,20 @@ const Input = forwardRef(
             name={name}
             value={value}
             onChange={onChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled}
             required={required}
-            className={inputStyles}
-            maxLength={maxLength}
-            rows={type === "textarea" ? rows : undefined}
-            aria-invalid={error ? "true" : "false"}
-            aria-describedby={
-              error
-                ? `${name}-error`
-                : helperText
-                ? `${name}-helper`
-                : undefined
-            }
+            className={inputClasses}
             {...rest}
           />
 
-          {/* Right Icon or Password Toggle */}
-          {type === "password" ? (
+          {type === "password" && (
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               tabIndex={-1}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
                 <svg
@@ -181,39 +115,18 @@ const Input = forwardRef(
                 </svg>
               )}
             </button>
-          ) : (
-            rightIcon && (
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-                {rightIcon}
-              </div>
-            )
+          )}
+
+          {rightIcon && type !== "password" && (
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+              {rightIcon}
+            </div>
           )}
         </div>
 
-        {/* Character Count */}
-        {showCharCount && maxLength && (
-          <div className="mt-1.5 text-right">
-            <span
-              className={`text-xs ${
-                value?.length >= maxLength ? "text-red-500" : "text-gray-500"
-              }`}
-            >
-              {value?.length || 0}/{maxLength}
-            </span>
-          </div>
-        )}
-
-        {/* Error Message */}
         {error && (
-          <p
-            id={`${name}-error`}
-            className="mt-1.5 text-sm text-red-600 flex items-center gap-1"
-          >
-            <svg
-              className="w-4 h-4 shrink-0"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
+          <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -224,11 +137,8 @@ const Input = forwardRef(
           </p>
         )}
 
-        {/* Helper Text */}
         {helperText && !error && (
-          <p id={`${name}-helper`} className="mt-1.5 text-xs text-gray-500">
-            {helperText}
-          </p>
+          <p className="mt-1.5 text-xs text-gray-500">{helperText}</p>
         )}
       </div>
     );
@@ -239,21 +149,10 @@ Input.displayName = "Input";
 
 Input.propTypes = {
   label: PropTypes.string,
-  type: PropTypes.oneOf([
-    "text",
-    "email",
-    "password",
-    "number",
-    "tel",
-    "url",
-    "search",
-    "textarea",
-  ]),
+  type: PropTypes.oneOf(["text", "email", "password", "number", "tel", "url"]),
   name: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func,
-  onBlur: PropTypes.func,
-  onFocus: PropTypes.func,
   placeholder: PropTypes.string,
   error: PropTypes.string,
   helperText: PropTypes.string,
@@ -261,13 +160,8 @@ Input.propTypes = {
   disabled: PropTypes.bool,
   leftIcon: PropTypes.node,
   rightIcon: PropTypes.node,
-  size: PropTypes.oneOf(["sm", "md", "lg"]),
   fullWidth: PropTypes.bool,
   className: PropTypes.string,
-  inputClassName: PropTypes.string,
-  rows: PropTypes.number,
-  maxLength: PropTypes.number,
-  showCharCount: PropTypes.bool,
 };
 
 export default Input;
