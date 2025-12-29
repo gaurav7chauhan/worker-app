@@ -27,6 +27,15 @@ const Input = forwardRef(
     // Simplified styles using CSS classes
     const inputClasses = `
       input-field
+      w-full
+      px-4 py-2
+      rounded-lg
+      bg-white text-black
+      border border-gray-300
+      outline outline-1 outline-transparent
+      focus:outline-black
+      focus:border-black
+      transition
       ${leftIcon ? "pl-11" : ""}
       ${rightIcon && type !== "password" ? "pr-11" : ""}
       ${type === "password" ? "pr-11" : ""}

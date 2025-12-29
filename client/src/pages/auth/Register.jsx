@@ -260,22 +260,160 @@
 import React from "react";
 import { useState } from "react";
 import Input from "../../components/ui/Input.jsx";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import api from "../../api/axios.js";
 
 const Register = () => {
-  const [fullName, setFullName] = useState("fullName");
-  const [email, setEmail] = useState("email");
-  const [password, setPassword] = useState(null);
-  const [role, setRole] = useState();
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const password = watch("password");
+  const role = watch("role");
+  const email = watch("email");
+
+  const isStrongPassword =
+    password &&
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^a-zA-Z0-9]/.test(password);
+
+  const onSubmit = async (data) => {
+    try {
+      // 1️⃣ Decide register route by role
+      const registerUrl =
+        data.role === "employer"
+          ? "/auth/register/employer"
+          : "/auth/register/employer";
+
+      // 2️⃣ Call register API
+      const registerRes = await api.post(registerUrl, {
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      });
+
+      // backend should return userId or tempId
+      const { userId } = registerRes.data;
+
+      // 3️⃣ Request OTP
+      await api.post("/auth/request-register-otp", {
+        userId,
+        email: data.email,
+        role: data.role,
+        purpose: "register",
+      });
+
+      // 4️⃣ Navigate to OTP page
+      navigate("/otp", {
+        state: {
+          userId,
+          email: data.email,
+          role: data.role,
+        },
+      });
+    } catch (error) {
+      const msg =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Something went wrong";
+      toast.error(msg);
+    }
+  };
+
   return (
-    <div>
-      <h1>Register</h1>
-      <div>
-        <form action="">
-          <label htmlFor="fullName"></label>
-          <Input label="fullName" type="text" value={fullName} />
-        </form>
+    <>
+      <div className="flex flex-col text-center items-center justify-center mt-32 bg-gray-500 py-10 text-white">
+        <h1 className="text-center">Register</h1>
+        <div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Input
+              label="fullName*"
+              name="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              {...register("fullName", { required: "Full name is required" })}
+              error={errors.fullName?.message}
+              className="flex flex-col items-start py-2"
+            />
+            <Input
+              label="email*"
+              name="email"
+              type="email"
+              placeholder="Enter your email"
+              {...register("email", { required: "email is required" })}
+              error={errors.email?.message}
+              className="flex flex-col items-start py-2"
+            />
+            {email && !email.includes("@") && (
+              <p className="text-red-500 text-sm">Email must include @</p>
+            )}
+
+            <Input
+              label="password*"
+              name="password"
+              type="password"
+              placeholder="Create a password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: { value: 8, message: "Min 8 characters" },
+              })}
+              error={errors.password?.message}
+              className="flex flex-col items-start py-2"
+            />
+            {password && (
+              <p
+                className={`text-sm mt-1 ${
+                  isStrongPassword ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {isStrongPassword ? "Strong password" : "Weak password"}
+              </p>
+            )}
+            <div>
+              <h3 className="py-5">Select Role</h3>
+
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="employer"
+                    {...register("role", { required: "Please select a role" })}
+                  />
+                  Employer
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="worker"
+                    {...register("role", { required: "Please select a role" })}
+                  />
+                  Worker
+                </label>
+              </div>
+
+              {errors.role && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.role.message}
+                </p>
+              )}
+            </div>
+            {role && <p>Selected role: {role}</p>}
+
+            <button type="submit">Register for OTP</button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
