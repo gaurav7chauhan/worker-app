@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { EmployerProfile, WorkerProfile } from '../../models/employerModel.js';
+import { EmployerProfile } from '../../models/employerModel.js';
 import { WorkerProfile } from '../../models/workerModel.js';
 import {
   registerEmployerSchema,

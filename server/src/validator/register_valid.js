@@ -15,7 +15,12 @@ export const registerEmployerSchema = z.object({
     .string({ required_error: 'Full name is required' })
     .trim()
     .min(3, 'Full name must be at least 3 characters'),
-  role: z.literal('Employer', 'Please select Employer as role'),
+  role: z
+    .string()
+    .transform((v) => v.toLowerCase())
+    .refine((v) => v === 'employer', {
+      message: 'Invalid role selected',
+    }),
 });
 
 export const registerWorkerSchema = z
@@ -27,6 +32,11 @@ export const registerWorkerSchema = z
       .trim()
       .min(3, 'Full name must be at least 3 characters'),
 
-    role: z.literal('Worker', 'Please select Worker as role'),
+    role: z
+      .string()
+      .transform((v) => v.toLowerCase())
+      .refine((v) => v === 'worker', {
+        message: 'Invalid role selected',
+      }),
   })
   .strict();
