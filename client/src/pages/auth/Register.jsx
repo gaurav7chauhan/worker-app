@@ -1,16 +1,21 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import Input from "../../components/ui/Input.jsx";
 import api from "../../api/axios.js";
 import { HiBriefcase } from "react-icons/hi2";
 import { FaHardHat } from "react-icons/fa";
-import { getUserFriendlyError } from "../../utils/errorMessage.js";
+import {
+  dismissToast,
+  showErrToast,
+  showLoadingToast,
+  showSuccessToast,
+} from "../../utils/toast.js";
 
 const Register = () => {
   const navigate = useNavigate();
-
+  const [loading, setLoading] = React.useState(false);
+  const submitLockRef = React.useRef(false);
   const {
     register,
     handleSubmit,
@@ -32,7 +37,17 @@ const Register = () => {
 
   // ONSUBMIT
   const onSubmit = async (data) => {
+    if(submitLockRef.current) return;
+    submitLockRef.current = true;
+    let toastId;
+
     try {
+      setLoading(true);
+
+      // toast
+      toastId = showLoadingToast("Sending OTP...");
+
+      // API calls to auth
       const registerUrl =
         data.role === "employer"
           ? "/auth/register/employer"
@@ -41,12 +56,17 @@ const Register = () => {
       const registerRes = await api.post(registerUrl, data);
       const { userId } = registerRes.data;
 
+      // API calls to OTP
       await api.post("/auth/request-register-otp", {
         userId,
         email: data.email,
         purpose: "register",
       });
 
+      // toast
+      showSuccessToast("OTP sent successfully", toastId);
+
+      // naviagation
       navigate("/otp", {
         state: { userId, email: data.email, role: data.role },
       });
@@ -59,12 +79,17 @@ const Register = () => {
           type: "manual",
           message: "This email is already registered",
         });
+
+        // toast
+        dismissToast(toastId);
         return;
       }
 
-      toast.error(getUserFriendlyError(error), {
-        id: "register-error"
-      });
+      // All other errors → toast
+      showErrToast(error, { id: toastId });
+    } finally {
+      setLoading(false);
+      submitLockRef.current = false
     }
   };
 
@@ -172,7 +197,7 @@ const Register = () => {
 
           <button
             type="submit"
-            disabled={!role}
+            disabled={!role || loading}
             className={`w-full py-2.5 rounded-lg font-medium transition cursor-pointer
               ${
                 role
@@ -180,7 +205,14 @@ const Register = () => {
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
           >
-            Register & Get OTP
+            {loading ? (
+              <>
+                <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Register & Get OTP"
+            )}
           </button>
         </form>
       </div>
