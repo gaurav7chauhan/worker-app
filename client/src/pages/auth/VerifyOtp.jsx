@@ -1,47 +1,132 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Button from "../../components/ui/Button";
+import api from "../../api/axios";
+import Input from "../../components/ui/Input";
+import {
+  showErrToast,
+  showLoadingToast,
+  showSuccessToast,
+} from "../../utils/toast";
 
 const VerifyOtp = () => {
+  const inputsRef = React.useRef([]);
+  const [otp, setOtp] = React.useState(Array(6).fill(""));
+  const { state } = useLocation();
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+
+  // safety guards
+  const userId = state?.userId;
+  const email = state?.email;
+  const role = state?.role;
+  const fullName = state?.fullName;
+  const purpose = state?.purpose || "register";
+
+  React.useEffect(() => {
+    inputsRef.current[0]?.focus();
+  }, []);
+
+  // handle setOtp
+  const handleChange = (e, idx) => {
+    const value = e.target.value;
+
+    // allow only single digit
+    if (!/^\d?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[idx] = value;
+    setOtp(newOtp);
+
+    // move to next input
+    if (value && idx < 5) {
+      inputsRef.current[idx + 1].focus();
+    }
+  };
+
+  // handle backspace
+  const handleKeyDown = (e, idx) => {
+    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
+      inputsRef.current[idx - 1].focus();
+    }
+  };
+
+  // handle form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let toastId;
+    const finalOtp = otp.join("");
+    if (finalOtp.length !== 6) {
+      showErrToast("Please enter complete OTP");
+      return;
+    }
+
+    if (!userId || !email) {
+      showErrToast("Session expired. Please register again.");
+      navigate("/register");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      toastId = showLoadingToast("Verifying OTP...");
+
+      await api.post("/verify-otp", {
+        userId,
+        email,
+        purpose,
+        otp: finalOtp,
+      });
+
+      showSuccessToast("OTP verify successfully", toastId);
+
+      navigate("/login", {
+        state: {
+          userId,
+          email,
+          fullName,
+          role,
+        },
+      });
+    } catch (error) {
+      showErrToast(error, { id: toastId });
+      return;
+    } finally {
+      setLoading(false);
+    }
+
+    console.log("OTP:", finalOtp);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md">
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Verify your email
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter the 6-digit code sent to your email
-          </p>
-        </div>
-
-        {/* OTP Inputs */}
-        <div className="flex justify-between gap-2 mb-6">
-          {[...Array(6)].map((_, i) => (
-            <input
-              key={i}
+    <div>
+      <form onSubmit={handleSubmit}>
+        {otp.map((val, idx) => (
+          <div key={idx}>
+            <Input
+              ref={(el) => (inputsRef.current[idx] = el)}
               type="text"
-              maxLength="1"
-              className="h-12 w-12 rounded-xl border text-center text-lg font-semibold focus:border-black focus:outline-none"
+              inputMode="numeric"
+              maxLength={1}
+              value={val}
+              onChange={(e) => handleChange(e, idx)}
+              onKeyDown={(e) => handleKeyDown(e, idx)}
+              placeholder="0"
             />
-          ))}
-        </div>
-
-        {/* Verify Button */}
-        <button
-          type="button"
-          className="w-full rounded-xl bg-black py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition"
-        >
-          Verify OTP
-        </button>
-
-        {/* Resend */}
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Didn’t receive the code?{" "}
-          <span className="cursor-pointer font-medium text-black">
-            Resend OTP
-          </span>
-        </p>
-      </div>
+          </div>
+        ))}
+        <Button type="submit" loading={loading}>
+          {loading ? (
+            <>
+              <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Verify OTP"
+          )}
+        </Button>
+      </form>
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {
   showLoadingToast,
   showSuccessToast,
 } from "../../utils/toast.js";
+import Button from "../../components/ui/Button.jsx";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Register = () => {
 
   // ONSUBMIT
   const onSubmit = async (data) => {
-    if(submitLockRef.current) return;
+    if (submitLockRef.current) return;
     submitLockRef.current = true;
     let toastId;
 
@@ -54,7 +55,7 @@ const Register = () => {
           : "/auth/register/worker";
 
       const registerRes = await api.post(registerUrl, data);
-      const { userId } = registerRes.data;
+      const { userId,  } = registerRes.data;
 
       // API calls to OTP
       await api.post("/auth/request-register-otp", {
@@ -68,7 +69,13 @@ const Register = () => {
 
       // naviagation
       navigate("/otp", {
-        state: { userId, email: data.email, role: data.role },
+        state: {
+          userId,
+          email: data.email,
+          role: data.role,
+          fullName: data.fullName,
+          purpose: "register"
+        },
       });
     } catch (error) {
       const status = error?.response?.status;
@@ -89,7 +96,7 @@ const Register = () => {
       showErrToast(error, { id: toastId });
     } finally {
       setLoading(false);
-      submitLockRef.current = false
+      submitLockRef.current = false;
     }
   };
 
@@ -195,15 +202,13 @@ const Register = () => {
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={!role || loading}
-            className={`w-full py-2.5 rounded-lg font-medium transition cursor-pointer
-              ${
-                role
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+            fullWidth
+            variant="gradient"
+            size="md"
+            loading={loading}
+            disabled={!role}
           >
             {loading ? (
               <>
@@ -213,7 +218,7 @@ const Register = () => {
             ) : (
               "Register & Get OTP"
             )}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

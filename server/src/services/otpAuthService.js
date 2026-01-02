@@ -109,8 +109,8 @@ export const requestOtpService = async (userId, email, purpose) => {
 };
 
 // Verify OTP
-export const verifyOtpService = async (userId, email, purpose, code) => {
-  if (!userId || !email || !purpose || !code) {
+export const verifyOtpService = async (userId, email, purpose, otp) => {
+  if (!userId || !email || !purpose || !otp) {
     throw new AppError('Missing required params', { status: 400 });
   }
 
@@ -135,7 +135,7 @@ export const verifyOtpService = async (userId, email, purpose, code) => {
 
   // Compare hashed OTP
   let match = false;
-  match = await bcrypt.compare(String(code), token.codeHash);
+  match = await bcrypt.compare(String(otp), token.codeHash);
 
   if (!match) {
     await OtpToken.updateOne({ _id: token._id }, { $inc: { attempts: 1 } });

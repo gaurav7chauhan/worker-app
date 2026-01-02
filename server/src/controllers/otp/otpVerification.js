@@ -2,9 +2,9 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { verifyOtpService } from '../../services/otpAuthService.js';
 
 export const verifyOtp = asyncHandler(async (req, res) => {
-  const { userId, email, purpose, code } = req.body;
+  const { userId, email, purpose, otp } = req.body;
 
-  const output = await verifyOtpService(String(userId), email, purpose, code);
+  const output = await verifyOtpService(String(userId), email, purpose, otp);
 
   if (!output.ok) {
     if (output.reason === 'too_many_attempts') {
