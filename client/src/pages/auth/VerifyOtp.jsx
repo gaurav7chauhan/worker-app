@@ -16,16 +16,32 @@ const VerifyOtp = () => {
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
+  // resend OTP
+  const RESEND_TIME = 30;
+  const [resendTimer, setResendTimer] = React.useState(RESEND_TIME);
+  const [canResend, setCanResend] = React.useState(false);
+
   // safety guards
   const userId = state?.userId;
   const email = state?.email;
-  const role = state?.role;
-  const fullName = state?.fullName;
   const purpose = state?.purpose || "register";
 
   React.useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
+
+  React.useEffect(() => {
+    let timer;
+    if (resendTimer > 0) {
+      timer = setTimeout(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+
+    return () => clearTimeout(timer);
+  }, [resendTimer]);
 
   // handle setOtp
   const handleChange = (e, idx) => {
@@ -72,7 +88,7 @@ const VerifyOtp = () => {
       setLoading(true);
       toastId = showLoadingToast("Verifying OTP...");
 
-      await api.post("/verify-otp", {
+      await api.post("/auth/verify-otp", {
         userId,
         email,
         purpose,
@@ -85,8 +101,6 @@ const VerifyOtp = () => {
         state: {
           userId,
           email,
-          fullName,
-          role,
         },
       });
     } catch (error) {
@@ -99,34 +113,105 @@ const VerifyOtp = () => {
     console.log("OTP:", finalOtp);
   };
 
+  // handle resend
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+
+    try {
+      showLoadingToast("Resending OTP...");
+
+      await api.post("/auth/request-otp", {
+        userId,
+        email,
+        purpose,
+      });
+
+      showSuccessToast("OTP sent again");
+      setResendTimer(RESEND_TIME);
+      setCanResend(false);
+    } catch (error) {
+      showErrToast(error);
+    }
+  };
+
+  const maskedEmail = email ? email.replace(/(.{2}).+(@.+)/, "$1***$2") : "";
+
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        {otp.map((val, idx) => (
-          <div key={idx}>
-            <Input
-              ref={(el) => (inputsRef.current[idx] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={val}
-              onChange={(e) => handleChange(e, idx)}
-              onKeyDown={(e) => handleKeyDown(e, idx)}
-              placeholder="0"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-md border border-gray-200 p-8">
+        <h1 className="text-2xl font-semibold text-gray-800 text-center">
+          Verify OTP
+        </h1>
+
+        {/* Email info */}
+        <p className="text-sm text-gray-500 text-center mt-1">
+          We’ve sent a 6-digit code to
+        </p>
+        <p className="text-sm font-medium text-indigo-600 text-center mb-6">
+          {maskedEmail}
+          {/* or use maskedEmail */}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* OTP Inputs */}
+          <div className="flex justify-center gap-3">
+            {otp.map((val, idx) => (
+              <Input
+                key={idx}
+                ref={(el) => (inputsRef.current[idx] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={val}
+                onChange={(e) => handleChange(e, idx)}
+                onKeyDown={(e) => handleKeyDown(e, idx)}
+                placeholder="0"
+                className="w-12 h-12 text-center text-lg font-semibold
+                         border border-gray-300 rounded-lg
+                         focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200
+                         transition-all"
+              />
+            ))}
           </div>
-        ))}
-        <Button type="submit" loading={loading}>
-          {loading ? (
-            <>
-              <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Verify OTP"
-          )}
-        </Button>
-      </form>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            fullWidth
+            variant="gradient"
+            size="md"
+            loading={loading}
+            className="cursor-pointer"
+          >
+            {loading ? (
+              <>
+                <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Verify OTP"
+            )}
+          </Button>
+
+          {/* OTP resend */}
+          <p className="text-xs text-gray-500 text-center">
+            Didn’t receive the code?{" "}
+            {canResend ? (
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                className="text-indigo-600 font-medium hover:underline cursor-pointer"
+              >
+                Resend OTP
+              </button>
+            ) : (
+              <span className="underline text-indigo-500 hover:text-indigo-700 transition-colors">
+                Resend OTP in {resendTimer}s
+              </span>
+            )}
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

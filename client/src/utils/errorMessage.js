@@ -1,6 +1,6 @@
 export const getUserFriendlyError = (error) => {
   const status = error?.response?.status;
-  const msg = error?.response?.data?.message || "";
+  const msg = error?.response?.data?.error?.message || "";
 
   // EMAIL ALREADY EXISTS
   if (status === 409 && msg.toLowerCase().includes("exists")) {

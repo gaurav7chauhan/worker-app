@@ -58,7 +58,7 @@ const Register = () => {
       const { userId,  } = registerRes.data;
 
       // API calls to OTP
-      await api.post("/auth/request-register-otp", {
+      await api.post("/auth/request-otp", {
         userId,
         email: data.email,
         purpose: "register",
@@ -79,9 +79,9 @@ const Register = () => {
       });
     } catch (error) {
       const status = error?.response?.status;
-      const msg = error?.response?.data?.message || "";
+      const msg = error?.response?.data?.error?.message || "";
 
-      if (status === 409 && msg.toLowerCase().includes("exists")) {
+      if (status === 409 && msg.toLowerCase().includes("exists.")) {
         setError("email", {
           type: "manual",
           message: "This email is already registered",
