@@ -1,9 +1,9 @@
-import React from "react";
 import Register from "./pages/auth/Register";
 import VerifyOtp from "./pages/auth/VerifyOtp";
 import Login from "./pages/auth/Login";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import Home from "./pages/Home";
 
 const App = () => {
   return (
@@ -26,9 +26,10 @@ const App = () => {
         }}
       />
       <Routes>
-        <Route path="/" element={<Register />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/otp" element={<VerifyOtp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
       </Routes>
     </>
   );

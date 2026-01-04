@@ -55,7 +55,7 @@ const Register = () => {
           : "/auth/register/worker";
 
       const registerRes = await api.post(registerUrl, data);
-      const { userId,  } = registerRes.data;
+      const { userId } = registerRes.data;
 
       // API calls to OTP
       await api.post("/auth/request-otp", {
@@ -72,23 +72,20 @@ const Register = () => {
         state: {
           userId,
           email: data.email,
-          role: data.role,
-          fullName: data.fullName,
-          purpose: "register"
+          purpose: "register",
         },
       });
     } catch (error) {
       const status = error?.response?.status;
       const msg = error?.response?.data?.error?.message || "";
 
+      dismissToast(toastId);
+
       if (status === 409 && msg.toLowerCase().includes("exists.")) {
         setError("email", {
           type: "manual",
           message: "This email is already registered",
         });
-
-        // toast
-        dismissToast(toastId);
         return;
       }
 
@@ -112,7 +109,7 @@ const Register = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
-            label="Full Name"
+            label="FullName"
             placeholder="gaurav chauhan"
             {...register("fullName", { required: "Full name is required" })}
             error={errors.fullName?.message}
@@ -220,6 +217,24 @@ const Register = () => {
             )}
           </Button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <div className="grow border-t border-gray-300" />
+          <span className="mx-3 text-xs text-gray-400">OR</span>
+          <div className="grow border-t border-gray-300" />
+        </div>
+
+        {/* Login Redirect */}
+        <p className="text-sm text-center text-gray-600">
+          Already have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-indigo-600 font-medium cursor-pointer hover:underline"
+          >
+            Login
+          </span>
+        </p>
       </div>
     </div>
   );

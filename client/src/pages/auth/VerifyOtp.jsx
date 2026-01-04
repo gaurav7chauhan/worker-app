@@ -8,6 +8,7 @@ import {
   showLoadingToast,
   showSuccessToast,
 } from "../../utils/toast";
+import toast from "react-hot-toast";
 
 const VerifyOtp = () => {
   const inputsRef = React.useRef([]);
@@ -79,7 +80,7 @@ const VerifyOtp = () => {
     }
 
     if (!userId || !email) {
-      showErrToast("Session expired. Please register again.");
+      toast("Please register first to continue", { icon: "ℹ️" })
       navigate("/register");
       return;
     }
@@ -97,12 +98,7 @@ const VerifyOtp = () => {
 
       showSuccessToast("OTP verify successfully", toastId);
 
-      navigate("/login", {
-        state: {
-          userId,
-          email,
-        },
-      });
+      navigate("/login");
     } catch (error) {
       showErrToast(error, { id: toastId });
       return;

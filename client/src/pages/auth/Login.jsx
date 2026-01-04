@@ -1,65 +1,93 @@
 import React from "react";
+import { useForm } from "react-hook-form";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import {
+  dismissToast,
+  showErrToast,
+  showLoadingToast,
+  showSuccessToast,
+} from "../../utils/toast";
+import api from "../../api/axios";
 
 const Login = () => {
+  const [loading, setLoading] = React.useState(false);
+  const {
+    handleSubmit,
+    register,
+    watch,
+    setError,
+    formState: { errors },
+  } = useForm();
+
+  const email = watch("email");
+  const password = watch("password");
+
+  const onSubmit = async (data) => {
+    let toastId;
+    try {
+      setLoading(true);
+      toastId = showLoadingToast("Verifying user");
+
+      await api.post("/auth/login", {
+        state: {
+          email: data.email,
+          password: data.password,
+        },
+      });
+
+      showSuccessToast("User successfully login", toastId);
+    } catch (error) {
+      const status = error?.response?.status;
+      const msg = error?.response?.data?.error?.message || "";
+
+      dismissToast(toastId);
+
+      if (status === 401 && msg.toLowerCase().includes("exists.")) {
+        setError("email", {
+          type: "manual",
+          message: "Invalid email or password",
+        });
+        return;
+      }
+
+      showErrToast(error, { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="mt-2 text-sm text-gray-600">Login to your account</p>
-        </div>
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* email */}
+        <Input
+          label="Email"
+          type="email"
+          placeholder="gaurav@chauhan.com"
+          {...register("email", { required: "Email is required" })}
+          error={errors.email?.message}
+        />
+        {email && !email.includes("@") && (
+          <p className="text-xs text-red-500">Please enter a valid email</p>
+        )}
 
-        {/* Form */}
-        <form className="space-y-5">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email address
-            </label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="mt-1 w-full rounded-xl border px-4 py-2 text-sm focus:border-black focus:outline-none"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="mt-1 w-full rounded-xl border px-4 py-2 text-sm focus:border-black focus:outline-none"
-            />
-          </div>
-
-          {/* Forgot password */}
-          <div className="flex justify-end">
-            <span className="cursor-pointer text-sm font-medium text-black hover:underline">
-              Forgot password?
-            </span>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-black py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition"
-          >
-            Login
-          </button>
-        </form>
-
-        {/* Footer */}
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <span className="cursor-pointer font-medium text-black">
-            Register
-          </span>
-        </p>
-      </div>
+        {/* password */}
+        <Input
+          label="Password"
+          type="password"
+          placeholder="password"
+          {...register("password", {
+            required: "Password is required",
+            minLength: { value: 8, message: "Minimum 8 characters" },
+          })}
+          error={errors.password?.message}
+        />
+        <Button type="submit" loading={loading}>
+          login
+        </Button>
+      </form>
     </div>
   );
 };
