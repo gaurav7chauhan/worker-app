@@ -9,6 +9,7 @@ import notificationRoutes from './routes/notifications_routes.js';
 import ratingRoutes from './routes/ratings_routes.js';
 import toggleRoutes from './routes/toggle_routes.js';
 import authOtpRoutes from './routes/otp_routes.js';
+import passwordRoutes from './routes/password_routes.js';
 import { errorHandler } from './middlewares/errorMiddleware.js';
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/v1/notification', notificationRoutes);
 app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/toggle-role', toggleRoutes);
 app.use('/api/v1/auth', authOtpRoutes);
+app.use('/api/v1/password', passwordRoutes);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

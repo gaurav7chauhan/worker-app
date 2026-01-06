@@ -12,9 +12,9 @@ export const verifyOtp = asyncHandler(async (req, res) => {
     }
     return res.status(400).json({ error: 'Invalid or expired OTP' });
   }
-   return res.status(200).json({
+  return res.status(200).json({
     status: 'success',
     message: 'Email verified successfully',
-    userId
+    userId,
   });
 });

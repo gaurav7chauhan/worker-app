@@ -4,6 +4,8 @@ import Login from "./pages/auth/Login";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home";
+import EmailPassword from "./pages/password/EmailPassword";
+import ResetPassword from "./pages/password/ResetPassword";
 
 const App = () => {
   return (
@@ -27,9 +29,11 @@ const App = () => {
       />
       <Routes>
         <Route path="/register" element={<Register />} />
-        <Route path="/otp" element={<VerifyOtp />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/forgot-password-email" element={<EmailPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </>
   );

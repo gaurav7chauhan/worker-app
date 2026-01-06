@@ -11,7 +11,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     throw new AppError(err.message, { status: 422 });
   }
 
-  const { userId, newPassword } = parsed.data;
+  const { userId, newPassword, confirmPassword } = parsed.data;
 
   const user = await AuthUser.findById(userId).select('password');
   if (!user) {

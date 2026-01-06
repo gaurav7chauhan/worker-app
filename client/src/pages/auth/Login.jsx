@@ -16,9 +16,12 @@ const Login = () => {
   const {
     handleSubmit,
     register,
+    watch,
     setError,
     formState: { errors },
   } = useForm();
+
+  const email = watch("email");
 
   const onSubmit = async (data) => {
     let toastId;
@@ -98,7 +101,7 @@ const Login = () => {
           {/* Forgot password */}
           <div className="flex justify-end">
             <span
-              onClick={() => navigate("/forgot-password")}
+              onClick={() => navigate("/forgot-password-email", { state: { email } })}
               className="text-sm text-indigo-600 cursor-pointer hover:underline"
             >
               Forgot password?

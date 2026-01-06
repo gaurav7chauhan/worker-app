@@ -67,7 +67,7 @@ const Register = () => {
       showSuccessToast("OTP sent successfully", toastId);
 
       // naviagation
-      navigate("/otp", {
+      navigate("/verify-otp", {
         state: {
           userId,
           email: data.email,

@@ -80,8 +80,8 @@ const VerifyOtp = () => {
     }
 
     if (!userId || !email) {
-      toast("Please register first to continue", { icon: "ℹ️" });
-      navigate("/register");
+      toast("Invalid or expired session. Please try again.", { icon: "⚠️" });
+      navigate("/login");
       return;
     }
 
@@ -97,6 +97,10 @@ const VerifyOtp = () => {
       });
 
       showSuccessToast("OTP verify successfully", toastId);
+
+      if (purpose === "password_reset") {
+        return navigate("/reset-password", { state: { userId } });
+      }
 
       navigate("/login");
     } catch (error) {
