@@ -80,7 +80,7 @@ const VerifyOtp = () => {
     }
 
     if (!userId || !email) {
-      toast("Please register first to continue", { icon: "ℹ️" })
+      toast("Please register first to continue", { icon: "ℹ️" });
       navigate("/register");
       return;
     }
@@ -100,7 +100,7 @@ const VerifyOtp = () => {
 
       navigate("/login");
     } catch (error) {
-      showErrToast(error, { id: toastId });
+      showErrToast(error, toastId);
       return;
     } finally {
       setLoading(false);

@@ -6,7 +6,6 @@ import api from "../../api/axios.js";
 import { HiBriefcase } from "react-icons/hi2";
 import { FaHardHat } from "react-icons/fa";
 import {
-  dismissToast,
   showErrToast,
   showLoadingToast,
   showSuccessToast,
@@ -79,18 +78,16 @@ const Register = () => {
       const status = error?.response?.status;
       const msg = error?.response?.data?.error?.message || "";
 
-      dismissToast(toastId);
-
       if (status === 409 && msg.toLowerCase().includes("exists.")) {
+        showErrToast("This email is already registered", toastId);
+
         setError("email", {
           type: "manual",
           message: "This email is already registered",
         });
         return;
       }
-
-      // All other errors → toast
-      showErrToast(error, { id: toastId });
+      showErrToast(error, toastId);
     } finally {
       setLoading(false);
       submitLockRef.current = false;

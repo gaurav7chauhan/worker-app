@@ -3,11 +3,11 @@ import { getUserFriendlyError } from "./errorMessage";
 
 //  generic err toast
 
-export const showErrToast = (error, options = {}) => {
+export const showErrToast = (error, toastId) => {
   const message =
     typeof error === "string" ? error : getUserFriendlyError(error);
 
-  toast.error(message, { id: options.id || "global-error" });
+  toast.error(message, toastId ? { id: toastId } : undefined);
 };
 
 // Loading toast
@@ -24,3 +24,9 @@ export const showSuccessToast = (message, toastId) => {
 export const dismissToast = (toastId) => {
   if (toastId) toast.dismiss(toastId);
 };
+// use when
+// Manual close before navigation
+
+// Global cleanup (logout, route change)
+
+// Toasts not meant to be replaced

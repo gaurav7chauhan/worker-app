@@ -2,7 +2,7 @@ import { verifyAccessToken } from '../services/tokenService.js';
 import { isAccessJtiBlacklisted } from '../services/JtiService.js';
 import { AppError } from '../utils/apiError.js';
 
-export const jwtVerify = async (req, res, next) => {
+export const jwtVerify = async (req, _, next) => {
   try {
     // auth header parsing
     const auth = req.headers.authorization || '';

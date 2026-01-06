@@ -15,7 +15,6 @@ export const verifyOtp = asyncHandler(async (req, res) => {
    return res.status(200).json({
     status: 'success',
     message: 'Email verified successfully',
+    userId
   });
 });
-
-

@@ -3,7 +3,7 @@ import { AuthUser } from '../../models/authModel.js';
 import { requestOtpService } from '../../services/otpAuthService.js';
 import { AppError } from '../../utils/apiError.js';
 
-export const requestRegisterOtp = asyncHandler(async (req, res) => {
+export const requestOtp = asyncHandler(async (req, res) => {
   const { userId, email, purpose } = req.body;
 
   // basic guard
