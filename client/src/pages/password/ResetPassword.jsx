@@ -23,7 +23,6 @@ const ResetPassword = () => {
     // safety guard
     if (!userId) {
       toast("Invalid or expired reset session", { icon: "⚠️" });
-      navigate("/login");
       return;
     }
 

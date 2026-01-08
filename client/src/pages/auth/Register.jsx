@@ -107,6 +107,7 @@ const Register = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             label="FullName"
+            type="text"
             placeholder="gaurav chauhan"
             {...register("fullName", { required: "Full name is required" })}
             error={errors.fullName?.message}
