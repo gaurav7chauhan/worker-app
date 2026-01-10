@@ -5,8 +5,9 @@ import { geoPointSchema } from '../common/geoPoint.js';
 const statusType = ['Open', 'Closed', 'Canceled', 'Completed'];
 
 const AddressSchema = z.object({
-  line1: z.string().trim().max(150),
-  line2: z.string().trim().max(150).optional(),
+  line1: z.string().trim().max(150).optional(),
+  city: z.string().trim().max(100).optional(),
+  neighbourhood: z.string().trim().max(100).optional(),
 });
 
 const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
@@ -29,13 +30,17 @@ export const jobPostBodySchema = z
     skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
     description: z.string().trim().max(5000).optional(),
     budgetAmount: z.coerce.number().positive('Budget must be > 0'),
-    address: AddressSchema.partial().optional(),
+    address: AddressSchema.optional(),
     location: geoPointSchema.optional(),
     status: z.enum(statusType).optional(),
     employerAssets: z
       .array(EmployerAssetSchema)
       .max(5, 'Maximum 5 images allowed')
       .optional(),
+  })
+  .refine((data) => data.address || data.location, {
+    message: 'Either address or location is required',
+    path: ['address'],
   })
   .superRefine((data, ctx) => {
     const categories = data.category ?? [];
