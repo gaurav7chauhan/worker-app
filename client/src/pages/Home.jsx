@@ -16,15 +16,20 @@ const Home = () => {
           <Link>Blog</Link>
           <Link>Contacts</Link>
         </div>
+        <div>
         <h4>notifications bell</h4>
+        <input type="search input" />
+        <button>search</button>
+        </div>
       </nav>
       <main>
-        <div className="side-bar"></div>
-        <div>
-          <div className="search-bar"></div>
-        </div>
         {/* cards */}
-        {role === "worker" ? <div>showing a card</div> : <div></div>}
+        {role === "employer" ? (
+          <div>showing a card which directs him to job creation</div>
+        ) : (
+          <div></div>
+        )}
+        <div></div>
       </main>
       <footer>footer</footer>
     </div>

@@ -2,22 +2,9 @@ import { Schema } from 'mongoose';
 
 export const addressSchema = new Schema(
   {
-    line1: { type: String, trim: true, maxlength: 120, required: true }, // house/flat, building
-    line2: {
-      type: String,
-      trim: true,
-      maxlength: 120,
-      default: 'street / landmark',
-    }, // street/landmark
-    line3: {
-      type: String,
-      trim: true,
-      maxlength: 120,
-      default: 'near - area / shop',
-    }, // optional extra
-    pincode: { type: String, trim: true, maxlength: 10, required: true }, // keep as string, India pincodes can start with 0
-    city: { type: String, trim: true, maxlength: 80, required: true },
-    state: { type: String, trim: true, maxlength: 80, required: true },
+    line1: { type: String, trim: true, maxlength: 150}, // house/flat, building
+    city: { type: String, trim: true, maxlength: 100, },
+    neighbourhood: { type: String, trim: true, maxlength: 100, },
   },
   { _id: false }
 );

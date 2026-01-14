@@ -26,13 +26,16 @@ const EmployerAssetSchema = z.object({
 
 export const jobPostBodySchema = z
   .object({
-    category: z.array(z.string().trim().toLowerCase()).nonempty().max(5),
-    skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
+    category: z.string().trim().toLowerCase().nonempty(),
+    skills: z
+      .array(z.string().trim().toLowerCase())
+      .max(5, 'Maximum 5 skills allowed')
+      .optional(),
     description: z.string().trim().max(5000).optional(),
-    budgetAmount: z.coerce.number().positive('Budget must be > 0'),
-    address: AddressSchema.optional(),
-    location: geoPointSchema.optional(),
-    status: z.enum(statusType).optional(),
+    budgetAmount: z.number().positive('Budget must be > 0'),
+    address: AddressSchema,
+    location: geoPointSchema,
+    status: z.enum(statusType),
     employerAssets: z
       .array(EmployerAssetSchema)
       .max(5, 'Maximum 5 images allowed')
@@ -43,15 +46,15 @@ export const jobPostBodySchema = z
     path: ['address'],
   })
   .superRefine((data, ctx) => {
-    const categories = data.category ?? [];
-    const catDupes = new Set(categories);
-    if (catDupes.size !== categories.length) {
+    const category = data.category;
+    if (!validCategories.has(category)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['category'],
-        message: 'Duplicate categories not allowed',
+        message: `Category "${category}" is not valid`,
       });
     }
+    const categories = data.category ? [data.category] : [];
 
     for (const c of categories) {
       if (!validCategories.has(c)) {

@@ -22,6 +22,8 @@ const CreatePost = () => {
   } = useForm();
 
   const [categories, setCategories] = useState([]);
+  const [selectedSkill, setSelectedSkill] = useState("");
+  const [skills, setSkills] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [locationLoading, setLocationLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -32,6 +34,7 @@ const CreatePost = () => {
 
   const statusType = ["Open", "Closed", "Canceled", "Completed"];
   const selectedCategory = watch("category");
+  const MAX_SKILLS = 5;
 
   /* ---------------- Fetch Categories ---------------- */
   useEffect(() => {
@@ -48,7 +51,9 @@ const CreatePost = () => {
 
   /* reset skills on category change */
   useEffect(() => {
-    setValue("skills", "");
+    setSkills([]);
+    setValue("skills", []);
+    setSelectedSkill("");
   }, [selectedCategory, setValue]);
 
   /* cleanup image URLs */
@@ -130,6 +135,19 @@ const CreatePost = () => {
     );
   };
 
+  /* ---------------- Addition ---------------- */
+  const addSkill = () => {
+    if (!selectedSkill) return;
+    if (skills.length >= MAX_SKILLS) return;
+    if (skills.includes(selectedSkill)) return;
+
+    const updated = [...skills, selectedSkill.toLowerCase()];
+
+    setSkills(updated);
+    setValue("skills", updated);
+    setSelectedSkill("");
+  };
+
   /* ---------------- Submit ---------------- */
   const handleForm = async (data) => {
     let toastId = showLoadingToast("Posting job...");
@@ -138,17 +156,18 @@ const CreatePost = () => {
 
       const formData = new FormData();
       formData.append("category", data.category);
-      formData.append("skills", data.skills);
+      formData.append("skills", JSON.stringify(data.skills ?? []));
       formData.append("status", data.status);
       formData.append("description", data.description);
-      formData.append("amount", data.amount);
+      formData.append("budgetAmount", data.amount);
       formData.append("address[line1]", data.address);
       formData.append("address[city]", city);
       formData.append("address[neighbourhood]", neighbourhood);
 
       if (location) {
-        formData.append("lat", location.lat);
-        formData.append("lng", location.lng);
+        formData.append("location[type]", "Point");
+        formData.append("location[coordinates]", location.lat);
+        formData.append("location[coordinates]", location.lng);
       }
 
       data.images?.forEach((file) => {
@@ -186,7 +205,11 @@ const CreatePost = () => {
           >
             {/* Group 1 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Category */}
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
                 <select
                   {...register("category", {
                     required: "Category is required",
@@ -203,33 +226,107 @@ const CreatePost = () => {
                   ))}
                 </select>
                 {errors.category && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.category.message}
-                  </p>
+                  <>
+                    <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {errors.status.message}
+                    </p>
+                  </>
                 )}
               </div>
 
-              <select
-                {...register("skills")}
-                className="input bg-white border-slate-300 text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-              >
-                <option value="">Select skills</option>
-                {categories
-                  .find((c) => c.name.toLowerCase() === selectedCategory)
-                  ?.subcategories.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-              </select>
+              {/* Skills Section */}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-slate-700">
+                  Skills (max 6)
+                </label>
+
+                {/* Select + Add */}
+                <div className="flex gap-3 max-w-xl">
+                  <select
+                    value={selectedSkill}
+                    onChange={(e) => setSelectedSkill(e.target.value)}
+                    className="flex-1 input bg-white border-slate-300"
+                  >
+                    <option value="">Select skill</option>
+                    {categories
+                      .find((c) => c.name.toLowerCase() === selectedCategory)
+                      ?.subcategories.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                  </select>
+
+                  <Button
+                    type="button"
+                    onClick={addSkill}
+                    disabled={!selectedSkill || skills.length >= MAX_SKILLS}
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {/* Selected skills */}
+                <div className="flex flex-wrap gap-1">
+                  {skills.length > 0 ? (
+                    skills.map((skill) => (
+                      <div
+                        key={skill}
+                        className="flex items-center gap-2 bg-slate-100 border border-slate-300
+                     px-3 py-1.5 rounded-full text-sm"
+                      >
+                        <span className="capitalize">{skill}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = skills.filter((s) => s !== skill);
+                            setSkills(updated);
+                            setValue("skills", updated);
+                          }}
+                          className="text-red-600 text-xl hover:scale-125 transition-all duration-300 font-medium"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400">No skills added</p>
+                  )}
+                </div>
+
+                {/* Counter */}
+                <p className="text-xs text-slate-500">
+                  {MAX_SKILLS - skills.length} skills remaining
+                </p>
+
+                <input type="hidden" {...register("skills")} />
+              </div>
             </div>
 
             {/* Group 2 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Status */}
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status *
+                </label>
                 <select
                   {...register("status", { required: "Status is required" })}
-                  className={`input bg-white border-slate-300 text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 ${
-                    errors.status ? "border-red-500!" : ""
-                  }`}
+                  className={`input bg-white border-slate-300 text-slate-700 focus:border-slate-900
+                    focus:ring-1 focus:ring-slate-900 ${
+                      errors.status ? "border-red-500!" : ""
+                    }`}
                 >
                   <option value="">Select status</option>
                   {statusType.map((s) => (
@@ -237,12 +334,26 @@ const CreatePost = () => {
                   ))}
                 </select>
                 {errors.status && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.status.message}
-                  </p>
+                  <>
+                    <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {errors.status.message}
+                    </p>
+                  </>
                 )}
               </div>
 
+              {/* Budget */}
               <Input
                 label="Budget *"
                 {...register("amount", { required: "Budget is required" })}
@@ -251,12 +362,17 @@ const CreatePost = () => {
             </div>
 
             {/* Description */}
-            <textarea
-              {...register("description")}
-              rows={5}
-              placeholder="Describe the job"
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                {...register("description")}
+                rows={5}
+                placeholder="Describe the job, add more additional skills..."
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+              />
+            </div>
 
             {/* Address */}
             <Input

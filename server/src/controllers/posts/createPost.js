@@ -10,8 +10,7 @@ export const createPost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
 
-  const role = "Employer" || "employer"
-  if (authUser.role !== role) {
+  if (authUser.role === 'worker') {
     throw new AppError('Post can be created only by employer', {
       status: 409,
     });
@@ -23,8 +22,27 @@ export const createPost = asyncHandler(async (req, res) => {
     throw new AppError('Employer not found', { status: 404 });
   }
 
+  // converting data into there respective types...
+  const raw = req.body;
+  if (raw.skills && typeof raw.skills === 'string') {
+    try {
+      raw.skills = JSON.parse(raw.skills);
+    } catch {
+      raw.skills = [];
+    }
+  }
+
+  if (raw.budgetAmount) {
+    raw.budgetAmount = Number(raw.budgetAmount);
+  }
+
+  if (raw.location.coordinates) {
+    raw.location.coordinates[0] = Number(raw.location.coordinates[0]);
+    raw.location.coordinates[1] = Number(raw.location.coordinates[1]);
+  }
+
   // 4) Validate request body
-  const parsed = jobPostBodySchema.safeParse(req.body);
+  const parsed = jobPostBodySchema.safeParse(raw);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     throw new AppError(
@@ -87,8 +105,8 @@ export const createPost = asyncHandler(async (req, res) => {
   // 8) Parse geo location if provided
   let geoLocation = null;
   if (cleaned.location) {
-    const [lng, lat] = parseLocation(cleaned.location);
-    geoLocation = { type: 'Point', coordinates: [lng, lat] };
+    const [lng, lat] = cleaned.location.coordinates;
+    geoLocation = { type: cleaned.location.type, coordinates: [lng, lat] };
   }
 
   // 9) Create job post

@@ -1,3 +1,5 @@
+import { AppError } from "../utils/apiError.js";
+
 export function parseLocation(location) {
   if (!location || typeof location !== 'object') {
     throw new AppError('Invalid location: missing object', { status: 400 });
