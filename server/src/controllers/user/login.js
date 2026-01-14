@@ -68,5 +68,6 @@ export const login = asyncHandler(async (req, res) => {
     message: 'Login successful',
     token: accessToken,
     userId: foundUser._id,
+    userRole: foundUser.role
   });
 });

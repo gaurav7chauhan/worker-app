@@ -32,7 +32,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/forgot-password-email" element={<EmailPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/post/create" element={<CreatePost />} />

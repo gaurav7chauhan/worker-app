@@ -25,5 +25,6 @@ export const getProfile = asyncHandler(async (req, res) => {
     success: true,
     message: 'Profile successfully fetched',
     userProfile,
+    userRole: authUser.role,
   });
 });

@@ -11,8 +11,8 @@ import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(false);
   const {
     handleSubmit,
     register,
@@ -35,10 +35,15 @@ const Login = () => {
       });
 
       localStorage.setItem("accessToken", res.data.token);
+      localStorage.setItem("role", res.data.userRole);
 
       showSuccessToast("Login successful", toastId);
 
-      navigate("/home");
+      navigate("/post/create", {
+        state: {
+          role: res.data.userRole,
+        },
+      });
     } catch (error) {
       const status = error?.response?.status;
 

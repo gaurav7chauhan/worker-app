@@ -1,14 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import api from "../api/axios";
-import Input from "../components/ui/Input";
-import Button from "../components/ui/Button";
+import api from "../../api/axios";
+import Input from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 import {
   showErrToast,
   showLoadingToast,
   showSuccessToast,
-} from "../utils/toast";
+} from "../../utils/toast";
 
 const CreatePost = () => {
   const navigate = useNavigate();
@@ -172,10 +172,11 @@ const CreatePost = () => {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {/* Form */}
-      <div className="flex justify-center py-10 px-4">
-        <div className="w-full max-w-2xl bg-white border rounded-xl p-8">
-          <h1 className="text-2xl font-semibold mb-6">Create Job Post</h1>
+      <div className="flex justify-center py-12 px-4">
+        <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+          <h1 className="text-2xl font-semibold text-slate-800 mb-8">
+            Create Job Post
+          </h1>
 
           <form
             onSubmit={handleSubmit(handleForm)}
@@ -184,29 +185,34 @@ const CreatePost = () => {
             }`}
           >
             {/* Group 1 */}
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                {...register("category", { required: "Category is required" })}
-                className={`input ${
-                  errors.category
-                    ? " border-red-500! focus:border-red-500!"
-                    : ""
-                }`}
-              >
-                <option value="">Select category</option>
-                {categories.map((c) => (
-                  <option key={c.name} value={c.name.toLowerCase()}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <p className="text-xs text-red-500 mt-2">
-                  {errors.category.message}
-                </p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <select
+                  {...register("category", {
+                    required: "Category is required",
+                  })}
+                  className={`input bg-white border-slate-300 text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 ${
+                    errors.category ? "border-red-500!" : ""
+                  }`}
+                >
+                  <option value="">Select category</option>
+                  {categories.map((c) => (
+                    <option key={c.name} value={c.name.toLowerCase()}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.category && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
+              </div>
 
-              <select {...register("skills")} className="input">
+              <select
+                {...register("skills")}
+                className="input bg-white border-slate-300 text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+              >
                 <option value="">Select skills</option>
                 {categories
                   .find((c) => c.name.toLowerCase() === selectedCategory)
@@ -217,23 +223,25 @@ const CreatePost = () => {
             </div>
 
             {/* Group 2 */}
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                {...register("status", { required: "Status is required" })}
-                className={`input  ${
-                  errors.status ? "border-red-500! focus:border-red-500!" : ""
-                }`}
-              >
-                <option value="">Select status</option>
-                {statusType.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-              {errors.status && (
-                <p className="text-xs text-red-500 mt-2">
-                  {errors.status.message}
-                </p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <select
+                  {...register("status", { required: "Status is required" })}
+                  className={`input bg-white border-slate-300 text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 ${
+                    errors.status ? "border-red-500!" : ""
+                  }`}
+                >
+                  <option value="">Select status</option>
+                  {statusType.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                {errors.status && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
 
               <Input
                 label="Budget *"
@@ -247,7 +255,7 @@ const CreatePost = () => {
               {...register("description")}
               rows={5}
               placeholder="Describe the job"
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-700 focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
             />
 
             {/* Address */}
@@ -258,11 +266,15 @@ const CreatePost = () => {
             />
 
             {/* Location */}
-            <Button type="button" onClick={getLiveLocation}>
+            <Button
+              type="button"
+              onClick={getLiveLocation}
+              className="bg-slate-900 text-white hover:bg-slate-800 transition"
+            >
               {locationLoading ? "Fetching..." : "Use current location"}
             </Button>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="City"
                 value={city}
@@ -279,7 +291,8 @@ const CreatePost = () => {
             <div>
               <label
                 htmlFor="imageUpload"
-                className="btn bg-black p-3 text-white font-medium text-sm rounded-2xl"
+                className="inline-flex items-center justify-center border border-slate-300 text-slate-700 
+                px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:text-white hover:bg-slate-800 transition"
               >
                 Add Images
               </label>
@@ -288,18 +301,21 @@ const CreatePost = () => {
                 type="file"
                 multiple
                 accept="image/*"
-                className="hidden pt-5"
+                className="hidden"
                 onChange={handleImageChange}
               />
             </div>
 
             <div className="flex gap-3 flex-wrap">
               {imagePreviews.map((img, i) => (
-                <div key={i} className="relative w-20 h-20 border rounded">
+                <div
+                  key={i}
+                  className="relative w-24 h-24 border border-slate-300 rounded-lg overflow-hidden"
+                >
                   <button
                     type="button"
                     onClick={() => handleImageCancel(i)}
-                    className="absolute top-0 right-0 bg-black text-white text-xs px-1"
+                    className="absolute top-1 right-1 bg-slate-900 text-white text-xs px-1.5 py-0.5 rounded"
                   >
                     ✕
                   </button>
@@ -308,9 +324,22 @@ const CreatePost = () => {
               ))}
             </div>
 
-            <Button className="w-full" type="submit">
-              {submitLoading ? "Uploading..." : "Upload Job"}
-            </Button>
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="submit"
+                className="w-full bg-slate-900 text-white hover:bg-slate-800 transition"
+              >
+                {submitLoading ? "Uploading..." : "Upload Job"}
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => navigate("/")}
+                className="w-full border border-slate-300 text-slate-700 hover:bg-slate-900 transition"
+              >
+                Home
+              </Button>
+            </div>
           </form>
         </div>
       </div>

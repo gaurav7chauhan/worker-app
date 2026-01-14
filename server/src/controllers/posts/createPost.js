@@ -10,7 +10,8 @@ export const createPost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
 
-  if (authUser.role !== 'Employer') {
+  const role = "Employer" || "employer"
+  if (authUser.role !== role) {
     throw new AppError('Post can be created only by employer', {
       status: 409,
     });
