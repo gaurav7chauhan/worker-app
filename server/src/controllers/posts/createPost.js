@@ -1,4 +1,3 @@
-import { parseLocation } from '../../common/mainLocation.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';

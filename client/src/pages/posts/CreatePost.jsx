@@ -159,7 +159,7 @@ const CreatePost = () => {
       formData.append("skills", JSON.stringify(data.skills ?? []));
       formData.append("status", data.status);
       formData.append("description", data.description);
-      formData.append("budgetAmount", data.amount);
+      formData.append("budgetAmount", data.budgetAmount);
       formData.append("address[line1]", data.address);
       formData.append("address[city]", city);
       formData.append("address[neighbourhood]", neighbourhood);
@@ -356,8 +356,8 @@ const CreatePost = () => {
               {/* Budget */}
               <Input
                 label="Budget *"
-                {...register("amount", { required: "Budget is required" })}
-                error={errors.amount?.message}
+                {...register("budgetAmount", { required: "Budget is required" })}
+                error={errors.budgetAmount?.message}
               />
             </div>
 
