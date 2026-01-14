@@ -1,1 +1,4 @@
 @import "tailwindcss";
+.input {
+  @apply w-full px-4 py-2 rounded-lg border border-gray-300 outline-none transition;
+}

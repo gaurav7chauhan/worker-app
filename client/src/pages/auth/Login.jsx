@@ -29,12 +29,15 @@ const Login = () => {
       setLoading(true);
       toastId = showLoadingToast("Logging in...");
 
-      await api.post("/auth/login", {
+      const res = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
       });
 
+      localStorage.setItem("accessToken", res.data.token);
+
       showSuccessToast("Login successful", toastId);
+
       navigate("/home");
     } catch (error) {
       const status = error?.response?.status;
@@ -101,7 +104,9 @@ const Login = () => {
           {/* Forgot password */}
           <div className="flex justify-end">
             <span
-              onClick={() => navigate("/forgot-password-email", { state: { email } })}
+              onClick={() =>
+                navigate("/forgot-password-email", { state: { email } })
+              }
               className="text-sm text-indigo-600 cursor-pointer hover:underline"
             >
               Forgot password?

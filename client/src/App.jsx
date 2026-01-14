@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home";
 import EmailPassword from "./pages/password/EmailPassword";
 import ResetPassword from "./pages/password/ResetPassword";
+import CreatePost from "./pages/posts/CreatePost";
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/forgot-password-email" element={<EmailPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/post/create" element={<CreatePost />} />
       </Routes>
     </>
   );
