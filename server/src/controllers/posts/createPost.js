@@ -23,6 +23,7 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // converting data into there respective types...
   const raw = req.body;
+  console.log(raw)
   if (raw.skills && typeof raw.skills === 'string') {
     try {
       raw.skills = JSON.parse(raw.skills);
@@ -31,13 +32,13 @@ export const createPost = asyncHandler(async (req, res) => {
     }
   }
 
-  if (raw.budgetAmount) {
-    raw.budgetAmount = Number(raw.budgetAmount);
-  }
-
-  if (raw.location.coordinates) {
-    raw.location.coordinates[0] = Number(raw.location.coordinates[0]);
-    raw.location.coordinates[1] = Number(raw.location.coordinates[1]);
+  // location coordinates (string → number)
+  if (
+    raw.location &&
+    Array.isArray(raw.location.coordinates) &&
+    raw.location.coordinates.length === 2
+  ) {
+    raw.location.coordinates = raw.location.coordinates.map(Number);
   }
 
   // 4) Validate request body

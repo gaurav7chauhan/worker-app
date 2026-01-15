@@ -32,7 +32,7 @@ export const jobPostBodySchema = z
       .max(5, 'Maximum 5 skills allowed')
       .optional(),
     description: z.string().trim().max(5000).optional(),
-    budgetAmount: z.number().positive('Budget must be > 0'),
+    budgetAmount: z.coerce.number().positive('Budget must be > 0'),
     address: AddressSchema,
     location: geoPointSchema,
     status: z.enum(statusType),
