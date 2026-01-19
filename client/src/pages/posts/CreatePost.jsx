@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import api from "../../api/axios";
@@ -28,13 +28,13 @@ const CreatePost = () => {
   const [locationLoading, setLocationLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [location, setLocation] = useState(null);
-  const [locationError, setLocationError] = useState("");
   const [city, setCity] = useState("");
   const [neighbourhood, setNeighbourhood] = useState("");
 
   const statusType = ["Open", "Closed", "Canceled", "Completed"];
   const selectedCategory = watch("category");
   const MAX_SKILLS = 5;
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
   /* ---------------- Fetch Categories ---------------- */
   useEffect(() => {
@@ -61,7 +61,7 @@ const CreatePost = () => {
     return () => {
       imagePreviews.forEach((img) => URL.revokeObjectURL(img.url));
     };
-  }, [imagePreviews]);
+  }, []);
 
   /* ---------------- Image Handlers ---------------- */
   const handleImageChange = (e) => {
@@ -70,11 +70,23 @@ const CreatePost = () => {
     const remainingSlots = 5 - imagePreviews.length;
     if (remainingSlots <= 0) return;
 
-    const selectedFiles = files.slice(0, remainingSlots);
+    const validFiles = [];
+    for (const file of files) {
+      if (file.size > MAX_IMAGE_SIZE) {
+        showErrToast(`${file.name} exceeds 5MB`);
+        continue;
+      }
+      validFiles.push(file);
+      if (validFiles.length >= remainingSlots) break;
+    }
 
-    setValue("images", [...(getValues("images") || []), ...selectedFiles]);
+    if (!validFiles.length) return;
 
-    const previews = selectedFiles.map((file) => ({
+    setValue("images", [...(getValues("images") || []), ...validFiles], {
+      shouldValidate: true,
+    });
+
+    const previews = validFiles.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }));
@@ -114,9 +126,8 @@ const CreatePost = () => {
   };
 
   const getLiveLocation = () => {
-    setLocationError("");
     if (!navigator.geolocation) {
-      setLocationError("Geolocation not supported");
+      showErrToast("Geolocation not supported");
       return;
     }
 
@@ -129,7 +140,7 @@ const CreatePost = () => {
         setLocationLoading(false);
       },
       () => {
-        setLocationError("Location permission denied");
+        showErrToast("Location permission denied");
         setLocationLoading(false);
       }
     );
@@ -356,7 +367,9 @@ const CreatePost = () => {
               {/* Budget */}
               <Input
                 label="Budget *"
-                {...register("budgetAmount", { required: "Budget is required" })}
+                {...register("budgetAmount", {
+                  required: "Budget is required",
+                })}
                 error={errors.budgetAmount?.message}
               />
             </div>
