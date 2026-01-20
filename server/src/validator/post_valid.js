@@ -32,7 +32,7 @@ export const jobPostBodySchema = z
       .max(5, 'Maximum 5 skills allowed')
       .optional(),
     description: z.string().trim().max(5000).optional(),
-    budgetAmount: z.coerce.number().positive('Budget must be > 0'),
+    budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
     address: AddressSchema,
     location: geoPointSchema,
     status: z.enum(statusType),
@@ -46,14 +46,6 @@ export const jobPostBodySchema = z
     path: ['address'],
   })
   .superRefine((data, ctx) => {
-    const category = data.category;
-    if (!validCategories.has(category)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['category'],
-        message: `Category "${category}" is not valid`,
-      });
-    }
     const categories = data.category ? [data.category] : [];
 
     for (const c of categories) {
@@ -61,7 +53,7 @@ export const jobPostBodySchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['category'],
-          message: `Category ${c} is not valid`,
+          message: `Category "${c}" is not valid`,
         });
       }
     }

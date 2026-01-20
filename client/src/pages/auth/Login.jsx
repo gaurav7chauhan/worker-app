@@ -40,7 +40,7 @@ const Login = () => {
       
       showSuccessToast("Login successful", toastId);
 
-      navigate("/post/create", {
+      navigate("/", {
         state: {
           role: res.data.userRole,
         },

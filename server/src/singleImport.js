@@ -6,6 +6,7 @@ import { login } from './controllers/user/login.js';
 import { updateProfile } from './controllers/updateUser/updateProfile.js';
 import { switchRole } from './controllers/toggle/switchRole.js';
 import { createPost } from './controllers/posts/createPost.js';
+import { postUpdate } from './controllers/posts/postUpdate.js';
 import { logout } from './controllers/user/logout.js';
 import { submitApplication } from './controllers/jobApplications/submitApplication.js';
 import { listWorkerApplication } from './controllers/jobApplications/listWorkerApplication.js';
@@ -42,6 +43,7 @@ export {
   listJobApplications,
   listJobs,
   listWorkers,
+  postUpdate,
   statusUpdate,
   myGivenRatings,
   listUserRatings,

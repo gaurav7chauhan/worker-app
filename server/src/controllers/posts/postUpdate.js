@@ -1,19 +1,16 @@
+import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
+import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
-import { jobPostBodySchema } from '../../validator/post_valid.js';
-import { asyncHandler } from '../../middlewares/asyncHandler.js';
+import { updatePostSchema } from '../../validator/postUpdate_valid.js';
 
-export const createPost = asyncHandler(async (req, res) => {
-  // authenticated user (from requireActiveUser)
+export const postUpdate = asyncHandler(async (req, res) => {
   const authUser = req.authUser;
-
   if (authUser.role !== 'employer') {
     throw new AppError('Post can be updated by only employer', { status: 403 });
   }
 
-  // 3) Ensure employer profile exists
   const user = await EmployerProfile.findOne({ userId: authUser._id })
     .select('_id')
     .lean();
@@ -22,28 +19,21 @@ export const createPost = asyncHandler(async (req, res) => {
     throw new AppError('Employer not found', { status: 404 });
   }
 
-  // converting data into there respective types...
-  const raw = req.body;
-  console.log(raw);
-  if (raw.skills && typeof raw.skills === 'string') {
-    try {
-      raw.skills = JSON.parse(raw.skills);
-    } catch {
-      raw.skills = [];
-    }
+  const { jobId } = req.params;
+  if (!jobId) {
+    throw new AppError('Job ID is required', { status: 400 });
   }
 
-  // location coordinates (string → number)
-  if (
-    raw.location &&
-    Array.isArray(raw.location.coordinates) &&
-    raw.location.coordinates.length === 2
-  ) {
-    raw.location.coordinates = raw.location.coordinates.map(Number);
+  const job = await JobPost.findOne({ _id: jobId, employerId: user._id })
+    .select('_id')
+    .lean();
+  if (!job) {
+    throw new AppError('Job not found or not owned by employer', {
+      status: 404,
+    });
   }
 
-  // 4) Validate request body
-  const parsed = jobPostBodySchema.safeParse(raw);
+  const parsed = updatePostSchema.safeParse(req.body);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     throw new AppError(
@@ -52,15 +42,14 @@ export const createPost = asyncHandler(async (req, res) => {
     );
   }
 
-  // 5) Remove undefined fields
   const cleaned = Object.fromEntries(
     Object.entries(parsed.data).filter(([_, val]) => val !== undefined)
   );
+
   if (Object.keys(cleaned).length === 0) {
     throw new AppError('No valid fiels provided for update', { status: 400 });
   }
 
-  // 6) Handle employer asset uploads (max 5)
   let employerAssets = [];
   if (cleaned.employerAssets && req.files?.length) {
     if (req.files.length > 5) {
@@ -79,7 +68,6 @@ export const createPost = asyncHandler(async (req, res) => {
           public_id: `job_${authUser._id}_${Date.now()}`,
         }
       );
-
       if (!media) {
         throw new AppError('Images did not meet upload policy', {
           status: 422,
@@ -95,51 +83,32 @@ export const createPost = asyncHandler(async (req, res) => {
         meta: `width:${media.width},height:${media.height},mime:${media.resource_type},size:${media.bytes}`,
       });
     }
-
     cleaned.employerAssets = employerAssets;
   }
 
-  // 7) Clean nested address object
   if (cleaned.address) {
     cleaned.address = Object.fromEntries(
       Object.entries(cleaned.address).filter(([_, val]) => val !== undefined)
     );
   }
 
-  // 8) Parse geo location if provided
   let geoLocation = null;
   if (cleaned.location) {
-    const [lng, lat] = cleaned.location.coordinates;
-    geoLocation = { type: cleaned.location.type, coordinates: [lng, lat] };
+    const [lat, lng] = cleaned.location.coordinates;
+    geoLocation = {
+      type: cleaned.location.type,
+      coordinates: [lat, lng],
+    };
+    cleaned.location = geoLocation;
   }
 
-  // 9) Create job post
-  const created = await JobPost.create({
-    employerId: user._id,
-    ...cleaned,
-    location: geoLocation,
-  });
-
-  if (!created) {
-    throw new AppError('Failed to create post', { status: 500 });
+  const update = await JobPost.findOneAndUpdate(
+    { _id: jobId, employerId: user._id },
+    { $set: cleaned },
+    { new: true, runValidators: true }
+  );
+  if (!update) {
+    throw new AppError('No valid fields provided for update', { status: 500 });
   }
-
-  // 10) Build safe response payload
-  // const responseBody = {
-  //   category: created.category,
-  //   skills: created.skills,
-  //   description: created.description,
-  //   budgetAmount: created.budgetAmount,
-  //   address: created.address,
-  //   location: geoLocation,
-  //   schedule: created.schedule,
-  //   status: created.status,
-  //   createdAt: created.createdAt,
-  //   updatedAt: created.updatedAt,
-  //   employerAssets: created.employerAssets,
-  // };
-
-  return res.status(201).json({
-    message: 'User successfully created post',
-  });
+  return res.status(200).json({ message: 'Post successfully updated' });
 });

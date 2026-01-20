@@ -5,34 +5,6 @@ import { mediaItemSchema } from './mediaItemSchema.js';
 
 const statusType = ['Open', 'Closed', 'Completed', 'Canceled'];
 
-const scheduleSchema = new mongoose.Schema(
-  {
-    timeFrom: { type: String }, // HH:MM
-    timeTo: { type: String },
-    dayPart: {
-      type: String,
-      enum: ['morning', 'afternoon', 'evening', 'night'],
-    },
-    term: {
-      type: String,
-      enum: [
-        'one_time',
-        'half_day',
-        'full_day',
-        'full_time',
-        '1_week',
-        '2_weeks',
-        '3_weeks',
-        '1_month',
-        '2_months',
-        '3_months',
-      ],
-      required: true,
-    },
-  },
-  { _id: false }
-);
-
 const jobPostSchema = new Schema(
   {
     employerId: {
@@ -46,7 +18,7 @@ const jobPostSchema = new Schema(
     budgetAmount: { type: Number, required: true },
     address: { type: addressSchema },
     location: { type: pointSchema },
-    schedule: { type: scheduleSchema },
+    schedule: { type: String, trim: true, lowercase: true },
     payType: {
       type: String,
       enum: ['hourly', 'weekly', 'monthly'],

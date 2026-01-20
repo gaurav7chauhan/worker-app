@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { jwtVerify } from '../middlewares/jwtMiddleware.js';
 import { requireActiveUser } from '../middlewares/authMiddleware.js';
-import { createPost, deletePost, statusUpdate } from '../singleImport.js';
+import { createPost, deletePost, postUpdate, statusUpdate } from '../singleImport.js';
 import { upload } from '../middlewares/multerMiddleware.js';
 
 const router = Router();
@@ -15,6 +15,7 @@ router.post(
   createPost
 );
 router.patch('/:jobId/status', jwtVerify, requireActiveUser, statusUpdate);
+router.patch('/:jobId', jwtVerify, requireActiveUser, postUpdate);
 router.delete('/:jobId', jwtVerify, requireActiveUser, deletePost);
 
 export default router;

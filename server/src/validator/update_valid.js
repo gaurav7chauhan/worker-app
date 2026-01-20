@@ -4,9 +4,6 @@ import { jobCategories } from '../common/categories.js';
 
 const AddressSchema = z.object({
   line1: z.string().trim().max(120),
-  line2: z.string().trim().max(120).optional(),
-  line3: z.string().trim().max(120).optional(),
-  pincode: z.string().trim().max(10),
   city: z.string().trim().max(80),
   state: z.string().trim().max(80),
 });
@@ -45,7 +42,7 @@ export const workerUpdate = baseProfileUpdate
   .extend({
     experienceYears: z.coerce.number().int().min(0).max(60).optional(),
     availability: z.enum(['available', 'off-work', 'outside']).optional(),
-    skills: z.array(z.string().trim().toLowerCase()).max(20).optional(),
+    skills: z.array(z.string().trim().toLowerCase()).max(10).optional(),
     category: z
       .array(z.string().trim().toLowerCase())
       .nonempty()
