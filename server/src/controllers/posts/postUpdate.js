@@ -50,48 +50,53 @@ export const postUpdate = asyncHandler(async (req, res) => {
     throw new AppError('No valid fiels provided for update', { status: 400 });
   }
 
-  let employerAssets = [];
-  if (cleaned.employerAssets && req.files?.length) {
-    if (req.files.length > 5) {
-      throw new AppError('Maximum 5 employer assets allowed.', {
-        status: 400,
-      });
-    }
+  // image logic handle
+  let employerAssets = cleaned.employerAssets ?? null;
 
-    for (const file of req.files) {
-      const media = await uploadOnCloudinary(
-        file.path,
-        'image',
-        file.mimetype,
-        {
-          folder: 'jobs/employer-assets',
-          public_id: `job_${authUser._id}_${Date.now()}`,
-        }
-      );
-      if (!media) {
-        throw new AppError('Images did not meet upload policy', {
-          status: 422,
+  if (cleaned.employerAssets !== undefined) {
+    emplGoyerAssets = Array.isArray(cleaned.employerAssets)
+      ? [...cleaned.employerAssets]
+      : [];
+
+    if (req.files?.length) {
+      if (employerAssets.length + req.files.length > 5) {
+        throw new AppError('Maximum 5 employer assets allowed.', {
+          status: 400,
         });
       }
-      if (!media.secure_url) {
-        throw new AppError('Cloud upload returned no URL', { status: 502 });
-      }
 
-      employerAssets.push({
-        url: media.secure_url,
-        type: 'image',
-        meta: `width:${media.width},height:${media.height},mime:${media.resource_type},size:${media.bytes}`,
-      });
+      for (const file of req.files) {
+        const media = await uploadOnCloudinary(
+          file.path,
+          'image',
+          file.mimetype,
+          {
+            folder: 'jobs/employer-assets',
+            public_id: `job_${authUser._id}_${Date.now()}`,
+          }
+        );
+        if (!media || !media.secure_url) {
+          throw new AppError('Image upload failed', { status: 422 });
+        }
+
+        employerAssets.push({
+          url: media.secure_url,
+          type: 'image',
+          meta: `width:${media.width},height:${media.height},mime:${media.resource_type},size:${media.bytes}`,
+        });
+      }
     }
     cleaned.employerAssets = employerAssets;
   }
 
+  // address
   if (cleaned.address) {
     cleaned.address = Object.fromEntries(
       Object.entries(cleaned.address).filter(([_, val]) => val !== undefined)
     );
   }
 
+  // location
   let geoLocation = null;
   if (cleaned.location) {
     const [lat, lng] = cleaned.location.coordinates;
