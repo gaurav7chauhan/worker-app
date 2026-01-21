@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { EmployerProfile } from '../../models/employerModel.js';
@@ -20,8 +21,8 @@ export const postUpdate = asyncHandler(async (req, res) => {
   }
 
   const { jobId } = req.params;
-  if (!jobId) {
-    throw new AppError('Job ID is required', { status: 400 });
+  if (!jobId || !mongoose.isValidObjectId(jobId)) {
+    throw new AppError('Invalid or missing Job ID', { status: 400 });
   }
 
   const job = await JobPost.findOne({ _id: jobId, employerId: user._id })
@@ -53,7 +54,7 @@ export const postUpdate = asyncHandler(async (req, res) => {
   // image logic handle
   let employerAssets = cleaned.employerAssets ?? null;
 
-  if (cleaned.employerAssets !== undefined) {
+  if (cleaned.employerAssets !== undefined || req.files?.length) {
     employerAssets = Array.isArray(cleaned.employerAssets)
       ? [...cleaned.employerAssets]
       : [];

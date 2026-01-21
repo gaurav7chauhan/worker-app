@@ -10,12 +10,12 @@ const lcString = z
   .transform((s) => s.toLowerCase());
 const strArrLc = z.array(lcString);
 
-const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+// const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 // Pagination and sorting
 const pagination = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(10).default(5),
+  limit: z.coerce.number().int().min(1).max(10).default(6),
   sort: z.string().trim().default('-createdAt'), // e.g., "-createdAt,name"
   fields: z.string().trim().optional(), // projection: "title,category,budgetAmount"
 });

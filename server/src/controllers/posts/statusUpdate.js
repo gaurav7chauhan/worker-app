@@ -7,7 +7,7 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 export const statusUpdate = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
-  
+
   if (authUser.role !== 'Employer') {
     throw new AppError('Only employer can change job status', {
       status: 403,
@@ -19,16 +19,15 @@ export const statusUpdate = asyncHandler(async (req, res) => {
   const { jobId } = req.params;
   const { status } = req.body;
 
-  if (!jobId || !status) {
-    throw new AppError('jobId and status are required', { status: 400 });
+  if (!jobId || !mongoose.isValidObjectId(jobId)) {
+    throw new AppError('Invalid or missing Job ID', { status: 400 });
   }
-
-  if (!mongoose.Types.ObjectId.isValid(jobId)) {
-    throw new AppError('Invalid jobId', { status: 400 });
+  if (!status) {
+    throw new AppError('status are required', { status: 400 });
   }
 
   if (status === 'Completed') {
-    throw new AppError('Completed status cannot be set by employer', {
+    throw new AppError('Completed status cannot be changed', {
       status: 409,
     });
   }

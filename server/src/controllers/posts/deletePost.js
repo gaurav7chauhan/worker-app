@@ -7,7 +7,7 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 export const deletePost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
-  
+
   if (authUser.role !== 'Employer') {
     throw new AppError('Only employer can change job status', {
       status: 403,
@@ -23,11 +23,8 @@ export const deletePost = asyncHandler(async (req, res) => {
 
   const { jobId } = req.params;
 
-  if (!jobId) {
-    throw new AppError('Job ID required', { status: 400 });
-  }
-  if (!mongoose.Types.ObjectId.isValid(jobId)) {
-    throw new AppError('Invalid jobId', { status: 400 });
+  if (!jobId || !mongoose.isValidObjectId(jobId)) {
+    throw new AppError('Invalid or missing Job ID', { status: 400 });
   }
 
   const job = await JobPost.findOneAndDelete({

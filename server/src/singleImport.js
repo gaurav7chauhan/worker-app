@@ -5,6 +5,8 @@ import {
 import { login } from './controllers/user/login.js';
 import { updateProfile } from './controllers/updateUser/updateProfile.js';
 import { switchRole } from './controllers/toggle/switchRole.js';
+import { getPost } from './controllers/posts/getPost.js';
+import { getAllPosts } from './controllers/posts/getAllPosts.js';
 import { createPost } from './controllers/posts/createPost.js';
 import { postUpdate } from './controllers/posts/postUpdate.js';
 import { logout } from './controllers/user/logout.js';
@@ -35,7 +37,9 @@ export {
   deletePost,
   deleteRating,
   getEmployer,
+  getPost,
   getJob,
+  getAllPosts,
   getProfile,
   getWorker,
   jwtVerify,
