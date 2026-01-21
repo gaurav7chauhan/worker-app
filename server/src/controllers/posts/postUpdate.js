@@ -54,7 +54,7 @@ export const postUpdate = asyncHandler(async (req, res) => {
   let employerAssets = cleaned.employerAssets ?? null;
 
   if (cleaned.employerAssets !== undefined) {
-    emplGoyerAssets = Array.isArray(cleaned.employerAssets)
+    employerAssets = Array.isArray(cleaned.employerAssets)
       ? [...cleaned.employerAssets]
       : [];
 
