@@ -40,7 +40,7 @@ export const deletePost = asyncHandler(async (req, res) => {
   // ).lean();
 
   if (!job) {
-    throw new AppError('Job not found or not owned by employer', {
+    throw new AppError('Post not found or not owned by employer', {
       status: 404,
     });
   }

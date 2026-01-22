@@ -9,6 +9,7 @@ import { getPost } from './controllers/posts/getPost.js';
 import { getAllPosts } from './controllers/posts/getAllPosts.js';
 import { createPost } from './controllers/posts/createPost.js';
 import { postUpdate } from './controllers/posts/postUpdate.js';
+import { deleteAllPosts } from './controllers/posts/deleteAllPosts.js';
 import { logout } from './controllers/user/logout.js';
 import { submitApplication } from './controllers/jobApplications/submitApplication.js';
 import { listWorkerApplication } from './controllers/jobApplications/listWorkerApplication.js';
@@ -36,6 +37,7 @@ import { getJob } from './controllers/fetching/getJob.js';
 export {
   deletePost,
   deleteRating,
+  deleteAllPosts,
   getEmployer,
   getPost,
   getJob,

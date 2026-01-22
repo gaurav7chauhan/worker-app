@@ -11,6 +11,7 @@ import {
   IoChatbubble,
   IoSettings,
 } from "react-icons/io5";
+import { BsPostcardFill } from "react-icons/bs";
 import { IoIosApps } from "react-icons/io";
 import api from "../api/axios";
 
@@ -261,6 +262,17 @@ const Home = () => {
                     Employer Dashboard
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => navigate("/posts/my-posts")}
+                      className="p-6 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 
+                      hover:shadow-lg transition-all text-green-700 font-medium group"
+                    >
+                      <div className="flex flex-col items-center">
+                        <BsPostcardFill  className="w-8 h-8 mx-auto mb-3 text-green-600 group-hover:scale-110 transition-transform" />
+                        <span className="font-semibold text-sm">Last Post</span>
+                      </div>
+                    </button>
+                    
                     <button
                       onClick={() => navigate("/posts/my-posts")}
                       className="p-6 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 

@@ -3,6 +3,7 @@ import { jwtVerify } from '../middlewares/jwtMiddleware.js';
 import { requireActiveUser } from '../middlewares/authMiddleware.js';
 import {
   createPost,
+  deleteAllPosts,
   deletePost,
   getAllPosts,
   getPost,
@@ -21,10 +22,15 @@ router.post(
   upload.array('images', 5),
   createPost
 );
+
 router.patch('/:jobId/status', jwtVerify, requireActiveUser, statusUpdate);
-router.get('/:jobId', jwtVerify, requireActiveUser, getPost);
-router.get('/total', jwtVerify, requireActiveUser, getAllPosts);
 router.patch('/:jobId', jwtVerify, requireActiveUser, postUpdate);
+
+router.get('/', jwtVerify, requireActiveUser, getAllPosts);
+router.get('/:jobId', jwtVerify, requireActiveUser, getPost);
+
+
+router.delete('/bulk/purge', jwtVerify, requireActiveUser, deleteAllPosts);
 router.delete('/:jobId', jwtVerify, requireActiveUser, deletePost);
 
 export default router;
