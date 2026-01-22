@@ -11,18 +11,20 @@ export const getPost = asyncHandler(async (req, res) => {
   }
 
   const authUser = req.authUser;
-  const employer = await EmployerProfile.findOne({ userId: authUser._id })
-    .select('_id')
-    .lean();
+  let employer = null;
+  let filter = {
+    _id: jobId,
+  };
+  
+  if (authUser.role === 'employer') {
+    employer = await EmployerProfile.findOne({ userId: authUser._id })
+      .select('_id')
+      .lean();
 
-  if (!employer) {
-    throw new AppError('Employer not found', { status: 404 });
+    filter.employerId = employer._id;
   }
 
-  const jobPost = await JobPost.findOne({
-    _id: jobId,
-    employerId: employer._id,
-  })
+  const jobPost = await JobPost.findOne(filter)
     .select(
       '-assignedWorkerId -completionProofs -submittedAt -employerConfirmBy -approvedAt -reviewWindowEnd'
     )

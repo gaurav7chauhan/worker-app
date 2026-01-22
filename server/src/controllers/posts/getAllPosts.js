@@ -2,7 +2,7 @@ import { asyncHandler } from '../../middlewares/asyncHandler.js';
 import { EmployerProfile } from '../../models/employerModel.js';
 import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
-import { pagination } from '../../validator/allPosts_valid.js';
+import { pagination } from '../../validator/pagingPosts_valid.js';
 
 export const getAllPosts = asyncHandler(async (req, res) => {
   const authUser = req.authUser;
@@ -19,14 +19,14 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     throw new AppError(`${first.message} in ${first.path}`);
   }
 
-  const { latest, limit, page, sort } = sorting.data;
+  const { onlyLatest, limit, page, sort } = sorting.data;
 
   const sortObject = sort === 'latest' ? { createdAt: -1 } : { createdAt: 1 };
 
   let finalLimit;
   let skip;
 
-  if (latest === true) {
+  if (onlyLatest === true) {
     finalLimit = 1;
     skip = 0;
   } else {
