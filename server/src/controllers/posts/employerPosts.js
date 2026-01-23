@@ -4,7 +4,7 @@ import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { pagination } from '../../validator/pagingPosts_valid.js';
 
-export const getAllPosts = asyncHandler(async (req, res) => {
+export const employerPosts = asyncHandler(async (req, res) => {
   const authUser = req.authUser;
   const employer = await EmployerProfile.findOne({ userId: authUser._id })
     .select('_id')
