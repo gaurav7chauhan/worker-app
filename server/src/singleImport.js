@@ -6,9 +6,10 @@ import { login } from './controllers/user/login.js';
 import { updateProfile } from './controllers/updateUser/updateProfile.js';
 import { switchRole } from './controllers/toggle/switchRole.js';
 import { getPost } from './controllers/posts/getPost.js';
-import { getAllPosts } from './controllers/posts/getAllPosts.js';
+import { employerPosts } from './controllers/posts/employerPosts.js';
 import { createPost } from './controllers/posts/createPost.js';
 import { postUpdate } from './controllers/posts/postUpdate.js';
+import { allPosts } from './controllers/posts/allPosts.js';
 import { deleteAllPosts } from './controllers/posts/deleteAllPosts.js';
 import { logout } from './controllers/user/logout.js';
 import { submitApplication } from './controllers/jobApplications/submitApplication.js';
@@ -41,7 +42,7 @@ export {
   getEmployer,
   getPost,
   getJob,
-  getAllPosts,
+  employerPosts,
   getProfile,
   getWorker,
   jwtVerify,
@@ -49,6 +50,7 @@ export {
   listJobApplications,
   listJobs,
   listWorkers,
+  allPosts,
   postUpdate,
   statusUpdate,
   myGivenRatings,

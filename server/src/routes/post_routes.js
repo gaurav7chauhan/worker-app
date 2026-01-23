@@ -5,16 +5,16 @@ import {
   createPost,
   deleteAllPosts,
   deletePost,
-  getAllPosts,
+  employerPosts,
   getPost,
   postUpdate,
+  allPosts,
   statusUpdate,
 } from '../singleImport.js';
 import { upload } from '../middlewares/multerMiddleware.js';
 
 const router = Router();
 
-// protected routes
 router.post(
   '/create',
   jwtVerify,
@@ -23,14 +23,18 @@ router.post(
   createPost
 );
 
+router.get('/', jwtVerify, requireActiveUser, employerPosts);
+
+// specific static paths first
+router.delete('/bulk/purge', jwtVerify, requireActiveUser, deleteAllPosts);
+
+// jobId specific
+router.get('/:jobId', jwtVerify, requireActiveUser, getPost);
 router.patch('/:jobId/status', jwtVerify, requireActiveUser, statusUpdate);
 router.patch('/:jobId', jwtVerify, requireActiveUser, postUpdate);
-
-router.get('/', jwtVerify, requireActiveUser, getAllPosts);
-router.get('/:jobId', jwtVerify, requireActiveUser, getPost);
-
-
-router.delete('/bulk/purge', jwtVerify, requireActiveUser, deleteAllPosts);
 router.delete('/:jobId', jwtVerify, requireActiveUser, deletePost);
+
+// statusType LAST (most generic)
+router.get('/status/:statusType', jwtVerify, requireActiveUser, allPosts);
 
 export default router;

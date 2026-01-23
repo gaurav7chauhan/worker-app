@@ -3,7 +3,7 @@ import { JobPost } from '../../models/postModel.js';
 import { AppError } from '../../utils/apiError.js';
 import { pagination } from '../../validator/pagingPosts_valid.js';
 
-export const sortingPost = asyncHandler(async (req, res) => {
+export const allPosts = asyncHandler(async (req, res) => {
   const sorting = pagination.safeParse(req.query);
   if (!sorting.success) {
     const first = sorting.error.issues[0];
