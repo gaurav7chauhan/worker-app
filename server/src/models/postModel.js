@@ -21,13 +21,6 @@ const jobPostSchema = new Schema(
     schedule: { type: String, trim: true, lowercase: true },
     status: { type: String, enum: statusType, default: 'Open' },
     employerAssets: { type: [mediaItemSchema], default: [] },
-    // payType: {
-    //   type: String,
-    //   enum: ['hourly', 'weekly', 'monthly'],
-    //   lowercase: true,
-    // },
-    // city: { type: String, trim: true, lowercase: true },
-    // state: { type: String, trim: true, lowercase: true },
     /*---------- worker ----------*/
     assignedWorkerId: { type: Schema.Types.ObjectId, ref: 'WorkerProfile' },
     completionProofs: { type: [mediaItemSchema], default: [] },

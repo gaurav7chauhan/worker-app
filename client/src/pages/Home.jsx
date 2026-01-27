@@ -11,26 +11,51 @@ import {
   IoChatbubble,
   IoSettings,
 } from "react-icons/io5";
-import { MdDeleteForever } from "react-icons/md";
+import { MdDeleteForever, MdCreateNewFolder } from "react-icons/md";
 import { BsPostcardFill } from "react-icons/bs";
 import { IoIosApps } from "react-icons/io";
 import api from "../api/axios";
+import {
+  showErrToast,
+  showLoadingToast,
+  showSuccessToast,
+} from "../utils/toast";
 
 const Home = () => {
-  const { state } = useLocation();
   const [notification, setNotification] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const role = state?.role || localStorage.getItem("role");
   const navigate = useNavigate();
 
-  const handlePost = () => {
-    navigate("/post/create");
+  const { state } = useLocation();
+  const role = state?.role || localStorage.getItem("role");
+  const userId = state?.userId;
+
+  /* ------------------------ CREATE ---------------------------- */
+  let toastId;
+
+  const handleCreateJob = () => {
+    navigate("/post/create", {
+      state: userId
+    });
   };
 
+  /* ------------------------ SWITCH ---------------------------- */
   const handleSwitch = async () => {
-    await api.get();
+    await api.patch(`toggle-role/:${role}`);
   };
 
+  /* ------------------------ POSTS LOGIC ---------------------------- */
+  const handleLastPost = () => {};
+
+  const handleMyPosts = () => {
+    navigate("/posts");
+  };
+
+  const handleDeleteAllPosts = async () => {
+    await api.delete("/post/bulk/purge");
+  };
+
+  /* ------------------------ COMMENT ------------------------------- */
   const handleComments = async () => {};
 
   const navItems = [
@@ -146,8 +171,8 @@ const Home = () => {
               <div className="space-y-2">
                 {role === "employer" && (
                   <button
-                    onClick={handlePost}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-indigo-600 
+                    onClick={handleCreateJob}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-linear-to-r from-indigo-600 
                       to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 
                       transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
                   >
@@ -264,7 +289,20 @@ const Home = () => {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <button
-                      onClick={() => navigate("/posts/my-post")}
+                      onClick={handleCreateJob}
+                      className="p-6 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 
+                      hover:shadow-lg transition-all text-blue-700 font-medium group"
+                    >
+                      <div className="flex flex-col items-center">
+                        <MdCreateNewFolder className="w-8 h-8 mx-auto mb-3 text-blue-600 group-hover:scale-110 transition-transform" />
+                        <span className="font-semibold text-sm">
+                          Create New Post
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={handleLastPost}
                       className="p-6 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 
                       hover:shadow-lg transition-all text-blue-700 font-medium group"
                     >
@@ -275,7 +313,7 @@ const Home = () => {
                     </button>
 
                     <button
-                      onClick={() => navigate("/posts/my-posts")}
+                      onClick={handleMyPosts}
                       className="p-6 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 
                       hover:shadow-lg transition-all text-green-700 font-medium group"
                     >
@@ -296,6 +334,7 @@ const Home = () => {
                     <button
                       className="p-6 bg-white border-2 border-red-200 rounded-xl hover:border-red-400 
                       hover:shadow-lg transition-all text-red-700 font-medium"
+                      onClick={handleDeleteAllPosts}
                     >
                       <MdDeleteForever className="w-8 h-8 mx-auto mb-2 text-red-600" />
                       Delete All Posts
@@ -342,5 +381,4 @@ const Home = () => {
     </div>
   );
 };
-
 export default Home;

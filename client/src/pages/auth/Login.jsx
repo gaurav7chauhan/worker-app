@@ -36,12 +36,12 @@ const Login = () => {
 
       localStorage.setItem("accessToken", res.data.token);
       localStorage.setItem("role", res.data.userRole);
-      console.log("role", res.data.userRole);
       
       showSuccessToast("Login successful", toastId);
 
-      navigate("/", {
+      navigate("/home", {
         state: {
+          userId: res.data.userId,
           role: res.data.userRole,
         },
       });

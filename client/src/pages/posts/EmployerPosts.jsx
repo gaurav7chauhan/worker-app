@@ -1,7 +1,7 @@
 import React from "react";
 
-const Post = () => {
-  return <div>Post</div>;
+const EmployerPosts = () => {
+  return <div>EmployerPosts</div>;
 };
 
-export default Post;
+export default EmployerPosts;

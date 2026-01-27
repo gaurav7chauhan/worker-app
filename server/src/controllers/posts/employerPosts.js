@@ -41,6 +41,7 @@ export const employerPosts = asyncHandler(async (req, res) => {
     .select(
       '-assignedWorkerId -completionProofs -submittedAt -employerConfirmBy -approvedAt -reviewWindowEnd'
     )
+    .populate('employerId', 'name companyName email')
     .lean();
 
   return res

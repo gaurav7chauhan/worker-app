@@ -7,6 +7,10 @@ import Home from "./pages/Home";
 import EmailPassword from "./pages/password/EmailPassword";
 import ResetPassword from "./pages/password/ResetPassword";
 import CreatePost from "./pages/posts/CreatePost";
+import MyPosts from "./pages/posts/MyPosts";
+import Post from "./pages/posts/Post";
+import UpdatePost from "./pages/posts/UpdatePost";
+import EmployerPosts from "./pages/posts/EmployerPosts";
 
 const App = () => {
   return (
@@ -32,10 +36,14 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/forgot-password-email" element={<EmailPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/post/create" element={<CreatePost />} />
+        <Route path="/post" element={<Post />} />
+        <Route path="/posts" element={<MyPosts />} />
+        <Route path="/post/employer" element={<EmployerPosts />} />
+        <Route path="/post/update" element={<UpdatePost />} />
       </Routes>
     </>
   );
