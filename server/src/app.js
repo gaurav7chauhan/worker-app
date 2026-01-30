@@ -11,6 +11,7 @@ import toggleRoutes from './routes/toggle_routes.js';
 import authOtpRoutes from './routes/otp_routes.js';
 import passwordRoutes from './routes/password_routes.js';
 import metaRoutes from './routes/meta_routes.js';
+import refreshRoutes from './routes/refresh_routes.js';
 import { errorHandler } from './middlewares/errorMiddleware.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/v1/toggle-role', toggleRoutes);
 app.use('/api/v1/auth', authOtpRoutes);
 app.use('/api/v1/password', passwordRoutes);
 app.use('/api/v1/meta', metaRoutes);
+app.use('/api/v1/api', refreshRoutes);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

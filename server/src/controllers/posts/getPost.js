@@ -28,7 +28,7 @@ export const getPost = asyncHandler(async (req, res) => {
     .select(
       '-assignedWorkerId -completionProofs -submittedAt -employerConfirmBy -approvedAt -reviewWindowEnd'
     )
-    .populate("employerId", "name companyName email")
+    .populate("employerId", "fullName avatarUrl email")
     .lean();
   if (!jobPost) {
     throw new AppError('Post not found', { status: 404 });
