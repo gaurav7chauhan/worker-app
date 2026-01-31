@@ -38,7 +38,7 @@ app.use('/api/v1/toggle-role', toggleRoutes);
 app.use('/api/v1/auth', authOtpRoutes);
 app.use('/api/v1/password', passwordRoutes);
 app.use('/api/v1/meta', metaRoutes);
-app.use('/api/v1/api', refreshRoutes);
+app.use('/api/v1/refresh', refreshRoutes);
 
 // OTP
 // app.post('/otp/request', limitResend, requestOtp);

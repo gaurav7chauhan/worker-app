@@ -3,6 +3,6 @@ import { refreshHandler } from '../middlewares/tokenMiddleware.js';
 
 const router = Router();
 
-router.post('/refresh', refreshHandler);
+router.post('/', refreshHandler);
 
 export default router;

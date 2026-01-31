@@ -8,7 +8,7 @@ export const deletePost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
 
-  if (authUser.role !== 'Employer') {
+  if (authUser.role !== 'employer') {
     throw new AppError('Only employer can change job status', {
       status: 403,
     });

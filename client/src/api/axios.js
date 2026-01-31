@@ -29,7 +29,7 @@ api.interceptors.response.use(
       try {
         // IMPORTANT: call refresh WITHOUT api instance
         const res = axios.post(
-          `${import.meta.env.VITE_API_URL}/api/refresh`,
+          `${import.meta.env.VITE_API_URL}/refresh`,
           {},
           { withCredentials: true },
         );
