@@ -8,7 +8,6 @@ import {
 import { IoCreateOutline } from "react-icons/io5";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
 
 const MyPosts = () => {
   const [result, setResult] = useState([]);
@@ -181,7 +180,7 @@ const MyPosts = () => {
               </p>
               <button
                 onClick={handleCreateNewPost}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white 
+                className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white 
                   font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 
                   transition-all duration-200 shadow-lg hover:shadow-xl"
               >
@@ -322,7 +321,7 @@ const MyPosts = () => {
       {/* Add this at the end of Main Content section, before closing </div> */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="w-14 h-14 bg-linear-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center hover:scale-105"
           title="Back to Home"
         >

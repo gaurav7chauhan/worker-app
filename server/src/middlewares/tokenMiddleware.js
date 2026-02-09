@@ -11,6 +11,7 @@ export const refreshHandler = async (req, res, next) => {
   try {
     // token extraction & verification
     const token = req.cookies?.refreshToken;
+    console.log(token)
     if (!token) {
       throw new AppError('Missing refresh token', { status: 401 });
     }

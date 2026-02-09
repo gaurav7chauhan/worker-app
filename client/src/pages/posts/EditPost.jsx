@@ -1,11 +1,15 @@
-import React from "react";
 import { useLocation } from "react-router-dom";
+import CommonPost from "./CommonPost";
 
 const EditPost = () => {
   const { state } = useLocation();
-  const postId = state.id;
-  
-  return <div>EditPost</div>;
+  const postId = state;
+
+  return (
+    <>
+      <CommonPost btnType={"Update Post"} mode={"edit"} postId={postId} />
+    </>
+  );
 };
 
 export default EditPost;
