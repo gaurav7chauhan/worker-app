@@ -24,7 +24,17 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // converting data into there respective types...
   const raw = req.body;
+
   console.log(raw);
+
+  if (typeof raw.category === 'string') {
+    try {
+      raw.category = JSON.parse(raw.category);
+    } catch {
+      raw.category = [raw.category];
+    }
+  }
+
   if (raw.skills && typeof raw.skills === 'string') {
     try {
       raw.skills = JSON.parse(raw.skills);
@@ -62,7 +72,8 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // 6) Handle employer asset uploads (max 5)
   let employerAssets = [];
-  if (cleaned.employerAssets && req.files?.length) {
+
+  if (req.files?.length) {
     if (req.files.length > 5) {
       throw new AppError('Maximum 5 employer assets allowed.', {
         status: 400,
@@ -80,13 +91,8 @@ export const createPost = asyncHandler(async (req, res) => {
         }
       );
 
-      if (!media) {
-        throw new AppError('Images did not meet upload policy', {
-          status: 422,
-        });
-      }
-      if (!media.secure_url) {
-        throw new AppError('Cloud upload returned no URL', { status: 502 });
+      if (!media?.secure_url) {
+        throw new AppError('Cloud upload failed', { status: 502 });
       }
 
       employerAssets.push({

@@ -33,6 +33,7 @@ export const getPost = asyncHandler(async (req, res) => {
   if (!jobPost) {
     throw new AppError('Post not found', { status: 404 });
   }
+  console.log("data:", jobPost)
 
   return res
     .status(200)

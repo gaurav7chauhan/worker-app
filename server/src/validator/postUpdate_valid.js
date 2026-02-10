@@ -26,11 +26,14 @@ const EmployerAssetSchema = z.object({
 
 export const updatePostSchema = z
   .object({
-    category: z.string().trim().toLowerCase().optional(),
+    category: z
+      .array(z.string().trim().toLowerCase())
+      .min(0)
+      .max(3, 'Maximum 3 categories allowed'),
     skills: z
       .array(z.string().trim().toLowerCase())
       .min(0)
-      .max(5, 'Maximum 5 skills allowed')
+      .max(6, 'Maximum 6 skills allowed')
       .optional(),
     description: z.string().trim().max(5000).nullable().optional(),
     budgetAmount: z.coerce
@@ -47,9 +50,8 @@ export const updatePostSchema = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    let category;
     if (data.category) {
-      const categories = data.category ? [data.category] : [];
+      const categories = data.category ?? [];
       for (const c of categories) {
         if (!validCategories.has(c)) {
           ctx.addIssue({

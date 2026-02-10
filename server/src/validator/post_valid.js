@@ -26,10 +26,12 @@ const EmployerAssetSchema = z.object({
 
 export const jobPostBodySchema = z
   .object({
-    category: z.string().trim().toLowerCase().nonempty(),
+    category: z
+      .array(z.string().trim().toLowerCase())
+      .max(3, 'Maximum 3 categories allowed'),
     skills: z
       .array(z.string().trim().toLowerCase())
-      .max(5, 'Maximum 5 skills allowed')
+      .max(6, 'Maximum 6 skills allowed')
       .optional(),
     description: z.string().trim().max(5000).optional(),
     budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
@@ -46,7 +48,7 @@ export const jobPostBodySchema = z
     path: ['address'],
   })
   .superRefine((data, ctx) => {
-    const categories = data.category ? [data.category] : [];
+    const categories = data.category ?? [];
 
     for (const c of categories) {
       if (!validCategories.has(c)) {
