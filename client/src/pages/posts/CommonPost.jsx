@@ -38,10 +38,10 @@ const CommonPost = ({ btnType, mode, postId }) => {
   const MAX_SKILLS = 6;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
-  let statusType = ["Open", "Closed"];
-  if (mode === "edit") {
-    statusType = ["Open", "Closed", "Canceled", "Completed"];
-  }
+  let statusType =
+    mode === "edit"
+      ? ["Open", "Closed", "Canceled", "Completed"]
+      : ["Open", "Closed"];
 
   /* ---------------- Fetch Posts Data For Update --------------- */
   useEffect(() => {
