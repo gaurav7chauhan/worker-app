@@ -269,12 +269,13 @@ const CommonPost = ({ btnType, mode, postId }) => {
       data.images?.forEach((file) => {
         formData.append("images", file);
       });
+      console.log(data.images)
 
       await api.post("/post/create", formData);
 
       showSuccessToast("Job posted successfully", toastId);
 
-      navigate("/home");
+      navigate("/posts");
     } catch (err) {
       if (err.response.status === 409) {
         return showErrToast(err.response.data.error.message, toastId);

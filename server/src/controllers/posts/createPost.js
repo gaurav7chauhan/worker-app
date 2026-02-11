@@ -25,8 +25,6 @@ export const createPost = asyncHandler(async (req, res) => {
   // converting data into there respective types...
   const raw = req.body;
 
-  console.log(raw);
-
   if (typeof raw.category === 'string') {
     try {
       raw.category = JSON.parse(raw.category);
@@ -82,8 +80,7 @@ export const createPost = asyncHandler(async (req, res) => {
 
     for (const file of req.files) {
       const media = await uploadOnCloudinary(
-        file.path,
-        'image',
+        file.buffer,
         file.mimetype,
         {
           folder: 'jobs/employer-assets',
