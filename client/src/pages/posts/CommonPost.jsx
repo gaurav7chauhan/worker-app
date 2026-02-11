@@ -34,10 +34,14 @@ const CommonPost = ({ btnType, mode, postId }) => {
 
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  const statusType = ["Open", "Closed", "Canceled", "Completed"];
   const MAX_CATEGORIES = 3;
   const MAX_SKILLS = 6;
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  let statusType = ["Open", "Closed"];
+  if (mode === "edit") {
+    statusType = ["Open", "Closed", "Canceled", "Completed"];
+  }
 
   /* ---------------- Fetch Posts Data For Update --------------- */
   useEffect(() => {
@@ -269,7 +273,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
       data.images?.forEach((file) => {
         formData.append("images", file);
       });
-      console.log(data.images)
+      console.log(data.images);
 
       await api.post("/post/create", formData);
 
