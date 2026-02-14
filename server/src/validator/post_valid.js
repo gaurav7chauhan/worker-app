@@ -36,7 +36,7 @@ export const jobPostBodySchema = z
     description: z.string().trim().max(5000).optional(),
     budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
     address: AddressSchema,
-    location: geoPointSchema,
+    location: geoPointSchema.optional(),
     status: z.enum(statusType),
     employerAssets: z
       .array(EmployerAssetSchema)

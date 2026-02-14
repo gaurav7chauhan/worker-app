@@ -19,7 +19,7 @@ router.post(
   '/create',
   jwtVerify,
   requireActiveUser,
-  upload.array('images', 5),
+  upload.array('employerAssets', 5),
   createPost
 );
 

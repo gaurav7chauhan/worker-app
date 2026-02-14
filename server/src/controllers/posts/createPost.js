@@ -5,6 +5,16 @@ import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
 import { jobPostBodySchema } from '../../validator/post_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
+function parseArrayField(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return [value];
+  }
+}
+
 export const createPost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
@@ -24,30 +34,17 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // converting data into there respective types...
   const raw = req.body;
-
-  if (typeof raw.category === 'string') {
-    try {
-      raw.category = JSON.parse(raw.category);
-    } catch {
-      raw.category = [raw.category];
-    }
-  }
-
-  if (raw.skills && typeof raw.skills === 'string') {
-    try {
-      raw.skills = JSON.parse(raw.skills);
-    } catch {
-      raw.skills = [];
-    }
-  }
-
+  
+  raw.category = parseArrayField(raw.category);
+  raw.skills = parseArrayField(raw.skills);
+  
   // location coordinates (string → number)
-  if (
-    raw.location &&
-    Array.isArray(raw.location.coordinates) &&
-    raw.location.coordinates.length === 2
-  ) {
-    raw.location.coordinates = raw.location.coordinates.map(Number);
+  if (typeof raw.location === 'string') {
+    try {
+      raw.location = JSON.parse(raw.location);
+    } catch {
+      raw.location = undefined;
+    }
   }
 
   // 4) Validate request body
@@ -79,14 +76,10 @@ export const createPost = asyncHandler(async (req, res) => {
     }
 
     for (const file of req.files) {
-      const media = await uploadOnCloudinary(
-        file.buffer,
-        file.mimetype,
-        {
-          folder: 'jobs/employer-assets',
-          public_id: `job_${authUser._id}_${Date.now()}`,
-        }
-      );
+      const media = await uploadOnCloudinary(file.buffer, file.mimetype, {
+        folder: 'jobs/employer-assets',
+        public_id: `job_${authUser._id}_${Date.now()}`,
+      });
 
       if (!media?.secure_url) {
         throw new AppError('Cloud upload failed', { status: 502 });

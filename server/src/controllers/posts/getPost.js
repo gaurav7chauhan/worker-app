@@ -15,7 +15,7 @@ export const getPost = asyncHandler(async (req, res) => {
   let filter = {
     _id: jobId,
   };
-  
+
   if (authUser.role === 'employer') {
     employer = await EmployerProfile.findOne({ userId: authUser._id })
       .select('_id')
@@ -28,14 +28,17 @@ export const getPost = asyncHandler(async (req, res) => {
     .select(
       '-assignedWorkerId -completionProofs -submittedAt -employerConfirmBy -approvedAt -reviewWindowEnd'
     )
-    .populate("employerId", "fullName avatarUrl email")
+    .populate('employerId', 'fullName avatarUrl email')
     .lean();
   if (!jobPost) {
     throw new AppError('Post not found', { status: 404 });
   }
-  console.log("data:", jobPost)
 
-  return res
-    .status(200)
-    .json({ message: 'Post successfully fetched', jobPost });
+  return res.status(200).json({
+    message: 'Post successfully fetched',
+    jobPost: {
+      ...jobPost,
+      employerAssets: jobPost.employerAssets || [],
+    },
+  });
 });

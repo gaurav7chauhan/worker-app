@@ -59,6 +59,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
         setValue("budgetAmount", post.budgetAmount);
         setValue("address", post.address?.line1);
 
+        setImagePreviews(post.employerAssets)
         setCity(post.address?.city || "");
         setNeighbourhood(post.address?.neighbourhood || "");
       }
@@ -82,7 +83,6 @@ const CommonPost = ({ btnType, mode, postId }) => {
   }, []);
 
   /* ---------- FILTER SKILLS FROM SELECTED CATEGORIES ---------- */
-
   const availableSkills = useMemo(() => {
     const set = new Set();
     categoriesSelected.forEach((cat) => {
@@ -265,13 +265,17 @@ const CommonPost = ({ btnType, mode, postId }) => {
       formData.append("address[neighbourhood]", neighbourhood);
 
       if (location) {
-        formData.append("location[type]", "Point");
-        formData.append("location[coordinates]", location.lat);
-        formData.append("location[coordinates]", location.lng);
+        formData.append(
+          "location",
+          JSON.stringify({
+            type: "Point",
+            coordinates: [location.lng, location.lat],
+          }),
+        );
       }
 
       data.images?.forEach((file) => {
-        formData.append("images", file);
+        formData.append("employerAssets", file);
       });
       console.log(data.images);
 
@@ -280,6 +284,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
       showSuccessToast("Job posted successfully", toastId);
 
       navigate("/posts");
+      console.log("Data frontend:", data);
     } catch (err) {
       if (err.response.status === 409) {
         return showErrToast(err.response.data.error.message, toastId);
@@ -621,7 +626,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
               <div className="border-t-2 border-slate-200"></div>
 
               {/* Location Section */}
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 border border-blue-100">
+              <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 border border-blue-100">
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <svg
                     className="w-7 h-7 text-blue-600"
@@ -847,7 +852,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
                       </p>
                       <div className="w-full max-w-xs bg-slate-200 rounded-full h-2 ml-4">
                         <div
-                          className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-linear-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-300"
                           style={{
                             width: `${(imagePreviews.length / 5) * 100}%`,
                           }}
@@ -877,7 +882,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
                             alt={`Preview ${i + 1}`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <p className="text-white text-xs font-medium text-center">
                               Image {i + 1}
                             </p>
@@ -897,7 +902,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="flex-1 px-8 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 
+                  className="flex-1 px-8 py-5 bg-linear-to-r from-indigo-600 to-purple-600 
                   text-white font-bold text-lg rounded-xl hover:from-indigo-700 hover:to-purple-700 
                   disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed
                   transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
