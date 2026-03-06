@@ -7,7 +7,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   const { userId, email, purpose } = req.body;
 
   // basic guard
-
+console.log("I am running?")
   if (!purpose) {
     throw new AppError('OTP purpose is required', { status: 400 });
   }

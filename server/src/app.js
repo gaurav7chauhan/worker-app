@@ -27,15 +27,18 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+// OPEN_ROUTER
+// OLAMA
+
 // mounting api's
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authOtpRoutes);
 app.use('/api/v1/application', applicationRoutes);
 app.use('/api/v1/fetch', fetchRoutes);
 app.use('/api/v1/post', postRoutes);
 app.use('/api/v1/notification', notificationRoutes);
 app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/toggle-role', toggleRoutes);
-app.use('/api/v1/auth', authOtpRoutes);
 app.use('/api/v1/password', passwordRoutes);
 app.use('/api/v1/meta', metaRoutes);
 app.use('/api/v1/refresh', refreshRoutes);

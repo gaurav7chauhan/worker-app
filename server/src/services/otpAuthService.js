@@ -19,6 +19,10 @@ export const requestOtpService = async (userId, email, purpose) => {
   }
   const key = redisKey(userId, purpose, email);
 
+
+
+  
+  console.log('I am stil run her otpauthservice.js');
   // 🔐 Resend cooldown (30s)
   const resendKey = `otp:resend:${userId}:${purpose}`;
   const canResend = await redis.set(resendKey, '1', {
@@ -38,6 +42,7 @@ export const requestOtpService = async (userId, email, purpose) => {
   try {
     existing = await redis.get(key);
   } catch (error) {
+    console.log(error)
     throw new AppError('Redis Unavailable', {
       status: 503,
       meta: { key },
@@ -48,9 +53,9 @@ export const requestOtpService = async (userId, email, purpose) => {
     try {
       await sendOtp(email, existing);
     } catch (error) {
+      console.log(error)
       throw new AppError('Failed to send OTP email', {
         status: 500,
-
         meta: { step: 'resend' },
       });
     }
@@ -62,7 +67,8 @@ export const requestOtpService = async (userId, email, purpose) => {
   let codeHash;
   try {
     codeHash = await bcrypt.hash(code, 10);
-  } catch (e) {
+  } catch (error) {
+    console.log(error)
     throw new AppError('Hashing failed', {
       status: 500,
       code: 'HASH_FAILED',
@@ -79,7 +85,8 @@ export const requestOtpService = async (userId, email, purpose) => {
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
-  } catch (e) {
+  } catch (error) {
+    console.log(error)
     throw new AppError('OTP DB upsert failed', {
       status: 500,
       code: 'OTP_DB_UPSERT_FAILED',
@@ -88,7 +95,8 @@ export const requestOtpService = async (userId, email, purpose) => {
 
   try {
     await redis.set(key, code, { EX: OTP_TTL_SECONDS });
-  } catch (e) {
+  } catch (error) {
+    console.log(error)
     throw new AppError('Redis set failed', {
       status: 503,
       code: 'REDIS_SET_FAILED',
@@ -98,7 +106,8 @@ export const requestOtpService = async (userId, email, purpose) => {
 
   try {
     await sendOtp(email, code);
-  } catch (e) {
+  } catch (error) {
+    console.log(error)
     throw new AppError('Failed to send OTP email', {
       status: 502,
       code: 'MAIL_SEND_FAILED',

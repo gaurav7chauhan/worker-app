@@ -130,6 +130,10 @@ const VerifyOtp = () => {
       setResendTimer(RESEND_TIME);
       setCanResend(false);
     } catch (error) {
+
+
+      
+      console.log(error);
       showErrToast(error);
     }
   };

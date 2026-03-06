@@ -22,7 +22,7 @@ export const registerEmployer = asyncHandler(async (req, res) => {
 
     const { email, password, role, fullName } = payload.data;
     let userId;
-
+console.log(payload.data)
     await session.withTransaction(async () => {
       const exists = await AuthUser.exists({ email }).session(session);
       if (exists) {

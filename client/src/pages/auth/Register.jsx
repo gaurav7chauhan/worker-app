@@ -56,16 +56,6 @@ const Register = () => {
       const registerRes = await api.post(registerUrl, data);
       const { userId } = registerRes.data;
 
-      // API calls to OTP
-      await api.post("/auth/request-otp", {
-        userId,
-        email: data.email,
-        purpose: "register",
-      });
-
-      // toast
-      showSuccessToast("OTP sent successfully", toastId);
-
       // naviagation
       navigate("/verify-otp", {
         state: {
@@ -74,6 +64,25 @@ const Register = () => {
           purpose: "register",
         },
       });
+
+      // toast
+      showSuccessToast("OTP sent successfully", toastId);
+console.log("HELLO befor request-OTP")
+
+
+
+
+      // API calls to OTP
+      await api.post("/auth/request-otp", {
+        userId,
+        email: data.email,
+        purpose: "register",
+      });
+
+
+
+console.log("HELLO after request-OTP")
+
     } catch (error) {
       const status = error?.response?.status;
       const msg = error?.response?.data?.error?.message || "";

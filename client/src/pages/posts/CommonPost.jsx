@@ -439,7 +439,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl">
                       <div className="flex items-center gap-3">
                         <svg
-                          className="w-6 h-6 text-yellow-600 flex-shrink-0"
+                          className="w-6 h-6 text-yellow-600 shrink-0"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
