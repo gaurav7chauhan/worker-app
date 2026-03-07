@@ -37,6 +37,7 @@ const EmailPassword = () => {
         state: { userId: id, email, purpose: "password_reset" },
       });
     } catch (error) {
+      console.log(error)
       showErrToast(error, toastId);
     } finally {
       setLoading(false);

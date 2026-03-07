@@ -57,6 +57,7 @@ const ResetPassword = () => {
 
       navigate("/login");
     } catch (error) {
+      console.log(error)
       showErrToast(error, toastId);
     } finally {
       setLoading(false);

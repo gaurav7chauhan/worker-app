@@ -46,6 +46,7 @@ const Login = () => {
         },
       });
     } catch (error) {
+      console.log(error)
       const status = error?.response?.status;
 
       if (status === 401) {

@@ -12,12 +12,12 @@ export const uploadOnCloudinary = (buffer, mime, opts = {}) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: "image",
+        resource_type: 'image',
         folder: opts.folder,
         public_id: opts.public_id,
       },
       (error, result) => {
-        if (error) return resolve(null);
+        if (error) return reject(error);
         resolve(result);
       }
     );
@@ -25,4 +25,3 @@ export const uploadOnCloudinary = (buffer, mime, opts = {}) => {
     stream.end(buffer);
   });
 };
-

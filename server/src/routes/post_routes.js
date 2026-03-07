@@ -31,7 +31,13 @@ router.delete('/bulk/purge', jwtVerify, requireActiveUser, deleteAllPosts);
 // jobId specific
 router.get('/:jobId', jwtVerify, requireActiveUser, getPost);
 router.patch('/:jobId/status', jwtVerify, requireActiveUser, statusUpdate);
-router.patch('/:jobId', jwtVerify, requireActiveUser, postUpdate);
+router.patch(
+  '/:jobId',
+  jwtVerify,
+  requireActiveUser,
+  upload.array('employerAssets', 5),
+  postUpdate
+);
 router.delete('/:jobId', jwtVerify, requireActiveUser, deletePost);
 
 // statusType LAST (most generic)

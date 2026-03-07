@@ -29,12 +29,14 @@ export const updatePostSchema = z
     category: z
       .array(z.string().trim().toLowerCase())
       .min(0)
-      .max(3, 'Maximum 3 categories allowed'),
+      .max(3, 'Maximum 3 categories allowed')
+      .optional(),
     skills: z
       .array(z.string().trim().toLowerCase())
       .min(0)
       .max(6, 'Maximum 6 skills allowed')
       .optional(),
+    status: z.enum(statusType).optional(),
     description: z.string().trim().max(5000).nullable().optional(),
     budgetAmount: z.coerce
       .number()

@@ -67,10 +67,6 @@ const Register = () => {
 
       // toast
       showSuccessToast("OTP sent successfully", toastId);
-console.log("HELLO befor request-OTP")
-
-
-
 
       // API calls to OTP
       await api.post("/auth/request-otp", {
@@ -78,12 +74,8 @@ console.log("HELLO befor request-OTP")
         email: data.email,
         purpose: "register",
       });
-
-
-
-console.log("HELLO after request-OTP")
-
     } catch (error) {
+      console.log(error);
       const status = error?.response?.status;
       const msg = error?.response?.data?.error?.message || "";
 

@@ -59,7 +59,13 @@ const CommonPost = ({ btnType, mode, postId }) => {
         setValue("budgetAmount", post.budgetAmount);
         setValue("address", post.address?.line1);
 
-        setImagePreviews(post.employerAssets)
+        setImagePreviews(
+          post.employerAssets.map((asset) => ({
+            url: asset.url,
+            existing: true,
+          })),
+        );
+
         setCity(post.address?.city || "");
         setNeighbourhood(post.address?.neighbourhood || "");
       }
@@ -78,9 +84,13 @@ const CommonPost = ({ btnType, mode, postId }) => {
   /* cleanup image URLs */
   useEffect(() => {
     return () => {
-      imagePreviews.forEach((img) => URL.revokeObjectURL(img.url));
+      imagePreviews.forEach((img) => {
+        if (!img.existing) {
+          URL.revokeObjectURL(img.url);
+        }
+      });
     };
-  }, []);
+  }, [imagePreviews]);
 
   /* ---------- FILTER SKILLS FROM SELECTED CATEGORIES ---------- */
   const availableSkills = useMemo(() => {
@@ -170,7 +180,9 @@ const CommonPost = ({ btnType, mode, postId }) => {
 
   const handleImageCancel = (index) => {
     setImagePreviews((prev) => {
-      URL.revokeObjectURL(prev[index].url);
+      if (!prev[index].existing) {
+        URL.revokeObjectURL(prev[index].url);
+      }
       return prev.filter((_, i) => i !== index);
     });
 
@@ -260,9 +272,14 @@ const CommonPost = ({ btnType, mode, postId }) => {
       formData.append("status", data.status);
       formData.append("description", data.description);
       formData.append("budgetAmount", data.budgetAmount);
-      formData.append("address[line1]", data.address);
-      formData.append("address[city]", city);
-      formData.append("address[neighbourhood]", neighbourhood);
+      formData.append(
+        "address",
+        JSON.stringify({
+          line1: data.address,
+          city: city,
+          neighbourhood: neighbourhood,
+        }),
+      );
 
       if (location) {
         formData.append(
@@ -274,19 +291,32 @@ const CommonPost = ({ btnType, mode, postId }) => {
         );
       }
 
-      data.images?.forEach((file) => {
-        formData.append("employerAssets", file);
-      });
-      console.log(data.images);
+      const existingAssets = imagePreviews
+        .filter((img) => img.existing)
+        .map((img) => ({
+          type: "image",
+          url: img.url,
+        }));
 
-      await api.post("/post/create", formData);
+      formData.append("employerAssets", JSON.stringify(existingAssets));
+
+      data.images?.forEach((file) => {
+        if (file instanceof File) {
+          formData.append("employerAssets", file);
+        }
+      });
+
+      if (mode === "edit") {
+        await api.patch(`/post/${postId}`, formData);
+      } else {
+        await api.post("/post/create", formData);
+      }
 
       showSuccessToast("Job posted successfully", toastId);
 
       navigate("/posts");
-      console.log("Data frontend:", data);
     } catch (err) {
-      if (err.response.status === 409) {
+      if (err.response?.status === 409) {
         return showErrToast(err.response.data.error.message, toastId);
       }
       showErrToast(err.message, toastId);

@@ -34,7 +34,18 @@ export const postUpdate = asyncHandler(async (req, res) => {
     });
   }
 
-  const parsed = updatePostSchema.safeParse(req.body);
+  const body = {
+    ...req.body,
+    category: req.body.category ? JSON.parse(req.body.category) : undefined,
+    skills: req.body.skills ? JSON.parse(req.body.skills) : undefined,
+    address: req.body.address ? JSON.parse(req.body.address) : undefined,
+    location: req.body.location ? JSON.parse(req.body.location) : undefined,
+    employerAssets: req.body.employerAssets
+      ? JSON.parse(req.body.employerAssets)
+      : undefined,
+  };
+  
+  const parsed = updatePostSchema.safeParse(body);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     throw new AppError(
@@ -67,23 +78,13 @@ export const postUpdate = asyncHandler(async (req, res) => {
       }
 
       for (const file of req.files) {
-        const media = await uploadOnCloudinary(
-          file.path,
-          'image',
-          file.mimetype,
-          {
-            folder: 'jobs/employer-assets',
-            public_id: `job_${authUser._id}_${Date.now()}`,
-          }
-        );
-        if (!media || !media.secure_url) {
-          throw new AppError('Image upload failed', { status: 422 });
-        }
+        const result = await uploadOnCloudinary(file.buffer, file.mimetype, {
+          folder: 'jobs/employer-assets',
+        });
 
         employerAssets.push({
-          url: media.secure_url,
           type: 'image',
-          meta: `width:${media.width},height:${media.height},mime:${media.resource_type},size:${media.bytes}`,
+          url: result.secure_url,
         });
       }
     }

@@ -24,6 +24,7 @@ const MyPosts = () => {
         showSuccessToast("Posts loaded", toastId);
         setResult(res.data.posts || []);
       } catch (error) {
+        console.log(error)
         showErrToast("Failed to load posts", toastId);
       } finally {
         setLoading(false);
@@ -128,8 +129,8 @@ const MyPosts = () => {
                         result.filter((post) => post._id !== deletePostId),
                       );
                     }
-                  } catch (err) {
-                    console.log(err);
+                  } catch (error) {
+                    console.log(error);
                     showErrToast("Failed to delete post", toastId);
                   } finally {
                     setDeletePostId(null);

@@ -104,13 +104,12 @@ const VerifyOtp = () => {
 
       navigate("/login");
     } catch (error) {
+      console.log(error);
       showErrToast(error, toastId);
       return;
     } finally {
       setLoading(false);
     }
-
-    console.log("OTP:", finalOtp);
   };
 
   // handle resend
@@ -130,9 +129,6 @@ const VerifyOtp = () => {
       setResendTimer(RESEND_TIME);
       setCanResend(false);
     } catch (error) {
-
-
-      
       console.log(error);
       showErrToast(error);
     }
