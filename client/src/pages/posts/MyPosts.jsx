@@ -7,12 +7,15 @@ import {
 } from "../../utils/toast";
 import { IoCreateOutline } from "react-icons/io5";
 import { MdEdit, MdDelete } from "react-icons/md";
+import { MdDeleteForever } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal ";
 
 const MyPosts = () => {
   const [result, setResult] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletePostId, setDeletePostId] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
 
   let toastId;
@@ -24,7 +27,7 @@ const MyPosts = () => {
         showSuccessToast("Posts loaded", toastId);
         setResult(res.data.posts || []);
       } catch (error) {
-        console.log(error)
+        console.log(error);
         showErrToast("Failed to load posts", toastId);
       } finally {
         setLoading(false);
@@ -46,6 +49,20 @@ const MyPosts = () => {
 
   const handleCreateNewPost = () => {
     navigate("/post/create");
+  };
+
+  const handleDeleteAllPosts = async () => {
+    let toastId;
+    try {
+      toastId = showLoadingToast(toastId);
+      await api.delete(`/post/bulk/purge?confirm=true`);
+      showSuccessToast("All posts deleted successfully.", toastId);
+    } catch (error) {
+      console.log(error);
+      showErrToast("Failed to delete posts. Please try again.", toastId);
+    } finally {
+      setShowPopup(false);
+    }
   };
 
   return (
@@ -80,6 +97,19 @@ const MyPosts = () => {
                 <IoCreateOutline className="w-5 h-5" />
                 Create Post
               </button>
+              <button
+                onClick={() => setShowPopup(true)}
+                style={{ padding: "15px", background: "#ffe5e5" }}
+              >
+                <MdDeleteForever />
+                <p>Delete All</p>
+              </button>
+              {showPopup && (
+                <ConfirmDeleteModal
+                  handleDeleteAllPosts={handleDeleteAllPosts}
+                  closeModal={() => setShowPopup(false)}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -34,18 +34,12 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // converting data into there respective types...
   const raw = req.body;
-  
-  raw.category = parseArrayField(raw.category);
-  raw.skills = parseArrayField(raw.skills);
-  
-  // location coordinates (string → number)
-  if (typeof raw.location === 'string') {
-    try {
-      raw.location = JSON.parse(raw.location);
-    } catch {
-      raw.location = undefined;
-    }
-  }
+
+  raw.category = safeParse(raw.category);
+  raw.skills = safeParse(raw.skills);
+  raw.employerAssets = safeParse(raw.employerAssets);
+  raw.address = safeParse(raw.address);
+  raw.location = safeParse(raw.location);
 
   // 4) Validate request body
   const parsed = jobPostBodySchema.safeParse(raw);

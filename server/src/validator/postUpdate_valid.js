@@ -20,6 +20,7 @@ const categoryToSubs = new Map(
 );
 
 const EmployerAssetSchema = z.object({
+  type: z.enum(["image"]),
   url: z.string().url(),
   caption: z.string().trim().max(200).optional(),
 });
