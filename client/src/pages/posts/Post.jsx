@@ -5,15 +5,17 @@ import { showErrToast } from "../../utils/toast";
 const Post = () => {
   /* -----------------------category---------------------------- */
   const [fetchedCategory, setFetchedCategory] = useState([]);
-  const [selectFetchedCategory, setSelectFetchedCategory] = useState("");
+  const [selectedFetchedCategory, setSelectedFetchedCategory] = useState("");
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const MAX_CATEGORIES = 3;
 
   /* -----------------------skills---------------------------- */
   const [fetchedSkills, setFetchedSkills] = useState([]);
-  const [selectSkill, setSelectSkill] = useState("");
-  const [skillsSelected, setSkilledSelected] = useState([]);
+  const [selectedSkill, setSelectedSkill] = useState("");
+  const [skillsSelected, setSkillsSelected] = useState([]);
+  const MAX_SKILLS = 6;
 
+  /* ------------------------------------------CATEGORY START-----------------------------------------------------------------*/
   /* -----------------------CATEGORY API CALLING------------------------ */
   useEffect(() => {
     api
@@ -24,11 +26,11 @@ const Post = () => {
       });
   }, []);
 
-  /* -----------------------ADD CATEGORY----------------------------------- */
-  const addCategory = (e) => {
+  /* -----------------------ADD CATEGORY BTN----------------------------- */
+  const handleCategoryAddition = (e) => {
     e.preventDefault();
-    if (!selectFetchedCategory) return;
-    if (categoriesSelected.includes(selectFetchedCategory.toLowerCase())) {
+    if (!selectedFetchedCategory) return;
+    if (categoriesSelected.includes(selectedFetchedCategory.toLowerCase())) {
       showErrToast("category already selected");
       return;
     }
@@ -36,22 +38,45 @@ const Post = () => {
       showErrToast(`Maximum ${MAX_CATEGORIES} categories allowed`);
       return;
     }
-    setCategoriesSelected((prev) => [...prev, selectFetchedCategory]);
-    setSelectFetchedCategory("");
+    setCategoriesSelected((prev) => [...prev, selectedFetchedCategory]);
+    setSelectedFetchedCategory("");
   };
 
-  /* -----------------------ADD SKILLS----------------------------------- */
+  /* -----------------------handleCategoryCancellation---------------------------- */
+  const handleCategoryCancellation = () => {};
+
+  /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
+  /* -----------------------ADD OPTIONS SKILLS--------------------------- */
   useEffect(() => {
+    if (categoriesSelected.length === 0) return;
     const lastCategory = categoriesSelected[categoriesSelected.length - 1];
     const category = fetchedCategory.find(
-      (cat) => cat.name === lastCategory,
+      (cat) => cat.name.toLowerCase() === lastCategory.toLowerCase(),
     );
     if (category) {
       setFetchedSkills(category.subcategories);
-    } else {
-      setFetchedCategory([])
     }
-  }, [categoriesSelected]);
+  }, [categoriesSelected, fetchedCategory]);
+
+  /* -----------------------ADD SKILL BTN--------------------------------- */
+  const handleSkillAddition = (e) => {
+    e.preventDefault();
+    if (!selectedSkill) return;
+    if (skillsSelected.includes(selectedSkill.toLowerCase())) {
+      showErrToast("skill already selected");
+      return;
+    }
+    if (skillsSelected.length >= MAX_SKILLS) {
+      showErrToast(`Maximum ${MAX_SKILLS} skills allowed`);
+      return;
+    }
+
+    setSkillsSelected((prev) => [...prev, selectedSkill]);
+    setSelectedSkill("");
+  };
+
+  /* -----------------------handleSkillCancellation---------------------- */
+  const handleSkillCancellation = () => {};
 
   return (
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
@@ -63,8 +88,8 @@ const Post = () => {
           <div className="flex gap-5">
             <select
               className="bg-blue-500"
-              value={selectFetchedCategory}
-              onChange={(e) => setSelectFetchedCategory(e.target.value)}
+              value={selectedFetchedCategory}
+              onChange={(e) => setSelectedFetchedCategory(e.target.value)}
               id="category"
             >
               <option value="" className="">
@@ -81,10 +106,24 @@ const Post = () => {
             </select>
             <button
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
-              onClick={(e) => addCategory(e)}
+              onClick={(e) => handleCategoryAddition(e)}
             >
               Add
             </button>
+          </div>
+          <div className="flex gap-2 p-2">
+            {categoriesSelected.map((category) => (
+              <div className="flex gap-2">
+                [ <p>{category}</p>{" "}
+                <span
+                  className="cursor-pointer"
+                  onClick={handleCategoryCancellation}
+                >
+                  ❌
+                </span>{" "}
+                ]
+              </div>
+            ))}
           </div>
         </div>
 
@@ -92,7 +131,12 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="skills">skills</label>
           <div className="flex gap-5">
-            <select className="bg-blue-500" name="" id="skills">
+            <select
+              className="bg-blue-500"
+              value={selectedSkill}
+              onChange={(e) => setSelectedSkill(e.target.value)}
+              id="skills"
+            >
               <option value="" className="">
                 select skills
               </option>
@@ -102,9 +146,26 @@ const Post = () => {
                 </option>
               ))}
             </select>
-            <button className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2">
+            <button
+              className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
+              onClick={handleSkillAddition}
+            >
               Add
             </button>
+          </div>
+          <div className="flex gap-2 p-2">
+            {skillsSelected.map((skill) => (
+              <div className="flex gap-2">
+                [ <p>{skill}</p>{" "}
+                <span
+                  className="cursor-pointer"
+                  onClick={handleSkillCancellation}
+                >
+                  ❌
+                </span>{" "}
+                ]
+              </div>
+            ))}
           </div>
         </div>
 
