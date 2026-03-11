@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { showErrToast } from "../../utils/toast";
+import { useLocation } from "react-router-dom";
 
 const Post = () => {
   /* -----------------------category---------------------------- */
-  const [fetchedCategory, setFetchedCategory] = useState([]);
+  const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
   const [selectedFetchedCategory, setSelectedFetchedCategory] = useState("");
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const MAX_CATEGORIES = 3;
@@ -15,12 +16,21 @@ const Post = () => {
   const [skillsSelected, setSkillsSelected] = useState([]);
   const MAX_SKILLS = 6;
 
+  /* -----------------------status type----------------------------- */
+  let { state } = useLocation();
+  const mode = state?.mode
+  const [status, setStatus] = useState("");
+  let statusType =
+    mode === "edit"
+      ? ["Open", "Closed", "Canceled", "Completed"]
+      : ["Open", "Closed"];
+
   /* ------------------------------------------CATEGORY START-----------------------------------------------------------------*/
   /* -----------------------CATEGORY API CALLING------------------------ */
   useEffect(() => {
     api
       .get("/meta/job-categories")
-      .then((res) => setFetchedCategory(res.data))
+      .then((res) => setFetchedApiCategory(res.data))
       .catch((error) => {
         console.log("error at category api calling:", error);
       });
@@ -43,20 +53,34 @@ const Post = () => {
   };
 
   /* -----------------------handleCategoryCancellation---------------------------- */
-  const handleCategoryCancellation = () => {};
+  const handleCategoryCancellation = (categoryToRemove) => {
+    setCategoriesSelected((prev) =>
+      prev.filter((cat) => cat !== categoryToRemove),
+    );
+  };
 
   /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
+
   /* -----------------------ADD OPTIONS SKILLS--------------------------- */
   useEffect(() => {
-    if (categoriesSelected.length === 0) return;
-    const lastCategory = categoriesSelected[categoriesSelected.length - 1];
-    const category = fetchedCategory.find(
-      (cat) => cat.name.toLowerCase() === lastCategory.toLowerCase(),
-    );
-    if (category) {
-      setFetchedSkills(category.subcategories);
+    if (categoriesSelected.length === 0) {
+      setFetchedSkills([]);
+      setSkillsSelected([]);
+      return;
     }
-  }, [categoriesSelected, fetchedCategory]);
+    const skills = categoriesSelected.flatMap((categoryName) => {
+      const category = fetchedApiCategory.find(
+        (cat) => cat.name.toLowerCase() === categoryName,
+      );
+      return category ? category.subcategories : [];
+    });
+    const uniqueSkills = [...new Set(skills)];
+    setFetchedSkills(uniqueSkills);
+    setSkillsSelected((prev) =>
+      prev.filter((skill) => uniqueSkills.includes(skill)),
+    );
+    setSelectedSkill("");
+  }, [categoriesSelected, fetchedApiCategory]);
 
   /* -----------------------ADD SKILL BTN--------------------------------- */
   const handleSkillAddition = (e) => {
@@ -76,7 +100,11 @@ const Post = () => {
   };
 
   /* -----------------------handleSkillCancellation---------------------- */
-  const handleSkillCancellation = () => {};
+  const handleSkillCancellation = (skillToRemove) => {
+    setSkillsSelected((prev) =>
+      prev.filter((skill) => skill !== skillToRemove),
+    );
+  };
 
   return (
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
@@ -95,7 +123,7 @@ const Post = () => {
               <option value="" className="">
                 select category
               </option>
-              {fetchedCategory.map((eachCategory) => (
+              {fetchedApiCategory.map((eachCategory) => (
                 <option
                   key={eachCategory.name}
                   value={eachCategory.name.toLowerCase()}
@@ -113,11 +141,11 @@ const Post = () => {
           </div>
           <div className="flex gap-2 p-2">
             {categoriesSelected.map((category) => (
-              <div className="flex gap-2">
+              <div key={category} className="flex gap-2">
                 [ <p>{category}</p>{" "}
                 <span
                   className="cursor-pointer"
-                  onClick={handleCategoryCancellation}
+                  onClick={() => handleCategoryCancellation(category)}
                 >
                   ❌
                 </span>{" "}
@@ -155,11 +183,11 @@ const Post = () => {
           </div>
           <div className="flex gap-2 p-2">
             {skillsSelected.map((skill) => (
-              <div className="flex gap-2">
+              <div key={skill} className="flex gap-2">
                 [ <p>{skill}</p>{" "}
                 <span
                   className="cursor-pointer"
-                  onClick={handleSkillCancellation}
+                  onClick={() => handleSkillCancellation(skill)}
                 >
                   ❌
                 </span>{" "}
@@ -173,17 +201,20 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="status">status</label>
           <div className="flex gap-5">
-            <select className="bg-blue-500" name="" id="status">
+            <select
+              className="bg-blue-500"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
               <option value="" className="">
                 select status
               </option>
-              <option value="" className="">
-                cleaning
-              </option>
+              {statusType.map((eachType) => (
+                <option value={eachType} key={eachType}>
+                  {eachType}
+                </option>
+              ))}
             </select>
-            <button className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2">
-              Add
-            </button>
           </div>
         </div>
       </form>
