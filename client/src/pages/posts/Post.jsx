@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
-import { showErrToast } from "../../utils/toast";
+import { showErrToast, showLoadingToast } from "../../utils/toast";
 import { useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
@@ -19,13 +19,11 @@ const Post = () => {
 
   /* -----------------------category---------------------------- */
   const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
-  const [selectedFetchedCategory, setSelectedFetchedCategory] = useState("");
   const [categoriesSelected, setCategoriesSelected] = useState([]);
   const MAX_CATEGORIES = 3;
 
   /* -----------------------skills---------------------------- */
   const [fetchedSkills, setFetchedSkills] = useState([]);
-  const [selectedSkill, setSelectedSkill] = useState("");
   const [skillsSelected, setSkillsSelected] = useState([]);
   const MAX_SKILLS = 6;
 
@@ -48,74 +46,49 @@ const Post = () => {
   }, []);
 
   /* -----------------------ADD CATEGORY BTN----------------------------- */
-  const handleCategoryAddition = (e) => {
-    e.preventDefault();
+  const handleCategoryAddition = () => {
+    const selectedFetchedCategory = getValues("category");
     if (!selectedFetchedCategory) return;
-    if (categoriesSelected.includes(selectedFetchedCategory.toLowerCase())) {
-      showErrToast("category already selected");
+    if (categoriesSelected.includes(selectedFetchedCategory)) {
+      showErrToast("Category already added");
       return;
     }
     if (categoriesSelected.length >= MAX_CATEGORIES) {
-      showErrToast(`Maximum ${MAX_CATEGORIES} categories allowed`);
+      showErrToast(`Only add upto ${MAX_CATEGORIES} categories`);
       return;
     }
     setCategoriesSelected((prev) => [...prev, selectedFetchedCategory]);
-    setSelectedFetchedCategory("");
+    setValue("category", "");
   };
 
   /* -----------------------handleCategoryCancellation---------------------------- */
   const handleCategoryCancellation = (categoryToRemove) => {
-    setCategoriesSelected((prev) =>
-      prev.filter((cat) => cat !== categoryToRemove),
-    );
-  };
-
-  /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
-
-  /* -----------------------ADD OPTIONS SKILLS--------------------------- */
-  useEffect(() => {
-    if (categoriesSelected.length === 0) {
-      setFetchedSkills([]);
-      setSkillsSelected([]);
-      return;
-    }
-    const skills = categoriesSelected.flatMap((categoryName) => {
-      const category = fetchedApiCategory.find(
-        (cat) => cat.name.toLowerCase() === categoryName,
-      );
-      return category ? category.subcategories : [];
+    setCategoriesSelected((prev) => {
+      const updated = prev.filter((cat) => cat !== categoryToRemove);
+      setValue("category", updated);
+      return updated;
     });
-    const uniqueSkills = [...new Set(skills)];
-    setFetchedSkills(uniqueSkills);
-    setSkillsSelected((prev) =>
-      prev.filter((skill) => uniqueSkills.includes(skill)),
-    );
-    setSelectedSkill("");
-  }, [categoriesSelected, fetchedApiCategory]);
+  };
+  /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
+  /* -----------------------ADD OPTIONS SKILLS--------------------------- */
 
   /* -----------------------ADD SKILL BTN--------------------------------- */
-  const handleSkillAddition = (e) => {
-    e.preventDefault();
-    if (!selectedSkill) return;
-    if (skillsSelected.includes(selectedSkill.toLowerCase())) {
-      showErrToast("skill already selected");
-      return;
-    }
-    if (skillsSelected.length >= MAX_SKILLS) {
-      showErrToast(`Maximum ${MAX_SKILLS} skills allowed`);
-      return;
-    }
+  const handleSkillAddition = () => {};
 
-    setSkillsSelected((prev) => [...prev, selectedSkill]);
-    setSelectedSkill("");
-  };
+  /* -----------------------------ADD SKILLS------------------------------------ */
 
   /* -----------------------handleSkillCancellation---------------------- */
-  const handleSkillCancellation = (skillToRemove) => {
-    setSkillsSelected((prev) =>
-      prev.filter((skill) => skill !== skillToRemove),
-    );
-  };
+  const handleSkillCancellation = () => {};
+
+  /* --------------------------------------------SUBMIT BTN--------------------------------------------- */
+  const isEditMode = mode === "edit";
+  let text;
+
+  if (isSubmitting) {
+    text = isEditMode ? "Changing..." : "Submitting...";
+  } else {
+    text = isEditMode ? "Edit" : "Submit";
+  }
 
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {};
@@ -124,15 +97,13 @@ const Post = () => {
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
       <h1 className="py-4">Create/Edit - Post</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* -------------------------CATEGORY-------------- */}
+        {/* -----------------------------------CATEGORY----------------------- */}
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="category">Category</label>
           <div className="flex gap-5">
             <select
               {...register("category", { required: "Category is required" })}
               className="bg-blue-500"
-              value={selectedFetchedCategory}
-              onChange={(e) => setSelectedFetchedCategory(e.target.value)}
               id="category"
             >
               <option value="" className="">
@@ -149,8 +120,9 @@ const Post = () => {
             </select>
             <p className="text-red-500 text-sm">{errors.category?.message}</p>
             <button
+              type="button"
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
-              onClick={(e) => handleCategoryAddition(e)}
+              onClick={handleCategoryAddition}
             >
               Add
             </button>
@@ -175,13 +147,7 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="skills">skills</label>
           <div className="flex gap-5">
-            <select
-              {...register("skills")}
-              className="bg-blue-500"
-              value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
-              id="skills"
-            >
+            <select {...register("skills")} className="bg-blue-500" id="skills">
               <option value="" className="">
                 select skills
               </option>
@@ -219,11 +185,8 @@ const Post = () => {
           <label htmlFor="status">status</label>
           <div className="flex gap-5">
             <select
-              name="status"
               {...register("status", { required: "Status is required" })}
               className="bg-blue-500"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
             >
               <option className="">select status</option>
               {statusType.map((eachType) => (
@@ -236,15 +199,10 @@ const Post = () => {
         </div>
 
         {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}
-        {/* <button>
-          {isSubmitting
-            ? mode === "edit"
-              ? "Changing..."
-              : "Submitting..."
-            : mode === "edit"
-              ? "Edit"
-              : "Submit"}
-        </button> */}
+
+        <button disabled={isSubmitting || (isEditMode && !isDirty)}>
+          {text}
+        </button>
       </form>
     </div>
   );
