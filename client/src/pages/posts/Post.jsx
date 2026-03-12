@@ -1,9 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import { showErrToast } from "../../utils/toast";
 import { useLocation } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 const Post = () => {
+  let { state } = useLocation();
+  const mode = state?.mode;
+
+  const postData = "";
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm({ defaultValues: postData });
+
   /* -----------------------category---------------------------- */
   const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
   const [selectedFetchedCategory, setSelectedFetchedCategory] = useState("");
@@ -17,13 +30,11 @@ const Post = () => {
   const MAX_SKILLS = 6;
 
   /* -----------------------status type----------------------------- */
-  let { state } = useLocation();
-  const mode = state?.mode
+  const CREATE_STATUS = ["Open", "Closed"];
+  const EDIT_STATUS = ["Open", "Closed", "Canceled", "Completed"];
+
   const [status, setStatus] = useState("");
-  let statusType =
-    mode === "edit"
-      ? ["Open", "Closed", "Canceled", "Completed"]
-      : ["Open", "Closed"];
+  const statusType = mode === "edit" ? EDIT_STATUS : CREATE_STATUS;
 
   /* ------------------------------------------CATEGORY START-----------------------------------------------------------------*/
   /* -----------------------CATEGORY API CALLING------------------------ */
@@ -106,15 +117,19 @@ const Post = () => {
     );
   };
 
+  /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
+  const onSubmit = (data) => {};
+
   return (
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
       <h1 className="py-4">Create/Edit - Post</h1>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* -------------------------CATEGORY-------------- */}
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="category">Category</label>
           <div className="flex gap-5">
             <select
+              {...register("category", { required: "Category is required" })}
               className="bg-blue-500"
               value={selectedFetchedCategory}
               onChange={(e) => setSelectedFetchedCategory(e.target.value)}
@@ -132,6 +147,7 @@ const Post = () => {
                 </option>
               ))}
             </select>
+            <p className="text-red-500 text-sm">{errors.category?.message}</p>
             <button
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
               onClick={(e) => handleCategoryAddition(e)}
@@ -160,6 +176,7 @@ const Post = () => {
           <label htmlFor="skills">skills</label>
           <div className="flex gap-5">
             <select
+              {...register("skills")}
               className="bg-blue-500"
               value={selectedSkill}
               onChange={(e) => setSelectedSkill(e.target.value)}
@@ -202,13 +219,13 @@ const Post = () => {
           <label htmlFor="status">status</label>
           <div className="flex gap-5">
             <select
+              name="status"
+              {...register("status", { required: "Status is required" })}
               className="bg-blue-500"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
-              <option value="" className="">
-                select status
-              </option>
+              <option className="">select status</option>
               {statusType.map((eachType) => (
                 <option value={eachType} key={eachType}>
                   {eachType}
@@ -217,6 +234,17 @@ const Post = () => {
             </select>
           </div>
         </div>
+
+        {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}
+        {/* <button>
+          {isSubmitting
+            ? mode === "edit"
+              ? "Changing..."
+              : "Submitting..."
+            : mode === "edit"
+              ? "Edit"
+              : "Submit"}
+        </button> */}
       </form>
     </div>
   );
