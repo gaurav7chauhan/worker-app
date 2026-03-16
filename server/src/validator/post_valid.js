@@ -26,7 +26,7 @@ const EmployerAssetSchema = z.object({
 
 export const jobPostBodySchema = z
   .object({
-    category: z
+    categories: z
       .array(z.string().trim().toLowerCase())
       .max(3, 'Maximum 3 categories allowed'),
     skills: z
@@ -48,13 +48,13 @@ export const jobPostBodySchema = z
     path: ['address'],
   })
   .superRefine((data, ctx) => {
-    const categories = data.category ?? [];
+    const categories = data.categories ?? [];
 
     for (const c of categories) {
       if (!validCategories.has(c)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['category'],
+          path: ['categories'],
           message: `Category "${c}" is not valid`,
         });
       }

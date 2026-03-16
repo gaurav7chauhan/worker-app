@@ -21,23 +21,24 @@ const Post = () => {
     formState: { errors, isSubmitting, isDirty },
   } = useForm({ defaultValues: postData });
 
-  /* -----------------------category---------------------------- */
   const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
   const [categoriesSelected, setCategoriesSelected] = useState([]);
-  const MAX_CATEGORIES = 3;
-
-  /* -----------------------skills---------------------------- */
+  
   const [skillsSelected, setSkillsSelected] = useState([]);
+  
+  const MAX_CATEGORIES = 3;
   const MAX_SKILLS = 6;
 
   /* -----------------------status type----------------------------- */
+  const [status, setStatus] = useState("");
+  
   const CREATE_STATUS = ["Open", "Closed"];
   const EDIT_STATUS = ["Open", "Closed", "Canceled", "Completed"];
 
-  const [status, setStatus] = useState("");
   const statusType = mode === "edit" ? EDIT_STATUS : CREATE_STATUS;
 
   let toastId;
+  /* ------------------------------------------------------ category --------------------------------------------------------------------- */
   /* -----------------------CATEGORY API CALLING------------------------ */
   useEffect(() => {
     api
@@ -51,8 +52,11 @@ const Post = () => {
 
   /* -----------------------CATEGORY ADD BTN----------------------------- */
   const handleCategoryAddition = () => {
-    const selectedCategory = getValues("category");
-    if (!selectedCategory) return;
+    const selectedCategory = getValues("categories");
+    if (!selectedCategory) {
+      showErrToast("Please select a category first");
+      return;
+    }
     if (categoriesSelected.includes(selectedCategory)) {
       showErrToast("Category already added", toastId);
       return;
@@ -62,7 +66,7 @@ const Post = () => {
       return;
     }
     setCategoriesSelected((prev) => [...prev, selectedCategory]);
-    setValue("category", "");
+    setValue("categories", "");
   };
 
   /* -----------------------handleCategoryCancellation---------------------------- */
@@ -70,12 +74,12 @@ const Post = () => {
     if (!categoryToRemove) return;
     setCategoriesSelected((prev) => {
       const updated = prev.filter((category) => category !== categoryToRemove);
-      setValue("category", "");
+      setValue("categories", "");
       return updated;
     });
   };
 
-  /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
+  /* ---------------------------------------------------- SKILLS ----------------------------------------------------------------- */
   /* -----------------------Derived skills--------------------------- */
   const fetchedSkills = useMemo(() => {
     const selectedSet = new Set(categoriesSelected);
@@ -95,7 +99,10 @@ const Post = () => {
   /* -----------------------SKILL ADD BTN--------------------------------- */
   const handleSkillAddition = () => {
     const selectedSkill = getValues("skills");
-    if (!selectedSkill) return;
+    if (!selectedSkill) {
+      showErrToast("Please select a skill first");
+      return;
+    }
     if (skillsSelected.includes(selectedSkill)) {
       showErrToast("already", toastId);
       return;
@@ -129,7 +136,14 @@ const Post = () => {
   }
 
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
-  const onSubmit = (data) => {};
+  const onSubmit = (data) => {
+    const finalResult = {
+      ...data,
+      categories: categoriesSelected,
+      skills: skillsSelected
+    }
+    console.log(finalResult);
+  };
 
   return (
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
@@ -140,9 +154,9 @@ const Post = () => {
           <label htmlFor="category">Category</label>
           <div className="flex gap-5">
             <select
-              {...register("category", { required: "Category is required" })}
+              {...register("categories")}
               className="bg-blue-500"
-              id="category"
+              id="categories"
             >
               <option value="" className="">
                 select category
@@ -156,9 +170,6 @@ const Post = () => {
                 </option>
               ))}
             </select>
-            {errors.category && (
-              <p className="text-red-500 text-sm">{errors.category?.message}</p>
-            )}
             <button
               type="button"
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
@@ -167,6 +178,9 @@ const Post = () => {
               Add
             </button>
           </div>
+          {errors?.category && (
+            <p className="text-red-500 text-sm">{errors.category?.message}</p>
+          )}
           <div className="flex gap-2 p-2">
             {categoriesSelected.map((category) => (
               <div key={category} className="flex gap-2">
@@ -225,10 +239,7 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="status">status</label>
           <div className="flex gap-5">
-            <select
-              {...register("status", { required: "Status is required" })}
-              className="bg-blue-500"
-            >
+            <select {...register("status")} className="bg-blue-500">
               <option className="">select status</option>
               {statusType.map((eachType) => (
                 <option value={eachType} key={eachType}>
@@ -237,6 +248,7 @@ const Post = () => {
               ))}
             </select>
           </div>
+          {errors.status && <p>{errors.status?.message}</p>}
         </div>
 
         {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}

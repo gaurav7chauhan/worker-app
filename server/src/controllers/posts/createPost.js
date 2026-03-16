@@ -35,7 +35,7 @@ export const createPost = asyncHandler(async (req, res) => {
   // converting data into there respective types...
   const raw = req.body;
 
-  raw.category = safeParse(raw.category);
+  raw.categories = safeParse(raw.categories);
   raw.skills = safeParse(raw.skills);
   raw.employerAssets = safeParse(raw.employerAssets);
   raw.address = safeParse(raw.address);
@@ -116,7 +116,7 @@ export const createPost = asyncHandler(async (req, res) => {
 
   // 10) Build safe response payload
   // const responseBody = {
-  //   category: created.category,
+  //   categories: created.categories,
   //   skills: created.skills,
   //   description: created.description,
   //   budgetAmount: created.budgetAmount,

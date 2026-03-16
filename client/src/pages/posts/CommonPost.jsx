@@ -267,7 +267,7 @@ const CommonPost = ({ btnType, mode, postId }) => {
       setSubmitLoading(true);
 
       const formData = new FormData();
-      formData.append("category", JSON.stringify(categoriesSelected));
+      formData.append("categories", JSON.stringify(categoriesSelected));
       formData.append("skills", JSON.stringify(skills));
       formData.append("status", data.status);
       formData.append("description", data.description);
