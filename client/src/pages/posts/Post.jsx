@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
-import { showErrToast, showLoadingToast } from "../../utils/toast";
+import {
+  showErrToast,
+  showLoadingToast,
+  showSuccessToast,
+} from "../../utils/toast";
 import { useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
@@ -23,7 +27,6 @@ const Post = () => {
   const MAX_CATEGORIES = 3;
 
   /* -----------------------skills---------------------------- */
-  const [fetchedSkills, setFetchedSkills] = useState([]);
   const [skillsSelected, setSkillsSelected] = useState([]);
   const MAX_SKILLS = 6;
 
@@ -34,51 +37,86 @@ const Post = () => {
   const [status, setStatus] = useState("");
   const statusType = mode === "edit" ? EDIT_STATUS : CREATE_STATUS;
 
-  /* ------------------------------------------CATEGORY START-----------------------------------------------------------------*/
+  let toastId;
   /* -----------------------CATEGORY API CALLING------------------------ */
   useEffect(() => {
     api
       .get("/meta/job-categories")
       .then((res) => setFetchedApiCategory(res.data))
       .catch((error) => {
+        showErrToast("Category can not fetched", toastId);
         console.log("error at category api calling:", error);
       });
   }, []);
 
-  /* -----------------------ADD CATEGORY BTN----------------------------- */
+  /* -----------------------CATEGORY ADD BTN----------------------------- */
   const handleCategoryAddition = () => {
-    const selectedFetchedCategory = getValues("category");
-    if (!selectedFetchedCategory) return;
-    if (categoriesSelected.includes(selectedFetchedCategory)) {
-      showErrToast("Category already added");
+    const selectedCategory = getValues("category");
+    if (!selectedCategory) return;
+    if (categoriesSelected.includes(selectedCategory)) {
+      showErrToast("Category already added", toastId);
       return;
     }
     if (categoriesSelected.length >= MAX_CATEGORIES) {
-      showErrToast(`Only add upto ${MAX_CATEGORIES} categories`);
+      showErrToast(`You can only add upto ${MAX_CATEGORIES} categories`);
       return;
     }
-    setCategoriesSelected((prev) => [...prev, selectedFetchedCategory]);
+    setCategoriesSelected((prev) => [...prev, selectedCategory]);
     setValue("category", "");
   };
 
   /* -----------------------handleCategoryCancellation---------------------------- */
   const handleCategoryCancellation = (categoryToRemove) => {
+    if (!categoryToRemove) return;
     setCategoriesSelected((prev) => {
-      const updated = prev.filter((cat) => cat !== categoryToRemove);
-      setValue("category", updated);
+      const updated = prev.filter((category) => category !== categoryToRemove);
+      setValue("category", "");
       return updated;
     });
   };
+
   /* ----------------------------------------------SKILLS START----------------------------------------------------------------- */
-  /* -----------------------ADD OPTIONS SKILLS--------------------------- */
+  /* -----------------------Derived skills--------------------------- */
+  const fetchedSkills = useMemo(() => {
+    const selectedSet = new Set(categoriesSelected);
+    return fetchedApiCategory
+      .filter((obj) => selectedSet.has(obj.name))
+      .reverse()
+      .flatMap((obj) => obj.subcategories);
+  }, [categoriesSelected, fetchedApiCategory]);
 
-  /* -----------------------ADD SKILL BTN--------------------------------- */
-  const handleSkillAddition = () => {};
+  /* -----------------------------------------Cleanup invalid skills--------------------------------- */
+  useEffect(() => {
+    setSkillsSelected((prev) =>
+      prev.filter((skill) => fetchedSkills.includes(skill)),
+    );
+  }, [fetchedSkills]);
 
-  /* -----------------------------ADD SKILLS------------------------------------ */
+  /* -----------------------SKILL ADD BTN--------------------------------- */
+  const handleSkillAddition = () => {
+    const selectedSkill = getValues("skills");
+    if (!selectedSkill) return;
+    if (skillsSelected.includes(selectedSkill)) {
+      showErrToast("already", toastId);
+      return;
+    }
+    if (skillsSelected.length >= MAX_SKILLS) {
+      showErrToast("", toastId);
+      return;
+    }
+    setSkillsSelected((prev) => [...prev, selectedSkill]);
+    setValue("skills", "");
+  };
 
   /* -----------------------handleSkillCancellation---------------------- */
-  const handleSkillCancellation = () => {};
+  const handleSkillCancellation = (skillToRemove) => {
+    if (!skillToRemove) return;
+    setSkillsSelected((prev) => {
+      const updated = prev.filter((skill) => skill !== skillToRemove);
+      setValue("skills", "");
+      return updated;
+    });
+  };
 
   /* --------------------------------------------SUBMIT BTN--------------------------------------------- */
   const isEditMode = mode === "edit";
@@ -118,7 +156,9 @@ const Post = () => {
                 </option>
               ))}
             </select>
-            <p className="text-red-500 text-sm">{errors.category?.message}</p>
+            {errors.category && (
+              <p className="text-red-500 text-sm">{errors.category?.message}</p>
+            )}
             <button
               type="button"
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
@@ -158,6 +198,7 @@ const Post = () => {
               ))}
             </select>
             <button
+              type="button"
               className="px-4 py-1 bg-green-500 text-white rounded-xl mt-2"
               onClick={handleSkillAddition}
             >
