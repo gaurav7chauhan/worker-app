@@ -7,6 +7,7 @@ import {
 } from "../../utils/toast";
 import { useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import Input from "../../components/ui/Input";
 
 const Post = () => {
   let { state } = useLocation();
@@ -23,21 +24,20 @@ const Post = () => {
 
   const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
   const [categoriesSelected, setCategoriesSelected] = useState([]);
-  
+
   const [skillsSelected, setSkillsSelected] = useState([]);
-  
+
   const MAX_CATEGORIES = 3;
   const MAX_SKILLS = 6;
 
   /* -----------------------status type----------------------------- */
   const [status, setStatus] = useState("");
-  
+
   const CREATE_STATUS = ["Open", "Closed"];
   const EDIT_STATUS = ["Open", "Closed", "Canceled", "Completed"];
 
   const statusType = mode === "edit" ? EDIT_STATUS : CREATE_STATUS;
 
-  let toastId;
   /* ------------------------------------------------------ category --------------------------------------------------------------------- */
   /* -----------------------CATEGORY API CALLING------------------------ */
   useEffect(() => {
@@ -45,7 +45,7 @@ const Post = () => {
       .get("/meta/job-categories")
       .then((res) => setFetchedApiCategory(res.data))
       .catch((error) => {
-        showErrToast("Category can not fetched", toastId);
+        showErrToast("Category can not fetched");
         console.log("error at category api calling:", error);
       });
   }, []);
@@ -58,7 +58,7 @@ const Post = () => {
       return;
     }
     if (categoriesSelected.includes(selectedCategory)) {
-      showErrToast("Category already added", toastId);
+      showErrToast("Category already added");
       return;
     }
     if (categoriesSelected.length >= MAX_CATEGORIES) {
@@ -104,7 +104,7 @@ const Post = () => {
       return;
     }
     if (skillsSelected.includes(selectedSkill)) {
-      showErrToast("already", toastId);
+      showErrToast("already");
       return;
     }
     if (skillsSelected.length >= MAX_SKILLS) {
@@ -137,11 +137,17 @@ const Post = () => {
 
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {
+    let toastId;
+    toastId = showLoadingToast("Submiting Info");
+    if (categoriesSelected.length === 0) {
+      showErrToast("Add at least one category", toastId);
+      return;
+    }
     const finalResult = {
       ...data,
       categories: categoriesSelected,
-      skills: skillsSelected
-    }
+      skills: skillsSelected,
+    };
     console.log(finalResult);
   };
 
@@ -151,7 +157,7 @@ const Post = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* -----------------------------------CATEGORY----------------------- */}
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
-          <label htmlFor="category">Category</label>
+          <label htmlFor="categories">Category</label>
           <div className="flex gap-5">
             <select
               {...register("categories")}
@@ -178,9 +184,6 @@ const Post = () => {
               Add
             </button>
           </div>
-          {errors?.category && (
-            <p className="text-red-500 text-sm">{errors.category?.message}</p>
-          )}
           <div className="flex gap-2 p-2">
             {categoriesSelected.map((category) => (
               <div key={category} className="flex gap-2">
@@ -239,8 +242,12 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <label htmlFor="status">status</label>
           <div className="flex gap-5">
-            <select {...register("status")} className="bg-blue-500">
-              <option className="">select status</option>
+            <select
+              {...register("status", { required: "Status is required" })}
+              className="bg-blue-500"
+              id="status"
+            >
+              <option value="">select status</option>
               {statusType.map((eachType) => (
                 <option value={eachType} key={eachType}>
                   {eachType}
@@ -248,11 +255,46 @@ const Post = () => {
               ))}
             </select>
           </div>
-          {errors.status && <p>{errors.status?.message}</p>}
+          {errors.status && (
+            <p className="text-red-500 text-sm">{errors.status?.message}</p>
+          )}
+        </div>
+
+        {/* -------------------------BUDGET-------------- */}
+        <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
+          <label htmlFor="budget">Budget</label>
+          <Input
+            type="number"
+            id="budget"
+            {...register("budget", { valueAsNumber: true })}
+          />
+        </div>
+
+        {/* -------------------------DESCRIPTION-------------- */}
+        <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            {...register("description")}
+            placeholder="Enter neccessary details here..."
+          ></textarea>
+        </div>
+
+        {/* -------------------------ADDRESS-------------- */}
+        <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
+          <div className="address">
+            <label htmlFor="address">Address</label>
+            <Input id="address" {...register("address")} />
+          </div>
+        </div>
+
+        {/* -------------------------IMAGES-------------- */}
+        <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
+          <p>Upload Images</p>
+          <img src="" alt="" />
         </div>
 
         {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}
-
         <button disabled={isSubmitting || (isEditMode && !isDirty)}>
           {text}
         </button>
