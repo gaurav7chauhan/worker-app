@@ -4,12 +4,6 @@ import { geoPointSchema } from '../common/geoPoint.js';
 
 const statusType = ['Open', 'Closed', 'Canceled', 'Completed'];
 
-const AddressSchema = z.object({
-  line1: z.string().trim().max(150).optional(),
-  city: z.string().trim().max(100).optional(),
-  neighbourhood: z.string().trim().max(100).optional(),
-});
-
 const validCategories = new Set(jobCategories.map((c) => c.name.toLowerCase()));
 
 const categoryToSubs = new Map(
@@ -33,9 +27,9 @@ export const jobPostBodySchema = z
       .array(z.string().trim().toLowerCase())
       .max(6, 'Maximum 6 skills allowed')
       .optional(),
-    description: z.string().trim().max(5000).optional(),
+    description: z.string().trim().optional(),
     budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
-    address: AddressSchema,
+    address: z.string().trim().toLowerCase(),
     location: geoPointSchema.optional(),
     status: z.enum(statusType),
     employerAssets: z

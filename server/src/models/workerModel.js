@@ -1,5 +1,4 @@
 import mongoose, { Schema, model } from 'mongoose';
-import { addressSchema } from './addressSchema.js';
 import { pointSchema } from '../common/geoPoint.js';
 
 const workerProfileSchema = new Schema(
@@ -7,7 +6,7 @@ const workerProfileSchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
     fullName: { type: String, required: true, trim: true, lowercase: true },
     openForWork: { type: Boolean, default: true },
-    address: { type: addressSchema, default: null },
+    address: { type: String, trim: true, required: true },
     location: { type: pointSchema },
     category: { type: [String], default: [] },
     skills: { type: [String], default: [] },

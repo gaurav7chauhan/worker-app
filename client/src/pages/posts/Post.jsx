@@ -22,6 +22,8 @@ const Post = () => {
     formState: { errors, isSubmitting, isDirty },
   } = useForm({ defaultValues: postData });
 
+  const [imagePreviews, setImagePreviews] = useState([]);
+
   const [fetchedApiCategory, setFetchedApiCategory] = useState([]);
   const [categoriesSelected, setCategoriesSelected] = useState([]);
 
@@ -29,6 +31,8 @@ const Post = () => {
 
   const MAX_CATEGORIES = 3;
   const MAX_SKILLS = 6;
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  const MAX_IMAGE = 5;
 
   /* -----------------------status type----------------------------- */
   const [status, setStatus] = useState("");
@@ -135,6 +139,30 @@ const Post = () => {
     text = isEditMode ? "Edit" : "Submit";
   }
 
+  /* -------------------------------------------HANDLE IMAGE CHANGE--------------------------------------------- */
+  const handleImageChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (imagePreviews.length + selectedFiles.length > MAX_IMAGE) {
+      showErrToast(`Upload only ${MAX_IMAGE} images.`);
+      return;
+    }
+    const validFiles = selectedFiles
+      .filter((file) => {
+        if (file.size > MAX_IMAGE_SIZE) {
+          showErrToast(
+            `Image size should not be more than ${MAX_IMAGE_SIZE} MB.`,
+          );
+          return false;
+        }
+        return true;
+      })
+      .map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setImagePreviews(prev => [...prev, ...validFiles])
+  };
+  
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {
     let toastId;
@@ -284,14 +312,32 @@ const Post = () => {
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
           <div className="address">
             <label htmlFor="address">Address</label>
-            <Input id="address" {...register("address")} />
+            <Input
+              id="address"
+              {...register("address", { require: "Please filled address" })}
+            />
           </div>
         </div>
 
         {/* -------------------------IMAGES-------------- */}
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
-          <p>Upload Images</p>
-          <img src="" alt="" />
+          <label htmlFor="images">Upload Images</label>
+          <Input
+            type="file"
+            id="images"
+            multiple
+            accept="image/png, image/jpeg, image/webp"
+            {...register("images", { onChange: (e) => handleImageChange(e) })}
+          />
+          {imagePreviews.map((file, index) => (
+            <div key={index}>
+              <img
+                src={file.preview}
+                alt={file.name}
+                className="w-32 h-32 object-cover"
+              />
+            </div>
+          ))}
         </div>
 
         {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}

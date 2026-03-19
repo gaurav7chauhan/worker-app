@@ -5,16 +5,6 @@ import { uploadOnCloudinary } from '../../config/cloudinaryConfig.js';
 import { jobPostBodySchema } from '../../validator/post_valid.js';
 import { asyncHandler } from '../../middlewares/asyncHandler.js';
 
-function parseArrayField(value) {
-  if (!value) return [];
-  if (Array.isArray(value)) return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return [value];
-  }
-}
-
 export const createPost = asyncHandler(async (req, res) => {
   // authenticated user (from requireActiveUser)
   const authUser = req.authUser;
@@ -87,13 +77,6 @@ export const createPost = asyncHandler(async (req, res) => {
     }
 
     cleaned.employerAssets = employerAssets;
-  }
-
-  // 7) Clean nested address object
-  if (cleaned.address) {
-    cleaned.address = Object.fromEntries(
-      Object.entries(cleaned.address).filter(([_, val]) => val !== undefined)
-    );
   }
 
   // 8) Parse geo location if provided

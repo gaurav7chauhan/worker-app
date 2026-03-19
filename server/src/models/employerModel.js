@@ -1,12 +1,11 @@
 import mongoose, { Schema, model } from 'mongoose';
-import { addressSchema } from './addressSchema.js';
 import { pointSchema } from '../common/geoPoint.js';
 
 const employerProfileSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'AuthUser', required: true },
     fullName: { type: String, required: true, trim: true, min: 3, lowercase: true },
-    address: { type: addressSchema, default: null },
+    address: { type: String, trim: true, required: true },
     location: { type: pointSchema },
     bio: { type: String, default: '', maxlength: 500, trim: true },
     avatarUrl: { type: String, default: '' },

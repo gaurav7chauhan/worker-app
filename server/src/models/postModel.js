@@ -1,5 +1,4 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { addressSchema } from './addressSchema.js';
 import { pointSchema } from '../common/geoPoint.js';
 import { mediaItemSchema } from './mediaItemSchema.js';
 
@@ -16,9 +15,8 @@ const jobPostSchema = new Schema(
     skills: { type: [String], default: undefined },
     description: { type: String, trim: true },
     budgetAmount: { type: Number, required: true },
-    address: { type: addressSchema },
+    address: { type: String, trim: true, required: true },
     location: { type: pointSchema },
-    schedule: { type: String, trim: true, lowercase: true },
     status: { type: String, enum: statusType, default: 'Open' },
     employerAssets: { type: [mediaItemSchema], default: [] },
     /*---------- worker ----------*/
