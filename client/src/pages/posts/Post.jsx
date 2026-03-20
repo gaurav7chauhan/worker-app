@@ -129,19 +129,10 @@ const Post = () => {
     });
   };
 
-  /* --------------------------------------------SUBMIT BTN--------------------------------------------- */
-  const isEditMode = mode === "edit";
-  let text;
-
-  if (isSubmitting) {
-    text = isEditMode ? "Changing..." : "Submitting...";
-  } else {
-    text = isEditMode ? "Edit" : "Submit";
-  }
-
   /* -------------------------------------------HANDLE IMAGE CHANGE--------------------------------------------- */
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
+    console.log(selectedFiles)
     if (imagePreviews.length + selectedFiles.length > MAX_IMAGE) {
       showErrToast(`Upload only ${MAX_IMAGE} images.`);
       return;
@@ -160,9 +151,21 @@ const Post = () => {
         file,
         preview: URL.createObjectURL(file),
       }));
-      setImagePreviews(prev => [...prev, ...validFiles])
+    setImagePreviews((prev) => [...prev, ...validFiles]);
   };
-  
+
+  const handleImageCancel = (cancelledImage) => {
+    if (!cancelledImage || imagePreviews.length === 0) return;
+
+    // revoke first
+    URL.revokeObjectURL(cancelledImage.preview);
+
+    // then remove
+    setImagePreviews((prev) =>
+      prev.filter((image) => image.preview !== cancelledImage.preview),
+    );
+  };
+
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {
     let toastId;
@@ -178,6 +181,16 @@ const Post = () => {
     };
     console.log(finalResult);
   };
+
+  /* --------------------------------------------SUBMIT BTN--------------------------------------------- */
+  const isEditMode = mode === "edit";
+  let text;
+
+  if (isSubmitting) {
+    text = isEditMode ? "Changing..." : "Submitting...";
+  } else {
+    text = isEditMode ? "Edit" : "Submit";
+  }
 
   return (
     <div className="flex flex-col text-gray-200 justify-center items-center gap-5 bg-blue-700">
@@ -329,15 +342,18 @@ const Post = () => {
             accept="image/png, image/jpeg, image/webp"
             {...register("images", { onChange: (e) => handleImageChange(e) })}
           />
-          {imagePreviews.map((file, index) => (
-            <div key={index}>
-              <img
-                src={file.preview}
-                alt={file.name}
-                className="w-32 h-32 object-cover"
-              />
-            </div>
-          ))}
+          <div className="flex justify-between">
+            {imagePreviews.map((file, index) => (
+              <div key={index} className="flex">
+                <span onClick={() => handleImageCancel(file)}>❌</span>
+                <img
+                  src={file.preview}
+                  alt={file.name}
+                  className="w-32 h-32 object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* -------------------------------------SUBMIT BTN------------------------------------------------- */}
