@@ -185,6 +185,30 @@ const Post = () => {
     );
   };
 
+  /* --------------------------------------LOCATION FETCH--------------------------------------------------------*/
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lng = position.coords.longitude;
+        const lat = position.coords.longitude;
+
+        setValue("location", {
+          type: "Point",
+          coordinates: [lng, lat],
+        });
+      },
+      (error) => {
+        console.log(error);
+        alert("Permission denied or error");
+      },
+    );
+  };
+
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {
     let toastId;
@@ -352,16 +376,25 @@ const Post = () => {
               {...register("address", { require: "Please filled address" })}
             />
           </div>
+          <button type="button" onClick={getLocation}>
+            Use Current Location
+          </button>
         </div>
 
         {/* -------------------------IMAGES-------------- */}
         <div className="flex flex-col bg-blue-800 w-screen items-center py-8">
-          <label htmlFor="images">Upload Images</label>
+          <label
+            htmlFor="images"
+            className="border p-4 rounded cursor-pointer inline-block"
+          >
+            Add Images
+          </label>
           <Input
             type="file"
             id="images"
             multiple
             accept="image/png, image/jpeg, image/webp"
+            className="hidden"
             {...register("images", { onChange: (e) => handleImageChange(e) })}
           />
           <div className="flex justify-between">
