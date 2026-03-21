@@ -27,7 +27,7 @@ export const jobPostBodySchema = z
     skills: z
       .array(z.string().trim().toLowerCase())
       .max(6, 'Maximum 6 skills allowed')
-      .optional(),
+      .default([]),
     description: z.string().trim().optional(),
     budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
     address: z.string().trim(),

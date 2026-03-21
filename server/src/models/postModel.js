@@ -19,7 +19,7 @@ const jobPostSchema = new Schema(
         message: 'At least one category is required',
       },
     },
-    skills: { type: [String], default: undefined },
+    skills: { type: [String], default: [] },
     description: { type: String, trim: true },
     budgetAmount: { type: Number, required: true },
     address: { type: String, trim: true, required: true },

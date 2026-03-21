@@ -14,7 +14,7 @@ const categoryToSubs = new Map(
 );
 
 const EmployerAssetSchema = z.object({
-  type: z.enum(["image"]),
+  type: z.enum(['image']),
   url: z.string().url(),
   caption: z.string().trim().max(200).optional(),
 });
@@ -23,12 +23,10 @@ export const updatePostSchema = z
   .object({
     category: z
       .array(z.string().trim().toLowerCase())
-      .min(0)
       .max(3, 'Maximum 3 categories allowed')
       .optional(),
     skills: z
       .array(z.string().trim().toLowerCase())
-      .min(0)
       .max(6, 'Maximum 6 skills allowed')
       .optional(),
     status: z.enum(statusType).optional(),
