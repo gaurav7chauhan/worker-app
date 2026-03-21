@@ -22,6 +22,7 @@ export const jobPostBodySchema = z
   .object({
     categories: z
       .array(z.string().trim().toLowerCase())
+      .min(1, "At least one category is required")
       .max(3, 'Maximum 3 categories allowed'),
     skills: z
       .array(z.string().trim().toLowerCase())
@@ -29,7 +30,7 @@ export const jobPostBodySchema = z
       .optional(),
     description: z.string().trim().optional(),
     budgetAmount: z.coerce.number().positive('Budget must be greater than 0'),
-    address: z.string().trim().toLowerCase(),
+    address: z.string().trim(),
     location: geoPointSchema.optional(),
     status: z.enum(statusType),
     employerAssets: z

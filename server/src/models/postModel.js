@@ -11,13 +11,20 @@ const jobPostSchema = new Schema(
       ref: 'EmployerProfile',
       required: true,
     },
-    category: { type: [String], default: [], required: true },
+    category: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: (arr) => arr.length > 0,
+        message: 'At least one category is required',
+      },
+    },
     skills: { type: [String], default: undefined },
     description: { type: String, trim: true },
     budgetAmount: { type: Number, required: true },
     address: { type: String, trim: true, required: true },
     location: { type: pointSchema },
-    status: { type: String, enum: statusType, default: 'Open' },
+    status: { type: String, enum: statusType },
     employerAssets: { type: [mediaItemSchema], default: [] },
     /*---------- worker ----------*/
     assignedWorkerId: { type: Schema.Types.ObjectId, ref: 'WorkerProfile' },

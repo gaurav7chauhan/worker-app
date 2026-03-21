@@ -132,17 +132,23 @@ const Post = () => {
   /* -------------------------------------------HANDLE IMAGE CHANGE--------------------------------------------- */
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    console.log(selectedFiles)
-    if (imagePreviews.length + selectedFiles.length > MAX_IMAGE) {
-      showErrToast(`Upload only ${MAX_IMAGE} images.`);
-      return;
-    }
+    let hasSizeError = false;
+    let hasDuplicateError = false;
+
     const validFiles = selectedFiles
       .filter((file) => {
         if (file.size > MAX_IMAGE_SIZE) {
-          showErrToast(
-            `Image size should not be more than ${MAX_IMAGE_SIZE} MB.`,
-          );
+          hasSizeError = true;
+          return false;
+        }
+        let isDuplicate = imagePreviews.some(
+          (image) =>
+            image.file.name === file.name &&
+            image.file.size === file.size &&
+            image.file.lastModified === file.lastModified,
+        );
+        if (isDuplicate) {
+          hasDuplicateError = true;
           return false;
         }
         return true;
@@ -151,6 +157,19 @@ const Post = () => {
         file,
         preview: URL.createObjectURL(file),
       }));
+
+    if (hasSizeError) {
+      showErrToast("Some images exceed size limit");
+    }
+    if (hasDuplicateError) {
+      showErrToast("Some images are duplicates");
+      console.log("DUPLICATE FOUND");
+    }
+    if (imagePreviews.length + selectedFiles.length > MAX_IMAGE) {
+      showErrToast(`Upload only ${MAX_IMAGE} images.`);
+      return;
+    }
+
     setImagePreviews((prev) => [...prev, ...validFiles]);
   };
 
@@ -169,13 +188,16 @@ const Post = () => {
   /* --------------------------------------HANDLE FORM SUBMISSION------------------------------------------------------------------- */
   const onSubmit = (data) => {
     let toastId;
-    toastId = showLoadingToast("Submiting Info");
     if (categoriesSelected.length === 0) {
-      showErrToast("Add at least one category", toastId);
+      showErrToast("Add at least one category");
       return;
     }
+
+    toastId = showLoadingToast("Submitting Info");
+
     const finalResult = {
       ...data,
+      employerAssets: imagePreviews ?? [],
       categories: categoriesSelected,
       skills: skillsSelected,
     };

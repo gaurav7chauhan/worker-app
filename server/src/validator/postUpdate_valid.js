@@ -38,7 +38,7 @@ export const updatePostSchema = z
       .positive('Budget must be greater than 0')
       .nullable()
       .optional(),
-    address: z.string().trim().toLowerCase(),
+    address: z.string().trim().optional(),
     location: geoPointSchema.nullable().optional(),
     employerAssets: z
       .array(EmployerAssetSchema)
